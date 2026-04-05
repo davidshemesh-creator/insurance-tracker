@@ -3824,8 +3824,8 @@ function renderCSVPreview() {
       if(cb) cb.checked = true;
     } else if(r.category==='unknown') {
       // אוטומטית: סמן כ"תשלום לא מזוהה" כדי שלא יאבד בייבוא
-      if(sel) sel.value = '__unknown__';
-      if(cb)  cb.checked = true;
+      if(sel) { sel.value = '__unknown__'; csvMapped[i]._selValue = '__unknown__'; }
+      if(cb)  { cb.checked = true; cb.classList.add('csv-cb-matched'); }
       csvMapped[i]._autoUnknown = true;
     }
   });
@@ -3860,11 +3860,12 @@ function csvSplit1Change(i, inp) {
 }
 
 function csvCheckChange(i, cb) {
-  // if no policy selected and trying to check, auto-focus the policy dropdown
-  if(cb.checked && !csvMapped[i].match) {
+  const sel = document.getElementById('csv-policy-'+i);
+  const hasSelection = csvMapped[i].match || sel?.value === '__unknown__';
+  if(cb.checked && !hasSelection) {
     cb.checked = false;
     toast('נא לבחור פוליסה תחילה','warning');
-    document.getElementById('csv-policy-'+i)?.focus();
+    sel?.focus();
   }
 }
 function csvRowEditMatch(i) {
@@ -3875,7 +3876,7 @@ function csvRowEditMatch(i) {
 }
 
 function csvRowPolicyChange(i,sel) {
-  csvMapped[i].match = sel.value ? policyById(sel.value) : null;
+  csvMapped[i].match = (sel.value && sel.value !== '__unknown__') ? policyById(sel.value) : null;
   const cb = document.getElementById('csv-check-'+i);
   if(cb) {
     if(sel.value) { cb.checked = true; }  // auto-check when policy selected
@@ -3901,7 +3902,7 @@ function importSelectedCSV() {
     const cb=document.getElementById('csv-check-'+i);
     if(!cb||!cb.checked) return;
     const sel = document.getElementById('csv-policy-'+i);
-    const rawPid = r.match?.id || sel?.value || '';
+    const rawPid = r.match?.id || r._selValue || sel?.value || '';
     if(!rawPid) return;
     // __unknown__ = תשלום לא מזוהה — יישמר בלי policyId
     const pid = rawPid === '__unknown__' ? null : rawPid;

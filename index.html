@@ -2047,6 +2047,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
+// Offline persistence — writes survive page close/refresh and retry automatically
+db.enablePersistence({ synchronizeTabs: true }).catch(e => {
+  if(e.code === 'failed-precondition') console.warn('Persistence: multiple tabs open');
+  else if(e.code === 'unimplemented') console.warn('Persistence: browser not supported');
+});
 let currentUser = null;
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }

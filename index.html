@@ -230,8 +230,9 @@ body {
   text-overflow: ellipsis;
 }
 .policy-row-company {
-  font-size: 12px;
-  color: rgba(255,255,255,.65);
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,.88);
   margin-top: 1px;
   white-space: nowrap;
   overflow: hidden;
@@ -2677,9 +2678,10 @@ function renderMonthlyChecklistCore(year, month) {
         <div class="mcl-dot" style="background:linear-gradient(135deg,${col}33,${col2}22);">${typeIcon(p.type)}</div>
         <span style="display:inline-block;background:${col}22;color:${col};border:1px solid ${col}55;border-radius:4px;padding:0px 4px;font-size:8px;font-weight:700;text-align:center;line-height:1.4;max-width:46px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.type}</span>
       </div>
-      <!-- Middle: company + policy number + free tag -->
+      <!-- Middle: type (bold) + company + policy number + tags -->
       <div class="mcl-info" style="cursor:pointer;min-width:0;" onclick="viewPolicy('${p.id}')">
-        <h4>${p.company}</h4>
+        <h4>${p.type}</h4>
+        <p style="font-size:12px;color:var(--text);font-weight:500;margin-top:1px;">${p.company}</p>
         ${p.policyNumber ? `<p style="font-size:10px;color:var(--text-dim);margin-top:1px;">#${p.policyNumber}</p>` : ''}
         ${payRec?.paidBy==='state' ? `<span style="display:inline-block;margin-top:2px;background:rgba(39,174,96,.12);color:#27ae60;border-radius:20px;padding:0px 7px;font-size:9px;font-weight:600;border:1px solid rgba(39,174,96,.3);">🏛️ הפקדת מדינה</span>` : ''}
         ${p.tag ? `<span style="display:inline-block;margin-top:2px;background:rgba(255,255,255,.06);color:var(--text-dim);border-radius:20px;padding:0px 7px;font-size:9px;font-weight:600;border:1px solid var(--border);">${p.tag}</span>` : ''}
@@ -2850,7 +2852,7 @@ function renderPolicies() {
         <div class="policy-row-left">
           <div class="policy-row-type">${typeIcon(p.type)} ${p.type}</div>
           <div class="policy-row-company">${p.company}</div>
-          ${detailLine ? `<div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${detailLine}</div>` : ''}
+          ${detailLine ? `<div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${detailLine}</div>` : ''}
           ${p.tag ? `<span class="policy-tag">${p.tag}</span>` : ''}
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">

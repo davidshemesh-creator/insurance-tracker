@@ -3620,10 +3620,12 @@ function processCSVMapping() {
     const amount = Math.abs(parseFloat(amtStr) || 0);
     let parsedDate='';
     if(dateC>=0&&row[dateC]){ parsedDate=parseIsraeliDate(row[dateC]); }
+    // If date column is set but parsing failed → skip row (catches "סה"כ" totals etc.)
+    if(!parsedDate && dateC>=0) return null;
     if(!parsedDate) parsedDate=new Date().toISOString().split('T')[0];
     const match=matchPolicy(desc, amount, parsedDate);
     return {idx:i,date:parsedDate,desc,amount,match,selected:!!match};
-  }).filter(r=>r.amount>0);
+  }).filter(r=>r && r.amount>0);
 
   // Conflict resolution: if same policy matched to multiple rows, keep best amount match,
   // then re-try the losers one by one (usedIds rebuilt fresh each time).

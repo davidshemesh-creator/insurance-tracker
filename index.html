@@ -4439,11 +4439,9 @@ function renderMonthlySummary() {
 
     return `<tr style="border-bottom:1px solid var(--border);">
       <td style="padding:6px 10px;cursor:pointer;" onclick="viewPolicy('${pol.id}')" title="פתח פרטי פוליסה">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="background:${col}22;color:${col};border:1px solid ${col}55;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700;white-space:nowrap;">${typeIcon(pol.type)} ${pol.type}</span>
-          <span style="font-size:12px;font-weight:700;">${pol.company}</span>
-        </div>
-        ${pol.tag ? `<div style="font-size:10px;color:var(--text-dim);margin-top:2px;padding-right:2px;">${pol.tag}</div>` : ''}
+        <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;">${typeIcon(pol.type)} ${pol.type}</div>
+        ${pol.tag ? `<div style="font-size:10px;color:var(--text-dim);margin-top:1px;">${pol.tag}</div>` : ''}
+        <div style="font-size:11px;color:var(--text-dim);margin-top:1px;">${pol.company}</div>
       </td>
       ${cells.join('')}
       ${rowSummaryCell}

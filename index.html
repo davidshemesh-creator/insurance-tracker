@@ -2837,12 +2837,19 @@ function renderPolicies() {
     // Right col: חסכונות לא נזילים
     const rightKeys = SAVINGS_TYPES.filter(t => groups[t]);
 
-    const colHeader = (label) =>
-      `<div style="font-size:13px;font-weight:800;color:var(--text-dim);letter-spacing:.03em;
-        padding:4px 0 10px;border-bottom:1px solid var(--border);margin-bottom:12px;">${label}</div>`;
+    const colSum = (keys) => keys.reduce((s, k) =>
+      s + (groups[k]||[]).reduce((s2, p) => s2 + (p.amount>0 ? toMonthly(p.amount, p.frequency) : 0), 0), 0);
 
-    leftHtml  = (leftKeys.length  ? colHeader('ביטוחים')              : '') + leftKeys.map(groupHtml).join('');
-    rightHtml = (rightKeys.length ? colHeader('חסכונות לא נזילים') : '') + rightKeys.map(groupHtml).join('');
+    const colHeader = (label, sum) =>
+      `<div style="font-size:13px;font-weight:800;color:var(--text-dim);letter-spacing:.03em;
+        padding:4px 0 10px;border-bottom:1px solid var(--border);margin-bottom:12px;
+        display:flex;justify-content:space-between;align-items:center;">
+        <span>${label}</span>
+        ${sum > 0 ? `<span style="font-size:12px;font-weight:700;color:var(--text);">${fmt$(sum)}<span style="font-size:10px;font-weight:500;color:var(--text-dim);">/חודש</span></span>` : ''}
+      </div>`;
+
+    leftHtml  = (leftKeys.length  ? colHeader('ביטוחים',             colSum(leftKeys))  : '') + leftKeys.map(groupHtml).join('');
+    rightHtml = (rightKeys.length ? colHeader('חסכונות לא נזילים', colSum(rightKeys)) : '') + rightKeys.map(groupHtml).join('');
   } else {
     // company grouping — auto-balance columns by item count
     const colCounts = [0, 0];

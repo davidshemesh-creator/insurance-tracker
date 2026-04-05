@@ -3739,7 +3739,7 @@ function renderCSVPreview() {
 
   const policyOptions = `<option value="">— בחר פוליסה —</option>`
     + `<option value="__unknown__">⚠️ תשלום לא מזוהה</option>`
-    + policies.map(p=>`<option value="${p.id}">${typeIcon(p.type)} ${p.company}</option>`).join('');
+    + policies.map(p=>`<option value="${p.id}">${typeIcon(p.type)} ${p.company} · ${p.type}${p.policyNumber?' #'+p.policyNumber:''}</option>`).join('');
 
   // Sort: matched → unknown-insurance → unrelated
   const catOrder = {matched:0, unknown:1, unrelated:2};

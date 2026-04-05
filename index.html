@@ -185,33 +185,29 @@ body {
 .policies-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0 32px;
+  gap: 0 20px;
   align-items: start;
-  position: relative;
-}
-.policies-grid::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 0; bottom: 0;
-  width: 1px;
-  background: var(--border);
-  pointer-events: none;
 }
 @media (max-width: 700px) {
   .policies-grid { grid-template-columns: 1fr; }
-  .policies-grid::after { display: none; }
 }
-/* כל עמודה — flex רגיל */
+/* כל עמודה — ריבוע כהה */
 .policies-col {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  background: var(--bg);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  padding: 20px 18px 24px;
 }
 .policies-col .section-label {
   font-size: 16px;
-  margin-top: 28px;
+  margin-top: 20px;
   margin-bottom: 10px;
+}
+.policies-col .section-label:first-child {
+  margin-top: 0;
 }
 .policies-col .section-label:first-child { margin-top: 0; }
 
@@ -1377,7 +1373,7 @@ tr:hover td { background: var(--bg3); }
     </div>
 
     <!-- ── POLICIES ──────────────────────────────────────────── -->
-    <div id="page-policies" class="page" style="padding: 28px 32px;">
+    <div id="page-policies" class="page" style="padding: 36px 44px;">
 
       <!-- Row 1: Title (no button here — moved to controls row) -->
       <!-- Row 1+2 merged: Title + tabs + search + add button -->

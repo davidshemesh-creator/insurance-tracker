@@ -2060,8 +2060,8 @@ let payments = [];
 function _userDoc(sub) {
   return db.collection('users').doc(currentUser.uid).collection('data').doc(sub);
 }
-const pp = () => { if(currentUser) _userDoc('policies').set({ items: policies }); };
-const py = () => { if(currentUser) _userDoc('payments').set({ items: payments }); };
+const pp = () => { if(currentUser) _userDoc('policies').set({ items: policies }).catch(e => { console.error('שגיאת שמירת פוליסות',e); toast('⚠️ שגיאת שמירה — פוליסות לא נשמרו','error'); }); };
+const py = () => { if(currentUser) _userDoc('payments').set({ items: payments }).catch(e => { console.error('שגיאת שמירת תשלומים',e); toast('⚠️ שגיאת שמירה — תשלומים לא נשמרו','error'); }); };
 
 async function _loadFromFirestore() {
   const [pd, yd] = await Promise.all([

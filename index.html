@@ -3367,14 +3367,26 @@ function renderHistory() {
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><h3>לא נמצאו תשלומים</h3><p>ייבא CSV או רשום תשלום ידנית.</p></div>`;
     return;
   }
-  el.innerHTML = filtered.map(pay=>{
+  // תשלומים לא מזוהים — הצג קודם כל עם אזהרה
+  const unknownPayments = filtered.filter(p => p.unknown || (!p.policyId && p.source==='csv'));
+  if(unknownPayments.length > 0) {
+    const unknownBanner = `<div style="background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#f5a623;display:flex;align-items:center;gap:8px;">
+      ⚠️ <strong>${unknownPayments.length} תשלומים לא משוייכים לפוליסה</strong> — דורשים בירור
+    </div>`;
+    el.innerHTML = unknownBanner;
+  } else {
+    el.innerHTML = '';
+  }
+
+  el.innerHTML += filtered.map(pay=>{
     const pol = policyById(pay.policyId);
-    const col = pol ? typeColor(pol.type) : '#555';
-    return `<div class="hist-item">
-      <div class="hist-dot" style="background:${col}25;">${pol?typeIcon(pol.type):'💳'}</div>
+    const isUnknown = pay.unknown || (!pay.policyId && pay.source==='csv');
+    const col = isUnknown ? '#f5a623' : pol ? typeColor(pol.type) : '#555';
+    return `<div class="hist-item" style="${isUnknown?'border:1px solid rgba(245,166,35,.4);background:rgba(245,166,35,.05);border-radius:8px;':''}">
+      <div class="hist-dot" style="background:${col}25;">${isUnknown?'⚠️':pol?typeIcon(pol.type):'💳'}</div>
       <div class="hist-info">
-        <h4>${pol?pol.company:'Deleted policy'}</h4>
-        <p>${fmtDate(pay.date)} · <span class="tag ${pay.source==='csv'?'tag-csv':'tag-manual'}" style="padding:1px 6px;font-size:10px;">${pay.source==='csv'?'CSV':'ידני'}</span>${pay.note?' · '+pay.note:''}</p>
+        <h4 style="${isUnknown?'color:#f5a623;':''}">${isUnknown?'לא משוייך — '+pay.note:pol?pol.company:'מדיניות נמחקה'}</h4>
+        <p>${fmtDate(pay.date)} · <span class="tag ${pay.source==='csv'?'tag-csv':'tag-manual'}" style="padding:1px 6px;font-size:10px;">${pay.source==='csv'?'CSV':'ידני'}</span>${pay.note&&!isUnknown?' · '+pay.note:''}</p>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <div style="text-align:left;">
@@ -3726,6 +3738,7 @@ function renderCSVPreview() {
   document.getElementById('csv-match-count').textContent = countText;
 
   const policyOptions = `<option value="">— בחר פוליסה —</option>`
+    + `<option value="__unknown__">⚠️ תשלום לא מזוהה</option>`
     + policies.map(p=>`<option value="${p.id}">${typeIcon(p.type)} ${p.company}</option>`).join('');
 
   // Sort: matched → unknown-insurance → unrelated
@@ -3847,8 +3860,10 @@ function importSelectedCSV() {
     const cb=document.getElementById('csv-check-'+i);
     if(!cb||!cb.checked) return;
     const sel = document.getElementById('csv-policy-'+i);
-    const pid = r.match?.id || sel?.value || '';
-    if(!pid) return;
+    const rawPid = r.match?.id || sel?.value || '';
+    if(!rawPid) return;
+    // __unknown__ = תשלום לא מזוהה — יישמר בלי policyId
+    const pid = rawPid === '__unknown__' ? null : rawPid;
     const useDate = dateOverride || r.date;
     // Dedup: skip if exact same payment already exists (same policy + date + amount)
     // פיצול — אם הוגדרה פוליסה שנייה עם סכום
@@ -3859,11 +3874,11 @@ function importSelectedCSV() {
       const splitDup = payments.some(pay => pay.policyId===split.policyId && pay.date===useDate && Math.abs(pay.amount-split.amount)<0.5);
       if(!splitDup) payments.push({id:uid(),policyId:split.policyId,date:useDate,amount:split.amount,actualAmount:split.amount,note:r.desc+' (פיצול)',source:'csv',createdAt:new Date().toISOString()});
     }
-    const isDuplicate = payments.some(pay =>
+    const isDuplicate = pid && payments.some(pay =>
       pay.policyId === pid && pay.date === useDate && Math.abs(pay.amount - mainAmount) < 0.5
     );
     if(isDuplicate) { skipped++; return; }
-    payments.push({id:uid(),policyId:pid,date:useDate,amount:mainAmount,actualAmount:mainAmount,note:r.desc,source:'csv',createdAt:new Date().toISOString()});
+    payments.push({id:uid(),policyId:pid||null,date:useDate,amount:mainAmount,actualAmount:mainAmount,note:r.desc,source:'csv',unknown:!pid,createdAt:new Date().toISOString()});
     n++;
   });
   if(n===0 && skipped===0){ toast('לא נבחרו שורות לייבוא — סמן שורות ולחץ שוב','warning'); return; }

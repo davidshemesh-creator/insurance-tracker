@@ -2591,21 +2591,30 @@ function renderMonthlyChecklistCore(year, month) {
     const recs = paymentsThisMonth.filter(pay => pay.policyId === p.id);
     return recs.reduce((s, pay) => s + (pay.actualAmount ?? pay.amount), 0);
   };
+  // Same but excludes state payments (not paid by me)
+  const getMyPaid = (p) => {
+    const recs = paymentsThisMonth.filter(pay => pay.policyId === p.id && pay.paidBy !== 'state');
+    return recs.reduce((s, pay) => s + (pay.actualAmount ?? pay.amount), 0);
+  };
 
   const paidCount   = dueThisMonth.filter(p => paidThisMonth.has(p.id)).length;
   const unpaidCount = dueThisMonth.length - paidCount;
   const totalDue    = dueThisMonth.reduce((s,p) => s + toMonthly(p.amount, p.frequency), 0);
-  // Use actual payment amounts for totalPaid (not estimates)
+  // totalPaid = only amounts I paid (excluding state deposits)
   const totalPaid   = dueThisMonth
     .filter(p => paidThisMonth.has(p.id))
-    .reduce((s, p) => s + getActualPaid(p), 0);
+    .reduce((s, p) => s + getMyPaid(p), 0);
+  const totalStatePaid = dueThisMonth
+    .filter(p => paidThisMonth.has(p.id))
+    .reduce((s, p) => s + (getActualPaid(p) - getMyPaid(p)), 0);
 
   // Header
   document.getElementById('monthly-checklist-title').textContent =
     `💳 תשלומים — ${monthNames[month]} ${year}`;
-  const subPaid = totalPaid > 0 ? `שולם: ${fmt$(totalPaid)}` : '';
-  const subDue  = unpaidCount > 0 ? `צפוי: ~${fmt$(totalDue - totalPaid)}` : '';
-  const subParts = [subPaid, subDue].filter(Boolean).join(' · ');
+  const subPaid  = totalPaid > 0 ? `שולם: ${fmt$(totalPaid)}` : '';
+  const subState = totalStatePaid > 0 ? `🏛️ מדינה: ${fmt$(totalStatePaid)}` : '';
+  const subDue   = unpaidCount > 0 ? `צפוי: ~${fmt$(totalDue - totalPaid)}` : '';
+  const subParts = [subPaid, subState, subDue].filter(Boolean).join(' · ');
   document.getElementById('monthly-checklist-sub').textContent =
     `${paidCount} מתוך ${dueThisMonth.length} שולמו` + (subParts ? ` · ${subParts}` : '');
 
@@ -2659,6 +2668,7 @@ function renderMonthlyChecklistCore(year, month) {
       <div class="mcl-info" style="cursor:pointer;min-width:0;" onclick="viewPolicy('${p.id}')">
         <h4>${p.company}</h4>
         ${p.policyNumber ? `<p style="font-size:10px;color:var(--text-dim);margin-top:1px;">#${p.policyNumber}</p>` : ''}
+        ${payRec?.paidBy==='state' ? `<span style="display:inline-block;margin-top:2px;background:rgba(39,174,96,.12);color:#27ae60;border-radius:20px;padding:0px 7px;font-size:9px;font-weight:600;border:1px solid rgba(39,174,96,.3);">🏛️ הפקדת מדינה</span>` : ''}
         ${p.tag ? `<span style="display:inline-block;margin-top:2px;background:rgba(255,255,255,.06);color:var(--text-dim);border-radius:20px;padding:0px 7px;font-size:9px;font-weight:600;border:1px solid var(--border);">${p.tag}</span>` : ''}
       </div>
       <!-- Left: freq tag + amount + toggle button -->

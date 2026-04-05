@@ -1420,14 +1420,22 @@ tr:hover td { background: var(--bg3); }
         <span class="search-icon">🔍</span>
         <input type="text" id="history-search" placeholder="חיפוש תשלומים…" oninput="renderHistory()">
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
         <select id="history-filter-policy" onchange="renderHistory()"
           style="flex:1;min-width:0;max-width:220px;direction:rtl;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;">
           <option value="">כל הפוליסות</option>
         </select>
-        <select id="history-filter-year" onchange="renderHistory()"
-          style="width:100px;flex-shrink:0;direction:rtl;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;">
+        <select id="history-filter-year" onchange="histYearChange()"
+          style="width:90px;flex-shrink:0;direction:rtl;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;">
           <option value="">כל השנים</option>
+        </select>
+        <select id="history-filter-month" onchange="renderHistory()"
+          style="width:110px;flex-shrink:0;direction:rtl;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;">
+          <option value="">כל החודשים</option>
+          <option value="01">ינואר</option><option value="02">פברואר</option><option value="03">מרץ</option>
+          <option value="04">אפריל</option><option value="05">מאי</option><option value="06">יוני</option>
+          <option value="07">יולי</option><option value="08">אוגוסט</option><option value="09">ספטמבר</option>
+          <option value="10">אוקטובר</option><option value="11">נובמבר</option><option value="12">דצמבר</option>
         </select>
       </div>
       <div id="history-list"></div>
@@ -3390,20 +3398,29 @@ function deletePayment(id) {
   renderHistory(); renderDashboard();
 }
 
+function histYearChange() {
+  // when year changes, reset month filter
+  document.getElementById('history-filter-month').value = '';
+  renderHistory();
+}
+
 function renderHistory() {
   const search = (document.getElementById('history-search')?.value||'').toLowerCase();
   const polF   = document.getElementById('history-filter-policy')?.value||'';
   const yearF  = document.getElementById('history-filter-year')?.value||'';
+  const monF   = document.getElementById('history-filter-month')?.value||'';
 
-  // Repopulate filters
+  // Repopulate policy + year filters
   const polSel = document.getElementById('history-filter-policy');
-  if(polSel){ const cur=polSel.value; polSel.innerHTML='<option value="">All Policies</option>'+policies.map(p=>`<option value="${p.id}" ${p.id===cur?'selected':''}>${typeIcon(p.type)} ${p.company}</option>`).join(''); polSel.value=cur; }
+  if(polSel){ const cur=polSel.value; polSel.innerHTML='<option value="">כל הפוליסות</option>'+policies.map(p=>`<option value="${p.id}" ${p.id===cur?'selected':''}>${typeIcon(p.type)} ${p.company}</option>`).join(''); polSel.value=cur; }
   const ySel = document.getElementById('history-filter-year');
-  if(ySel){ const cur=ySel.value; const yrs=[...new Set(payments.map(p=>p.date.slice(0,4)))].sort().reverse(); ySel.innerHTML='<option value="">All Years</option>'+yrs.map(y=>`<option value="${y}" ${y===cur?'selected':''}>${y}</option>`).join(''); ySel.value=cur; }
+  if(ySel){ const cur=ySel.value; const yrs=[...new Set(payments.map(p=>p.date?.slice(0,4)).filter(Boolean))].sort().reverse(); ySel.innerHTML='<option value="">כל השנים</option>'+yrs.map(y=>`<option value="${y}" ${y===cur?'selected':''}>${y}</option>`).join(''); ySel.value=cur; }
 
   let filtered = [...payments];
   if(polF)   filtered = filtered.filter(p=>p.policyId===polF);
-  if(yearF)  filtered = filtered.filter(p=>p.date.startsWith(yearF));
+  if(yearF)  filtered = filtered.filter(p=>p.date?.startsWith(yearF));
+  if(monF && yearF)  filtered = filtered.filter(p=>p.date?.startsWith(yearF+'-'+monF));
+  else if(monF)      filtered = filtered.filter(p=>p.date?.slice(5,7)===monF);
   if(search) filtered = filtered.filter(p=>{
     const pol=policyById(p.policyId);
     return (pol?.company||'').toLowerCase().includes(search)||(p.note||'').toLowerCase().includes(search);
@@ -3415,26 +3432,40 @@ function renderHistory() {
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><h3>לא נמצאו תשלומים</h3><p>ייבא CSV או רשום תשלום ידנית.</p></div>`;
     return;
   }
-  // תשלומים לא מזוהים — הצג קודם כל עם אזהרה
-  const unknownPayments = filtered.filter(p => p.unknown || (!p.policyId && p.source==='csv'));
-  if(unknownPayments.length > 0) {
-    const unknownBanner = `<div style="background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#f5a623;display:flex;align-items:center;gap:8px;">
-      ⚠️ <strong>${unknownPayments.length} תשלומים לא משוייכים לפוליסה</strong> — דורשים בירור
-    </div>`;
-    el.innerHTML = unknownBanner;
-  } else {
-    el.innerHTML = '';
-  }
 
-  el.innerHTML += filtered.map(pay=>{
+  const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+  // Unknown banner
+  const unknownPayments = filtered.filter(p => p.unknown || (!p.policyId && p.source==='csv'));
+  let html = unknownPayments.length > 0
+    ? `<div style="background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#f5a623;display:flex;align-items:center;gap:8px;">
+        ⚠️ <strong>${unknownPayments.length} תשלומים לא משוייכים לפוליסה</strong> — דורשים בירור
+       </div>`
+    : '';
+
+  // Group by month
+  let lastMonthKey = '';
+  filtered.forEach(pay => {
+    const d = new Date(pay.date + 'T12:00:00');
+    const monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if(monthKey !== lastMonthKey) {
+      lastMonthKey = monthKey;
+      const monthTotal = filtered
+        .filter(p => p.date?.startsWith(monthKey))
+        .reduce((s,p) => s + (p.actualAmount ?? p.amount), 0);
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;font-weight:700;color:var(--text);">${monthNames[d.getMonth()]} ${d.getFullYear()}</span>
+        <span style="font-size:12px;color:var(--text-dim);">סה"כ ${fmt$(monthTotal)}</span>
+      </div>`;
+    }
     const pol = policyById(pay.policyId);
     const isUnknown = pay.unknown || (!pay.policyId && pay.source==='csv');
     const col = isUnknown ? '#f5a623' : pol ? typeColor(pol.type) : '#555';
-    return `<div class="hist-item" style="${isUnknown?'border:1px solid rgba(245,166,35,.4);background:rgba(245,166,35,.05);border-radius:8px;':''}">
+    html += `<div class="hist-item" style="${isUnknown?'border:1px solid rgba(245,166,35,.4);background:rgba(245,166,35,.05);border-radius:8px;':''}">
       <div class="hist-dot" style="background:${col}25;">${isUnknown?'⚠️':pol?typeIcon(pol.type):'💳'}</div>
       <div class="hist-info">
-        <h4 style="${isUnknown?'color:#f5a623;':''}">${isUnknown?'לא משוייך — '+pay.note:pol?pol.company:'מדיניות נמחקה'}</h4>
-        <p>${fmtDate(pay.date)} · <span class="tag ${pay.source==='csv'?'tag-csv':'tag-manual'}" style="padding:1px 6px;font-size:10px;">${pay.source==='csv'?'CSV':'ידני'}</span>${pay.note&&!isUnknown?' · '+pay.note:''}</p>
+        <h4 style="${isUnknown?'color:#f5a623;':''}">${isUnknown?'לא משוייך — '+pay.note:pol?pol.company:'פוליסה נמחקה'}</h4>
+        <p>${fmtDate(pay.date)} · <span class="tag ${pay.source==='csv'?'tag-csv':'tag-manual'}" style="padding:1px 6px;font-size:10px;">${pay.source==='csv'?'CSV':'ידני'}</span>${pay.paidBy==='state'?' · 🏛️ מדינה':''}${pay.note&&!isUnknown?' · '+pay.note:''}</p>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <div style="text-align:left;">
@@ -3445,7 +3476,8 @@ function renderHistory() {
         <button class="btn btn-danger btn-sm btn-icon" onclick="deletePayment('${pay.id}')">✕</button>
       </div>
     </div>`;
-  }).join('');
+  });
+  el.innerHTML = html;
 }
 
 // ══════════════════════════════════════════════════════════════════

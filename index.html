@@ -816,26 +816,6 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
   font-weight: 600; white-space: nowrap;
 }
 
-/* ── Company color picker ───────────────────────────────────────── */
-.company-color-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px; border-bottom: 1px solid var(--border);
-}
-.company-color-row:last-child { border-bottom: none; }
-.company-color-swatch {
-  width: 32px; height: 32px; border-radius: 50%;
-  border: 2px solid rgba(255,255,255,.15); cursor: pointer;
-  flex-shrink: 0; position: relative; overflow: hidden;
-  transition: transform .15s;
-}
-.company-color-swatch:hover { transform: scale(1.12); }
-.company-color-swatch input[type="color"] {
-  position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px);
-  opacity: 0; cursor: pointer; border: none; padding: 0;
-}
-.company-color-name { font-size: 14px; font-weight: 600; flex: 1; margin-right: 12px; }
-.company-color-reset { font-size: 11px; color: var(--text-dim); cursor: pointer; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); background: none; }
-.company-color-reset:hover { color: var(--text); border-color: var(--text-dim); }
 
 /* ── CSV upload ─────────────────────────────────────────────────── */
 .upload-zone {
@@ -1578,9 +1558,6 @@ tr:hover td { background: var(--bg3); }
         </div>
       </div>
 
-      <div class="section-label">צבעי חברות מבטחות</div>
-      <div class="settings-card" id="company-colors-card"></div>
-
       <div class="section-label">🤖 Claude AI — קריאת PDF</div>
       <div class="settings-card">
         <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:10px;">
@@ -2102,17 +2079,6 @@ async function _loadFromFirestore() {
 
 // ══════════════════════════════════════════════════════════════════
 //  TYPE → COLOR mapping
-// ══════════════════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════════════════
-//  COMPANY → COLOR mapping (editable, persisted in localStorage)
-// ══════════════════════════════════════════════════════════════════
-const COMPANY_COLORS_DEFAULT = {
-  'מנורה מבטחים': ['#c0631a','#e07830'],
-  'הפניקס':        ['#1a3a6b','#2a5298'],
-  'מגדל':          ['#6b2fa0','#9b59b6'],
-  'הראל':          ['#1a7a3a','#27ae60'],
-  'אלטשולר שחם':  ['#145a32','#1e8449'],
-};
 const COMPANY_LOGOS = {
   'מנורה מבטחים': 'https://www.menoramivt.co.il/static/img/favicon.ico',
   'הפניקס':        'https://phoenixfinancial.co.il/wp-content/uploads/2025/05/cropped-Artboard-1-32x32.png',
@@ -2125,23 +2091,9 @@ function companyLogo(company, size=16) {
   if(!url) return '';
   return `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:#fff;border-radius:4px;flex-shrink:0;margin-right:5px;"><img src="${url}" width="20" height="20" style="object-fit:contain;" onerror="this.parentElement.style.display='none'"></span>`;
 }
-const COMPANY_COLORS_KEY = 'itrack_company_colors';
-let companyColors = (() => {
-  try { return JSON.parse(localStorage.getItem(COMPANY_COLORS_KEY)) || {...COMPANY_COLORS_DEFAULT}; }
-  catch { return {...COMPANY_COLORS_DEFAULT}; }
-})();
-function saveCompanyColors() { localStorage.setItem(COMPANY_COLORS_KEY, JSON.stringify(companyColors)); }
 function normalizeCompany(name) {
   if(name === 'מנורה') return 'מנורה מבטחים';
   return name;
-}
-function companyColor(company)  {
-  const c = companyColors[normalizeCompany(company)];
-  return c ? c[0] : '#555';
-}
-function companyColor2(company) {
-  const c = companyColors[normalizeCompany(company)];
-  return c ? c[1] : '#777';
 }
 // Blend a hex color toward white by ratio (0=original, 1=white)
 function lightenHex(hex, ratio) {
@@ -3062,9 +3014,8 @@ function openQuickUpdate(id) {
   const p = policyById(id);
   if(!p) return;
   const isBal = isBalanceType(p);
-  // Use company color if available, otherwise fall back to type color
-  const col  = companyColor(p.company)  !== '#555' ? companyColor(p.company)  : typeColor(p.type);
-  const col2 = companyColor2(p.company) !== '#777' ? companyColor2(p.company) : typeColor2(p.type);
+  const col  = typeColor(p.type);
+  const col2 = typeColor2(p.type);
 
   document.getElementById('qu-id').value = id;
   document.getElementById('qu-title').textContent = `⚡ עדכון מהיר — ${p.company}`;
@@ -4591,7 +4542,6 @@ function renderSettings() {
   // Populate saved API key
   const keyInp = document.getElementById('setting-api-key');
   if(keyInp) keyInp.value = getApiKey();
-  renderCompanyColors();
   initGmailStatus();
 }
 
@@ -4701,54 +4651,6 @@ async function sendGmailMessage() {
 
 function escHtml(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function renderCompanyColors() {
-  // Collect all unique companies from policies + defaults
-  const companies = [...new Set([
-    ...Object.keys(COMPANY_COLORS_DEFAULT),
-    ...policies.map(p=>p.company)
-  ])].sort((a,b)=>a.localeCompare(b,'he'));
-
-  const card = document.getElementById('company-colors-card');
-  if(!card) return;
-  card.innerHTML = companies.map(name => {
-    const col  = companyColors[name]?.[0] || '#555555';
-    const col2 = companyColors[name]?.[1] || '#777777';
-    const hasDefault = !!COMPANY_COLORS_DEFAULT[name];
-    return `<div class="company-color-row">
-      <div class="company-color-swatch" style="background:linear-gradient(135deg,${col},${col2});" title="לחץ לשינוי צבע">
-        <input type="color" value="${col}" oninput="updateCompanyColor('${name}',this.value)">
-      </div>
-      <span class="company-color-name">${name}</span>
-      ${hasDefault
-        ? `<button class="company-color-reset" onclick="resetCompanyColor('${name}')">איפוס</button>`
-        : `<button class="company-color-reset" onclick="resetCompanyColor('${name}')">ברירת מחדל</button>`}
-    </div>`;
-  }).join('');
-}
-function updateCompanyColor(name, hex) {
-  companyColors[name] = [hex, lightenHex(hex, 0.25)];
-  saveCompanyColors();
-  // Refresh the swatch gradient live
-  const rows = document.querySelectorAll('.company-color-row');
-  rows.forEach(row => {
-    const nameEl = row.querySelector('.company-color-name');
-    if(nameEl && nameEl.textContent === name) {
-      const swatch = row.querySelector('.company-color-swatch');
-      if(swatch) swatch.style.background = `linear-gradient(135deg,${hex},${lightenHex(hex,0.25)})`;
-    }
-  });
-  renderPolicies();
-}
-function resetCompanyColor(name) {
-  if(COMPANY_COLORS_DEFAULT[name]) {
-    companyColors[name] = COMPANY_COLORS_DEFAULT[name];
-  } else {
-    delete companyColors[name];
-  }
-  saveCompanyColors();
-  renderCompanyColors();
-  renderPolicies();
 }
 function exportBackup() {
   const blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),policies,payments},null,2)],{type:'application/json'});

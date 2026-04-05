@@ -3906,7 +3906,13 @@ function csvRowPolicyChange(i,sel) {
   }
   // update row style via class (avoid opacity on tr — Chrome GPU crash)
   const tr = cb?.closest('tr');
-  if(tr) { tr.classList.toggle('csv-unmatched', !sel.value); }
+  if(tr) {
+    tr.classList.toggle('csv-unmatched', !sel.value);
+    // clear inline opacity that was set during render for 'unrelated' rows
+    tr.style.opacity = sel.value ? '' : (csvMapped[i].category === 'unrelated' ? '.4' : '');
+  }
+  // update checkbox style
+  if(cb) { cb.classList.toggle('csv-cb-matched', !!sel.value); }
 }
 function csvSelectAll(master) {
   csvMapped.forEach((_,i)=>{ const cb=document.getElementById('csv-check-'+i); if(cb&&!cb.disabled) cb.checked=master.checked; });

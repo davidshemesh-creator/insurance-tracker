@@ -1721,16 +1721,22 @@ tr:hover td { background: var(--bg3); }
               <option value="annual">שנתי</option>
             </select>
           </div>
-          <div class="form-group" id="f-installments-group" style="display:none;">
-            <label>כמה תשלומים בשנה?</label>
-            <select id="f-installments">
-              <option value="1">תשלום אחד (בחודש ההתחלה)</option>
-              <option value="2">2 תשלומים (כל חצי שנה)</option>
-              <option value="3">3 תשלומים (כל 4 חודשים)</option>
-              <option value="4">4 תשלומים (כל רבעון)</option>
-              <option value="6">6 תשלומים (כל חודשיים)</option>
-              <option value="12">12 תשלומים (כל חודש)</option>
-            </select>
+          <div id="f-installments-group" style="display:none;">
+            <div class="form-group">
+              <label>כמה תשלומים בשנה?</label>
+              <select id="f-installments" onchange="toggleInstallments()">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="6">6</option>
+                <option value="12">12</option>
+              </select>
+            </div>
+            <div class="form-group full" id="f-payment-months-group" style="display:none;">
+              <label>באילו חודשים?</label>
+              <div id="f-payment-months-rows" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+            </div>
           </div>
           <div class="form-group full">
             <div class="checkbox-row form-group" style="margin-bottom:6px;">
@@ -2188,9 +2194,13 @@ function isDueInMonth(p, year, month) {
   if(freq === 'quarterly')   return monthsSinceStart % 3  === 0;
   if(freq === 'semi-annual') return monthsSinceStart % 6  === 0;
   if(freq === 'annual') {
-    // N consecutive months from renewal date each year, then nothing until next renewal
-    const inst = p.installments || 1;
-    return (monthsSinceStart % 12) < inst;
+    const months = p.paymentMonths;
+    if(months && months.length > 0) {
+      // Explicit months: due if current calendar month is in the list
+      return months.includes(month + 1); // month is 0-indexed
+    }
+    // Fallback: single payment in start month each year
+    return (monthsSinceStart % 12) === 0;
   }
   return false;
 }
@@ -2658,8 +2668,9 @@ function renderMonthlyChecklistCore(year, month) {
     if(freq === 'quarterly')    return monthsSinceStart % 3 === 0;
     if(freq === 'semi-annual')  return monthsSinceStart % 6 === 0;
     if(freq === 'annual') {
-      const inst = p.installments || 1;
-      return (monthsSinceStart % 12) < inst;
+      const months = p.paymentMonths;
+      if(months && months.length > 0) return months.includes(month + 1);
+      return (monthsSinceStart % 12) === 0;
     }
     return false;
   });
@@ -3024,6 +3035,7 @@ function openEditPolicy(id) {
   document.getElementById('f-type').value     = p.type;
   document.getElementById('f-frequency').value= p.frequency;
   document.getElementById('f-installments').value = String(p.installments || 1);
+  toggleInstallments(p.paymentMonths || []);
   document.getElementById('f-amount').value   = p.amount;
   document.getElementById('f-start').value    = p.start;
   document.getElementById('f-expiry').value   = p.expiry;
@@ -3091,9 +3103,37 @@ function toggleBalanceField() {
   document.getElementById('f-expiry').required = !isbal;
   toggleInstallments();
 }
-function toggleInstallments() {
+function toggleInstallments(existingMonths) {
   const freq = document.getElementById('f-frequency').value;
-  document.getElementById('f-installments-group').style.display = freq === 'annual' ? 'block' : 'none';
+  const grp  = document.getElementById('f-installments-group');
+  grp.style.display = freq === 'annual' ? 'block' : 'none';
+  if(freq !== 'annual') return;
+
+  const inst = parseInt(document.getElementById('f-installments').value) || 1;
+  const monthsGrp = document.getElementById('f-payment-months-group');
+  const monthsRow = document.getElementById('f-payment-months-rows');
+  const MONTHS_HE = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+  if(inst <= 1) {
+    monthsGrp.style.display = 'none';
+    return;
+  }
+  monthsGrp.style.display = '';
+  // Collect current selected values (to preserve when rebuilding)
+  const prev = existingMonths || Array.from(monthsRow.querySelectorAll('select')).map(s => parseInt(s.value)||1);
+  monthsRow.innerHTML = '';
+  for(let i = 0; i < inst; i++) {
+    const sel = document.createElement('select');
+    sel.style.cssText = 'background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:13px;';
+    MONTHS_HE.forEach((name, idx) => {
+      const opt = document.createElement('option');
+      opt.value = idx + 1;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+    sel.value = prev[i] || (i + 1);
+    monthsRow.appendChild(sel);
+  }
 }
 function savePolicy(e) {
   e.preventDefault();
@@ -3105,6 +3145,11 @@ function savePolicy(e) {
     type:    document.getElementById('f-type').value,
     frequency: document.getElementById('f-frequency').value,
     installments: parseInt(document.getElementById('f-installments').value) || 1,
+    paymentMonths: (() => {
+      const rows = document.getElementById('f-payment-months-rows');
+      const sels = rows ? Array.from(rows.querySelectorAll('select')) : [];
+      return sels.length > 0 ? sels.map(s => parseInt(s.value)) : [];
+    })(),
     amount:  parseFloat(document.getElementById('f-amount').value),
     start:   document.getElementById('f-start').value,
     expiry:  document.getElementById('f-expiry').value,

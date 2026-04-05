@@ -1386,17 +1386,15 @@ tr:hover td { background: var(--bg3); }
     <!-- ── POLICIES ──────────────────────────────────────────── -->
     <div id="page-policies" class="page">
 
-      <!-- Row 1: Title + Add button -->
-      <div class="policies-header-row">
-        <h2 id="policies-count-title" class="policies-page-title">פוליסות פעילות</h2>
-        <button class="btn btn-accent btn-sm" onclick="openAddPolicy()">+ הוסף פוליסה</button>
-      </div>
-
-      <!-- Row 2: Status tabs | Search + Group selector -->
-      <div class="policies-controls-row">
-        <div class="segment compact" id="policy-status-seg">
-          <button class="segment-btn active" onclick="setSegment('policy-status-seg', this, renderPolicies)" data-val="active">פעילות</button>
-          <button class="segment-btn" onclick="setSegment('policy-status-seg', this, renderPolicies)" data-val="expired">פגות תוקף</button>
+      <!-- Row 1: Title (no button here — moved to controls row) -->
+      <!-- Row 1+2 merged: Title + tabs + search + add button -->
+      <div class="policies-controls-row" style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <h2 id="policies-count-title" class="policies-page-title">פוליסות</h2>
+          <div class="segment compact" id="policy-status-seg">
+            <button class="segment-btn active" onclick="setSegment('policy-status-seg', this, renderPolicies)" data-val="active">פעילות</button>
+            <button class="segment-btn" onclick="setSegment('policy-status-seg', this, renderPolicies)" data-val="expired">פגות תוקף</button>
+          </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <div class="policies-search-wrap">
@@ -1408,8 +1406,10 @@ tr:hover td { background: var(--bg3); }
             <option value="type">לפי סוג</option>
             <option value="company">לפי חברה</option>
           </select>
+          <button class="btn btn-accent btn-sm" onclick="openAddPolicy()">+ הוסף פוליסה</button>
         </div>
       </div>
+
 
       <div id="policies-list" class="policies-grid"></div>
     </div>

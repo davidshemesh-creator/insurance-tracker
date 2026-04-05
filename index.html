@@ -3840,15 +3840,15 @@ function toggleDateOverride(cb) {
 }
 
 function initCSVImportPage() {
-  // Auto-enable date override with the currently viewed dashboard month
+  // עקוף תאריכים — כבוי ברירת מחדל. ממלא את הערך לנוחות אבל לא מפעיל.
   const tog = document.getElementById('csv-date-override-toggle');
   const inp = document.getElementById('csv-date-override-val');
   if(tog && inp) {
-    tog.checked = true;
+    tog.checked = false;
     const m = String(donutMonth + 1).padStart(2, '0');
     inp.value = `${donutYear}-${m}`;
-    inp.disabled = false;
-    inp.style.opacity = '1';
+    inp.disabled = true;
+    inp.style.opacity = '.5';
   }
 }
 

@@ -185,11 +185,22 @@ body {
 .policies-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0 16px;
+  gap: 0 32px;
   align-items: start;
+  position: relative;
+}
+.policies-grid::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: var(--border);
+  pointer-events: none;
 }
 @media (max-width: 700px) {
   .policies-grid { grid-template-columns: 1fr; }
+  .policies-grid::after { display: none; }
 }
 /* כל עמודה — flex רגיל */
 .policies-col {
@@ -1366,7 +1377,7 @@ tr:hover td { background: var(--bg3); }
     </div>
 
     <!-- ── POLICIES ──────────────────────────────────────────── -->
-    <div id="page-policies" class="page">
+    <div id="page-policies" class="page" style="padding: 28px 32px;">
 
       <!-- Row 1: Title (no button here — moved to controls row) -->
       <!-- Row 1+2 merged: Title + tabs + search + add button -->
@@ -2902,11 +2913,11 @@ function renderPolicies() {
       s + (groups[k]||[]).reduce((s2, p) => s2 + (p.amount>0 ? toMonthly(p.amount, p.frequency) : 0), 0), 0);
 
     const colHeader = (label, sum) =>
-      `<div style="font-size:13px;font-weight:800;color:var(--text-dim);letter-spacing:.03em;
-        padding:4px 0 10px;border-bottom:1px solid var(--border);margin-bottom:12px;
+      `<div style="font-size:14px;font-weight:800;color:var(--text);letter-spacing:.03em;
+        padding:6px 0 12px;border-bottom:2px solid var(--border);margin-bottom:16px;
         display:flex;justify-content:space-between;align-items:center;">
         <span>${label}</span>
-        ${sum > 0 ? `<span style="font-size:12px;font-weight:700;color:var(--text);">${fmt$(sum)}<span style="font-size:10px;font-weight:500;color:var(--text-dim);">/חודש</span></span>` : ''}
+        ${sum > 0 ? `<span style="font-size:13px;font-weight:700;color:var(--text);">${fmt$(sum)}<span style="font-size:11px;font-weight:500;color:var(--text-dim);">/חודש</span></span>` : ''}
       </div>`;
 
     leftHtml  = (leftKeys.length  ? colHeader('ביטוחים',             colSum(leftKeys))  : '') + leftKeys.map(groupHtml).join('');

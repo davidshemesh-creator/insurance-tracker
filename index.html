@@ -3742,9 +3742,9 @@ function renderCSVPreview() {
     + policies.map(p=>`<option value="${p.id}">${typeIcon(p.type)} ${p.company} · ${p.type}${p.policyNumber?' #'+p.policyNumber:''}${p.tag?' | '+p.tag:''}</option>`).join('');
 
   // Sort: matched → unknown-insurance → unrelated
-  const catOrder = {matched:0, unknown:1, unrelated:2};
+  const catOrder = {matched:1, unknown:2, unrelated:3};
   const sorted = [...csvMapped.map((r,i)=>({...r,_i:i}))]
-    .sort((a,b)=> (catOrder[a.category]||2) - (catOrder[b.category]||2));
+    .sort((a,b)=> (catOrder[a.category]??3) - (catOrder[b.category]??3));
 
   document.getElementById('csv-preview-tbody').innerHTML = sorted.map(r => {
     const i = r._i;

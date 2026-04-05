@@ -4412,7 +4412,37 @@ function renderMonthlySummary() {
     </tr>`;
   });
 
-  document.getElementById('monthly-summary-body').innerHTML = rows.join('');
+  // Unknown payments row
+  const unknownByMonth = new Array(12).fill(0);
+  let unknownTotal = 0;
+  payments.forEach(pay => {
+    if(!pay.unknown && pay.policyId) return;
+    const d = new Date(pay.date + 'T12:00:00');
+    if(d.getFullYear() !== year) return;
+    const amt = pay.actualAmount ?? pay.amount;
+    unknownByMonth[d.getMonth()] += amt;
+    unknownTotal += amt;
+  });
+  let unknownRow = '';
+  if(unknownTotal > 0) {
+    const uCells = monthNames.map((_, mIdx) => {
+      const amt = unknownByMonth[mIdx];
+      return amt > 0
+        ? `<td style="text-align:center;font-size:12px;font-weight:700;color:#f5a623;">⚠️ ${fmt$(amt)}</td>`
+        : `<td style="text-align:center;color:var(--text-dim);opacity:.2;">—</td>`;
+    });
+    unknownRow = `<tr style="border-bottom:1px solid var(--border);background:rgba(245,166,35,.04);">
+      <td style="padding:6px 10px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="background:rgba(245,166,35,.2);color:#f5a623;border:1px solid rgba(245,166,35,.4);border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700;white-space:nowrap;">⚠️ לא מזוהה</span>
+        </div>
+      </td>
+      ${uCells.join('')}
+      <td style="text-align:center;font-weight:700;font-size:12px;color:#f5a623;">${fmt$(unknownTotal)}</td>
+    </tr>`;
+  }
+
+  document.getElementById('monthly-summary-body').innerHTML = rows.join('') + unknownRow;
 
   // Footer — month totals
   // חשב סכום בפועל לכל חודש (רק תשלומים אמיתיים, לא הערכות)
@@ -4426,6 +4456,8 @@ function renderMonthlySummary() {
       actualMonthTotals[mIdx] += payRecs.reduce((s,p) => s + (p.actualAmount ?? p.amount), 0);
     }
   });
+  // Add unknown payments to actual totals
+  unknownByMonth.forEach((amt, mIdx) => { actualMonthTotals[mIdx] += amt; });
 
   // חשב הערכה חודשית טהורה (ללא תשלומים בפועל) לכל חודש
   const estimateMonthTotals = new Array(12).fill(0);

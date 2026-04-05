@@ -1462,6 +1462,17 @@ tr:hover td { background: var(--bg3); }
           <div class="section-label" style="margin:0;">עסקאות מתאימות</div>
           <span id="csv-match-count" class="tag tag-csv"></span>
         </div>
+        <!-- Default policy for all rows -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px 14px;background:rgba(39,174,96,.07);border:1px solid rgba(39,174,96,.22);border-radius:8px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:600;white-space:nowrap;">מפה הכל ל:</span>
+          <select id="csv-default-policy" style="flex:1;min-width:160px;font-size:12px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);max-width:280px;" onchange="applyDefaultPolicy(this)">
+            <option value="">— בחר פוליסה לכל השורות —</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;white-space:nowrap;">
+            <input type="checkbox" id="csv-state-payment" style="width:15px;height:15px;cursor:pointer;">
+            🏛️ הפקדת מדינה (לא יורד ממני)
+          </label>
+        </div>
         <!-- Date override -->
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:rgba(90,140,255,.08);border:1px solid rgba(90,140,255,.2);border-radius:8px;">
           <input type="checkbox" id="csv-date-override-toggle" onchange="toggleDateOverride(this)" style="width:16px;height:16px;cursor:pointer;">
@@ -2657,9 +2668,9 @@ function renderMonthlyChecklistCore(year, month) {
           <span class="mcl-amount ${paid?'paid-amt':''}" title="${paid && payRec && Math.abs(payRec.amount - monthly) > 1 ? 'סכום צפוי: '+fmt$(monthly) : ''}">${fmt$(displayAmt)}</span>
         </div>
         <button class="mcl-toggle ${paid?'paid-btn':'unpaid'}"
-          title="${paid ? 'מסומן כשולם — לחץ לביטול' : 'סמן כשולם'}"
+          title="${payRec?.paidBy==='state' ? '🏛️ הפקדת מדינה' : paid ? 'מסומן כשולם — לחץ לביטול' : 'סמן כשולם'}"
           onclick="toggleMonthlyPaid('${p.id}',${paid},'${payRec?.id||''}')">
-          ${paid ? '✓' : '○'}
+          ${payRec?.paidBy==='state' ? '🏛️' : paid ? '✓' : '○'}
         </button>
       </div>
     </div>`;
@@ -3763,6 +3774,13 @@ function renderCSVPreview() {
     + `<option value="__unknown__">⚠️ תשלום לא מזוהה</option>`
     + policies.map(p=>`<option value="${p.id}">${typeIcon(p.type)} ${p.company} · ${p.type}${p.policyNumber?' #'+p.policyNumber:''}${p.tag?' | '+p.tag:''}</option>`).join('');
 
+  // Populate "default policy" dropdown
+  const defSel = document.getElementById('csv-default-policy');
+  if(defSel) {
+    defSel.innerHTML = '<option value="">— בחר פוליסה לכל השורות —</option>'
+      + policies.map(p=>`<option value="${p.id}">${typeIcon(p.type)} ${p.company} · ${p.type}${p.policyNumber?' #'+p.policyNumber:''}${p.tag?' | '+p.tag:''}</option>`).join('');
+  }
+
   // Sort: matched → unknown-insurance → unrelated
   const catOrder = {matched:1, unknown:2, unrelated:3};
   const sorted = [...csvMapped.map((r,i)=>({...r,_i:i}))]
@@ -3896,6 +3914,21 @@ function csvRowEditMatch(i) {
   if(label) label.style.display = 'none';
   if(sel)   { sel.style.display = 'inline-block'; sel.focus(); }
 }
+function applyDefaultPolicy(masterSel) {
+  const pid = masterSel.value;
+  if(!pid) return;
+  const policy = policyById(pid);
+  csvMapped.forEach((r,i) => {
+    if(r.category === 'matched') return; // don't override auto-matched rows
+    const rowSel = document.getElementById('csv-policy-'+i);
+    const cb     = document.getElementById('csv-check-'+i);
+    if(rowSel) { rowSel.value = pid; csvMapped[i]._selValue = pid; }
+    csvMapped[i].match = policy || null;
+    if(cb) { cb.checked = true; cb.classList.add('csv-cb-matched'); }
+    const tr = cb?.closest('tr');
+    if(tr) { tr.classList.remove('csv-unmatched'); tr.style.opacity = ''; }
+  });
+}
 
 function csvRowPolicyChange(i,sel) {
   csvMapped[i].match = (sel.value && sel.value !== '__unknown__') ? policyById(sel.value) : null;
@@ -3925,6 +3958,7 @@ function importSelectedCSV() {
     ? overrideVal.value + '-15'   // e.g. "2026-01-15"
     : null;
 
+  const isStatePay = document.getElementById('csv-state-payment')?.checked || false;
   let n=0, skipped=0;
   csvMapped.forEach((r,i)=>{
     const cb=document.getElementById('csv-check-'+i);
@@ -3935,7 +3969,6 @@ function importSelectedCSV() {
     // __unknown__ = תשלום לא מזוהה — יישמר בלי policyId
     const pid = rawPid === '__unknown__' ? null : rawPid;
     const useDate = dateOverride || r.date;
-    // Dedup: skip if exact same payment already exists (same policy + date + amount)
     // פיצול — אם הוגדרה פוליסה שנייה עם סכום
     const split = r.split;
     let mainAmount = r.amount;
@@ -3948,7 +3981,9 @@ function importSelectedCSV() {
       pay.policyId === pid && pay.date === useDate && Math.abs(pay.amount - mainAmount) < 0.5
     );
     if(isDuplicate) { skipped++; return; }
-    payments.push({id:uid(),policyId:pid||null,date:useDate,amount:mainAmount,actualAmount:mainAmount,note:r.desc,source:'csv',unknown:!pid,createdAt:new Date().toISOString()});
+    const payObj = {id:uid(),policyId:pid||null,date:useDate,amount:mainAmount,actualAmount:mainAmount,note:r.desc,source:'csv',unknown:!pid,createdAt:new Date().toISOString()};
+    if(isStatePay && pid) payObj.paidBy = 'state';
+    payments.push(payObj);
     n++;
   });
   if(n===0 && skipped===0){ toast('לא נבחרו שורות לייבוא — סמן שורות ולחץ שוב','warning'); return; }

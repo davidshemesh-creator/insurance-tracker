@@ -4283,8 +4283,8 @@ function renderMonthlySummary() {
 
   const activePols = policies.filter(p => {
     const s = new Date(p.start  + 'T12:00:00');
-    const e = new Date(p.expiry + 'T12:00:00');
-    const activeThisYear = s <= new Date(year, 11, 31) && e >= new Date(year, 0, 1);
+    const e = p.expiry ? new Date(p.expiry + 'T12:00:00') : null;
+    const activeThisYear = s <= new Date(year, 11, 31) && (!e || e >= new Date(year, 0, 1));
     const hadPayment = yearPaymentPolicies.has(p.id);
     return (activeThisYear && p.amount > 0) || hadPayment;
   }).sort((a,b) => {

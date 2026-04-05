@@ -1399,11 +1399,13 @@ tr:hover td { background: var(--bg3); }
         <span class="search-icon">🔍</span>
         <input type="text" id="history-search" placeholder="חיפוש תשלומים…" oninput="renderHistory()">
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:12px;overflow:visible;">
-        <select id="history-filter-policy" onchange="renderHistory()" style="flex:1;min-width:0;max-width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;">
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <select id="history-filter-policy" onchange="renderHistory()"
+          style="flex:1;min-width:0;max-width:220px;direction:rtl;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;">
           <option value="">כל הפוליסות</option>
         </select>
-        <select id="history-filter-year" onchange="renderHistory()" style="width:90px;flex-shrink:0;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;">
+        <select id="history-filter-year" onchange="renderHistory()"
+          style="width:100px;flex-shrink:0;direction:rtl;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;">
           <option value="">כל השנים</option>
         </select>
       </div>

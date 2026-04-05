@@ -3756,24 +3756,42 @@ function renderCSVPreview() {
     // Policy cell
     let policyCell;
     if(cat==='matched') {
-      policyCell = `<div style="display:flex;flex-direction:column;gap:3px;">
+      const splitAmt2 = r.split?.amount || '';
+      const splitAmt1 = splitAmt2 ? (r.amount - splitAmt2).toFixed(2) : r.amount.toFixed(2);
+      policyCell = `<div style="display:flex;flex-direction:column;gap:4px;">
+        <!-- שורה ראשית: פוליסה מזוהה + כפתורים -->
         <span id="csv-match-label-${i}" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">
-          ${typeIcon(r.match.type)} ${r.match.company} · <em style="color:var(--accent);font-style:normal;">${r.match.type}</em>
+          ${typeIcon(r.match.type)} ${r.match.company} · <em style="color:var(--accent);font-style:normal;">${r.match.type}${r.match.policyNumber?' #'+r.match.policyNumber:''}</em>
           <button onclick="csvRowEditMatch(${i})" title="שנה פוליסה" style="background:none;border:none;cursor:pointer;font-size:11px;padding:1px 4px;border-radius:4px;color:var(--text-dim);">✏️</button>
-          <button onclick="csvAddSplit(${i})" title="פצל לשתי פוליסות" style="background:none;border:none;cursor:pointer;font-size:11px;padding:1px 4px;border-radius:4px;color:var(--text-dim);">✂️</button>
+          <button onclick="csvAddSplit(${i})" title="פצל לשתי פוליסות"
+            style="background:rgba(245,166,35,.2);border:1px solid rgba(245,166,35,.5);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;color:#f5a623;font-weight:700;">✂️ פצל</button>
         </span>
-        <select id="csv-policy-${i}" style="display:none;font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);max-width:160px;" onchange="csvRowPolicyChange(${i},this)">
+        <select id="csv-policy-${i}" style="display:none;font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);max-width:220px;" onchange="csvRowPolicyChange(${i},this)">
           ${policyOptions.replace(`value="${r.match.id}"`, `value="${r.match.id}" selected`)}
         </select>
-        <div id="csv-split-${i}" style="display:${r.split?'flex':'none'};align-items:center;gap:4px;margin-top:2px;">
-          <span style="font-size:10px;color:var(--text-dim);">+ פוליסה שנייה:</span>
-          <select id="csv-split-pol-${i}" style="font-size:11px;padding:2px 5px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--text);max-width:130px;" onchange="csvSplitPolChange(${i},this)">
-            ${policyOptions}
-          </select>
-          <input type="number" id="csv-split-amt-${i}" placeholder="סכום" step="0.01" min="0"
-            value="${r.split?.amount||''}"
-            style="width:70px;font-size:11px;padding:2px 5px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--text);"
-            oninput="csvSplitAmtChange(${i},this)">
+        <!-- פיצול לשתי פוליסות -->
+        <div id="csv-split-${i}" style="display:${r.split?'block':'none'};background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.25);border-radius:6px;padding:6px 8px;margin-top:2px;">
+          <div style="font-size:10px;color:#f5a623;font-weight:700;margin-bottom:5px;">✂️ פיצול — סה"כ חיוב: ${fmt$(r.amount)}</div>
+          <!-- פוליסה 1 -->
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="font-size:10px;color:var(--text-dim);width:14px;">1.</span>
+            <span style="font-size:11px;color:var(--text-dim);flex:1;">${typeIcon(r.match.type)} ${r.match.company} · ${r.match.type}${r.match.policyNumber?' #'+r.match.policyNumber:''}</span>
+            <input type="number" id="csv-split-amt1-${i}" value="${splitAmt1}" step="0.01" min="0"
+              style="width:72px;font-size:12px;font-weight:700;padding:3px 6px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--text);text-align:left;"
+              oninput="csvSplit1Change(${i},this)">
+            <span style="font-size:10px;color:var(--text-dim);">₪</span>
+          </div>
+          <!-- פוליסה 2 -->
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:10px;color:var(--text-dim);width:14px;">2.</span>
+            <select id="csv-split-pol-${i}" style="font-size:11px;padding:2px 5px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--text);flex:1;max-width:200px;" onchange="csvSplitPolChange(${i},this)">
+              ${policyOptions}
+            </select>
+            <input type="number" id="csv-split-amt-${i}" value="${splitAmt2}" step="0.01" min="0"
+              style="width:72px;font-size:12px;font-weight:700;padding:3px 6px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--text);text-align:left;"
+              oninput="csvSplitAmtChange(${i},this)">
+            <span style="font-size:10px;color:var(--text-dim);">₪</span>
+          </div>
         </div>
       </div>`;
     } else {
@@ -3806,16 +3824,31 @@ function renderCSVPreview() {
 }
 function csvAddSplit(i) {
   const row = csvMapped[i];
-  if(!row.split) row.split = { policyId: '', amount: '' };
-  document.getElementById('csv-split-'+i).style.display = 'flex';
+  if(!row.split) row.split = { policyId: '', amount: 0 };
+  document.getElementById('csv-split-'+i).style.display = 'block';
 }
 function csvSplitPolChange(i, sel) {
   if(!csvMapped[i].split) csvMapped[i].split = {};
   csvMapped[i].split.policyId = sel.value;
 }
 function csvSplitAmtChange(i, inp) {
+  // עדכון סכום פוליסה 2 → פוליסה 1 = סה"כ - פוליסה 2
   if(!csvMapped[i].split) csvMapped[i].split = {};
-  csvMapped[i].split.amount = parseFloat(inp.value) || 0;
+  const amt2 = parseFloat(inp.value) || 0;
+  csvMapped[i].split.amount = amt2;
+  const total = csvMapped[i].amount;
+  const amt1Input = document.getElementById('csv-split-amt1-'+i);
+  if(amt1Input) amt1Input.value = Math.max(0, total - amt2).toFixed(2);
+}
+function csvSplit1Change(i, inp) {
+  // עדכון סכום פוליסה 1 → פוליסה 2 = סה"כ - פוליסה 1
+  const amt1 = parseFloat(inp.value) || 0;
+  const total = csvMapped[i].amount;
+  const amt2 = Math.max(0, total - amt1);
+  if(!csvMapped[i].split) csvMapped[i].split = {};
+  csvMapped[i].split.amount = parseFloat(amt2.toFixed(2));
+  const amt2Input = document.getElementById('csv-split-amt-'+i);
+  if(amt2Input) amt2Input.value = amt2.toFixed(2);
 }
 
 function csvCheckChange(i, cb) {

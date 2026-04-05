@@ -4405,7 +4405,8 @@ function renderMonthlySummary() {
 }
 
 function clearAllPayments() {
-  if(!confirm(`נקה את כל ${payments.length} התשלומים?\n\nהפוליסות לא יימחקו. לא ניתן לבטל פעולה זו.`)) return;
+  const word = prompt(`פעולה זו תמחק את כל ${payments.length} התשלומים.\nהפוליסות לא יימחקו.\n\nהקלד "מחק" לאישור:`);
+  if(word !== 'מחק') { if(word !== null) toast('ביטול — לא נמחק', 'warning'); return; }
   payments = [];
   py();
   renderSettings(); renderDashboard(); renderMonthlySummary();
@@ -4632,7 +4633,8 @@ function importBackup(inp) {
   r.readAsText(file);
 }
 function clearAllData() {
-  if(!confirm('למחוק את כל הנתונים? לא ניתן לשחזר.')) return;
+  const word = prompt(`⚠️ פעולה זו תמחק את כל הפוליסות והתשלומים.\nלא ניתן לשחזר!\n\nהקלד "מחק הכל" לאישור:`);
+  if(word !== 'מחק הכל') { if(word !== null) toast('ביטול — לא נמחק', 'warning'); return; }
   policies=[]; payments=[]; pp(); py();
   toast('כל הנתונים נמחקו.','warning');
   renderSettings(); renderDashboard();

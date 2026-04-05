@@ -3616,20 +3616,20 @@ function processCSVMapping() {
   };
   resolveConflicts();
 
-  // סנן: הצג רק שורות שקשורות לביטוח/חסכון
+  // סמן כל שורה: מזוהה / ביטוח-לא-מוכר / לא-רלוונטי
   const INSURANCE_KEYWORDS = [
     'מנורה','פניקס','מגדל','הראל','אלטשולר','שחם','כלל','איילון','הכשרה',
     'ביטוח','פנסיה','גמל','השתלמות','חסכון','ריסק','סיעוד','בריאות',
     'menora','phoenix','migdal','harel','clal','ayalon'
   ];
-  const totalBefore = csvMapped.length;
-  csvMapped = csvMapped.filter(r => {
-    if(r.match) return true; // זוהה → תמיד מוצג
+  csvMapped.forEach(r => {
     const dl = r.desc.toLowerCase();
-    return INSURANCE_KEYWORDS.some(kw => dl.includes(kw));
+    r.isInsuranceRelated = INSURANCE_KEYWORDS.some(kw => dl.includes(kw));
+    // קטגוריה: matched / unknown-insurance / unrelated
+    if(r.match)               r.category = 'matched';
+    else if(r.isInsuranceRelated) r.category = 'unknown';
+    else                      r.category = 'unrelated';
   });
-  const filteredOut = totalBefore - csvMapped.length;
-  csvMapped._filteredOut = filteredOut; // שמור לתצוגה
 
   renderCSVPreview();
 }
@@ -3703,43 +3703,65 @@ function matchPolicy(desc, csvAmount, txDate, excludeIds = new Set()) {
 function renderCSVPreview() {
   document.getElementById('csv-mapping-section').style.display='none';
   document.getElementById('csv-preview-section').style.display='block';
-  const matched=csvMapped.filter(r=>r.match).length;
-  const filteredOut = csvMapped._filteredOut || 0;
-  const filterNote = filteredOut > 0 ? ` · ${filteredOut} שורות לא רלוונטיות הוסתרו` : '';
-  document.getElementById('csv-match-count').textContent=`${matched}/${csvMapped.length} עסקאות מזוהות${filterNote}`;
-  // Build ONE shared options string — reused for unmatched rows only (avoids duplicate DOM)
-  const policyOptions=`<option value="">— בחר פוליסה —</option>`+policies.map(p=>`<option value="${p.id}">${typeIcon(p.type)} ${p.company}</option>`).join('');
-  // Sort: matched rows first, then unmatched
-  const sorted = [...csvMapped.map((r,i)=>({...r,_i:i}))].sort((a,b)=>(b.match?1:0)-(a.match?1:0));
-  document.getElementById('csv-preview-tbody').innerHTML=sorted.map(r=>{
-    const i=r._i;
-    // Matched rows: show label + ✏️ edit button (dropdown created on demand to avoid Chrome crash)
-    // Unmatched rows: show dropdown immediately
-    const policyCell = r.match
-      ? `<span id="csv-match-label-${i}" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">
-           ${typeIcon(r.match.type)} ${r.match.company} · <em style="color:var(--accent);font-style:normal;">${r.match.type}</em>
-           <button onclick="csvRowEditMatch(${i})" title="שנה פוליסה" style="background:none;border:none;cursor:pointer;font-size:11px;padding:1px 4px;border-radius:4px;color:var(--text-dim);hover:color:var(--text);">✏️</button>
-         </span>
-         <select id="csv-policy-${i}" style="display:none;font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);max-width:160px;" onchange="csvRowPolicyChange(${i},this)">
-           ${policyOptions.replace(`value="${r.match.id}"`, `value="${r.match.id}" selected`)}
-         </select>`
-      : `<select id="csv-policy-${i}" style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);max-width:140px;" onchange="csvRowPolicyChange(${i},this)">
+
+  const matchedCount  = csvMapped.filter(r=>r.category==='matched').length;
+  const unknownCount  = csvMapped.filter(r=>r.category==='unknown').length;
+  const total         = csvMapped.length;
+  let countText = `${matchedCount}/${total} עסקאות מזוהות`;
+  if(unknownCount > 0) countText += ` · ⚠️ ${unknownCount} חיובי ביטוח לא מוכרים`;
+  document.getElementById('csv-match-count').textContent = countText;
+
+  const policyOptions = `<option value="">— בחר פוליסה —</option>`
+    + policies.map(p=>`<option value="${p.id}">${typeIcon(p.type)} ${p.company}</option>`).join('');
+
+  // Sort: matched → unknown-insurance → unrelated
+  const catOrder = {matched:0, unknown:1, unrelated:2};
+  const sorted = [...csvMapped.map((r,i)=>({...r,_i:i}))]
+    .sort((a,b)=> (catOrder[a.category]||2) - (catOrder[b.category]||2));
+
+  document.getElementById('csv-preview-tbody').innerHTML = sorted.map(r => {
+    const i = r._i;
+    const cat = r.category;
+
+    // Row style per category
+    const rowStyle = cat==='unrelated' ? 'opacity:.4;' : '';
+
+    // Policy cell
+    let policyCell;
+    if(cat==='matched') {
+      policyCell = `<span id="csv-match-label-${i}" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">
+          ${typeIcon(r.match.type)} ${r.match.company} · <em style="color:var(--accent);font-style:normal;">${r.match.type}</em>
+          <button onclick="csvRowEditMatch(${i})" title="שנה פוליסה" style="background:none;border:none;cursor:pointer;font-size:11px;padding:1px 4px;border-radius:4px;color:var(--text-dim);">✏️</button>
+        </span>
+        <select id="csv-policy-${i}" style="display:none;font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);max-width:160px;" onchange="csvRowPolicyChange(${i},this)">
+          ${policyOptions.replace(`value="${r.match.id}"`, `value="${r.match.id}" selected`)}
+        </select>`;
+    } else {
+      policyCell = `<select id="csv-policy-${i}" style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);max-width:140px;" onchange="csvRowPolicyChange(${i},this)">
           ${policyOptions}
         </select>`;
-    const cbClass = r.match ? 'csv-cb-matched' : '';
-    return `<tr class="${r.match?'':'csv-unmatched'}">
+    }
+
+    // Status cell
+    const statusCell = cat==='matched'  ? '' :
+                       cat==='unknown'  ? '<span title="חיוב ביטוחי — לא נמצאה פוליסה מתאימה" style="color:#f5a623;font-size:12px;cursor:help;">⚠️</span>' :
+                                          '<span style="color:var(--text-sub);font-size:11px;">—</span>';
+
+    const cbClass = cat==='matched' ? 'csv-cb-matched' : '';
+    return `<tr class="${cat==='matched'?'':'csv-unmatched'}" style="${rowStyle}">
       <td><input type="checkbox" id="csv-check-${i}" class="${cbClass}" onchange="csvCheckChange(${i},this)"></td>
       <td style="white-space:nowrap;font-size:12px;">${fmtDate(r.date)}</td>
       <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;" title="${r.desc}">${r.desc}</td>
       <td style="font-weight:700;">${fmt$(r.amount)}</td>
       <td>${policyCell}</td>
-      <td>${r.match?'':'<span style="color:#f5c518;font-size:11px;">⚠</span>'}</td>
+      <td style="text-align:center;">${statusCell}</td>
     </tr>`;
   }).join('');
+
   // Set checkbox.checked via JS for matched rows
   csvMapped.forEach((r,i)=>{
     const cb = document.getElementById('csv-check-'+i);
-    if(cb && r.match) cb.checked = true;
+    if(cb && r.category==='matched') cb.checked = true;
   });
 }
 function csvCheckChange(i, cb) {

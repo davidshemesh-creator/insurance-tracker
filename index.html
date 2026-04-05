@@ -3816,10 +3816,18 @@ function renderCSVPreview() {
     </tr>`;
   }).join('');
 
-  // Set checkbox.checked via JS for matched rows
+  // Set checkbox.checked + auto-assign unknown insurance rows
   csvMapped.forEach((r,i)=>{
-    const cb = document.getElementById('csv-check-'+i);
-    if(cb && r.category==='matched') cb.checked = true;
+    const cb  = document.getElementById('csv-check-'+i);
+    const sel = document.getElementById('csv-policy-'+i);
+    if(r.category==='matched') {
+      if(cb) cb.checked = true;
+    } else if(r.category==='unknown') {
+      // אוטומטית: סמן כ"תשלום לא מזוהה" כדי שלא יאבד בייבוא
+      if(sel) sel.value = '__unknown__';
+      if(cb)  cb.checked = true;
+      csvMapped[i]._autoUnknown = true;
+    }
   });
 }
 function csvAddSplit(i) {

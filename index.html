@@ -2843,15 +2843,14 @@ function renderPolicies() {
       const isDup = false;
       const col  = typeColor(p.type);
       const col2 = typeColor2(p.type);
-      const mainLabel  = groupBy==='company' ? p.type : p.company;
-      const mainIcon   = '';
-      const secondLine = (p.agent||'')+(p.agent&&p.policyNumber?' · ':'')+( p.policyNumber||'')+((!p.agent&&!p.policyNumber)?fmtDate(p.expiry):'');
+      const detailLine = (p.agent||'')+(p.agent&&p.policyNumber?' · ':'')+( p.policyNumber||'')+((!p.agent&&!p.policyNumber)?fmtDate(p.expiry):'');
       h += `<div class="policy-row ${isDup?'dup':''}"
         style="background:linear-gradient(135deg,${col},${col2});"
         onclick="viewPolicy('${p.id}')">
         <div class="policy-row-left">
-          <div class="policy-row-type" style="display:flex;align-items:center;gap:5px;">${mainLabel}${mainIcon}</div>
-          <div class="policy-row-company">${secondLine}</div>
+          <div class="policy-row-type">${typeIcon(p.type)} ${p.type}</div>
+          <div class="policy-row-company">${p.company}</div>
+          ${detailLine ? `<div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${detailLine}</div>` : ''}
           ${p.tag ? `<span class="policy-tag">${p.tag}</span>` : ''}
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">

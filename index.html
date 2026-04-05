@@ -2682,8 +2682,7 @@ function renderMonthlyChecklistCore(year, month) {
       <div class="mcl-info" style="cursor:pointer;min-width:0;" onclick="viewPolicy('${p.id}')">
         <h4>${p.type}</h4>
         ${p.tag ? `<span style="display:inline-block;margin-top:2px;background:rgba(255,255,255,.06);color:var(--text-dim);border-radius:20px;padding:0px 7px;font-size:9px;font-weight:600;border:1px solid var(--border);">${p.tag}</span>` : ''}
-        <p style="font-size:12px;color:var(--text);font-weight:500;margin-top:2px;">${p.company}</p>
-        ${p.policyNumber ? `<p style="font-size:10px;color:var(--text-dim);margin-top:1px;">#${p.policyNumber}</p>` : ''}
+        <p style="font-size:12px;color:var(--text);font-weight:500;margin-top:2px;">${[p.company, p.agent, p.policyNumber].filter(Boolean).join(' · ')}</p>
         ${payRec?.paidBy==='state' ? `<span style="display:inline-block;margin-top:2px;background:rgba(39,174,96,.12);color:#27ae60;border-radius:20px;padding:0px 7px;font-size:9px;font-weight:600;border:1px solid rgba(39,174,96,.3);">🏛️ הפקדת מדינה</span>` : ''}
       </div>
       <!-- Left: freq tag + amount + toggle button -->
@@ -2845,15 +2844,14 @@ function renderPolicies() {
       const isDup = false;
       const col  = typeColor(p.type);
       const col2 = typeColor2(p.type);
-      const detailLine = (p.agent||'')+(p.agent&&p.policyNumber?' · ':'')+( p.policyNumber||'')+((!p.agent&&!p.policyNumber)?fmtDate(p.expiry):'');
+      const infoLine = [p.company, p.agent, p.policyNumber].filter(Boolean).join(' · ');
       h += `<div class="policy-row ${isDup?'dup':''}"
         style="background:linear-gradient(135deg,${col},${col2});"
         onclick="viewPolicy('${p.id}')">
         <div class="policy-row-left">
           <div class="policy-row-type">${typeIcon(p.type)} ${p.type}</div>
           ${p.tag ? `<span class="policy-tag">${p.tag}</span>` : ''}
-          <div class="policy-row-company">${p.company}</div>
-          ${detailLine ? `<div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${detailLine}</div>` : ''}
+          <div class="policy-row-company">${infoLine}</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
           <div style="text-align:left;">

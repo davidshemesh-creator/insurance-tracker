@@ -1475,7 +1475,8 @@ tr:hover td { background: var(--bg3); }
             <tbody id="csv-preview-tbody"></tbody>
           </table>
         </div>
-        <div style="margin-top:14px;display:flex;gap:10px;">
+        <!-- sticky import bar -->
+        <div style="position:sticky;bottom:0;background:var(--bg2);border-top:1px solid var(--border);padding:12px 0;margin-top:14px;display:flex;gap:10px;z-index:10;">
           <button class="btn btn-success" onclick="importSelectedCSV()">✓ ייבא נבחרים</button>
           <button class="btn btn-ghost" onclick="resetCSVImport()">ביטול</button>
         </div>
@@ -3530,6 +3531,11 @@ function showCSVMapping() {
     <div class="form-group"><label>עמודת סכום</label>${sel('csv-col-amt',amtI)}</div>`;
   document.getElementById('csv-mapping-section').style.display='block';
   document.getElementById('csv-preview-section').style.display='none';
+
+  // אם כל העמודות זוהו אוטומטית — דלג ישר לתצוגה מקדימה
+  if(descI !== -1 && amtI !== -1) {
+    processCSVMapping();
+  }
 }
 // Parse dates from Israeli bank/credit card files.
 // Handles: ISO "2026-01-15", DD/MM/YYYY "15/01/2026", DD.MM.YYYY "15.01.2026"
@@ -3609,6 +3615,21 @@ function processCSVMapping() {
   };
   resolveConflicts();
 
+  // סנן: הצג רק שורות שקשורות לביטוח/חסכון
+  const INSURANCE_KEYWORDS = [
+    'מנורה','פניקס','מגדל','הראל','אלטשולר','שחם','כלל','איילון','הכשרה',
+    'ביטוח','פנסיה','גמל','השתלמות','חסכון','ריסק','סיעוד','בריאות',
+    'menora','phoenix','migdal','harel','clal','ayalon'
+  ];
+  const totalBefore = csvMapped.length;
+  csvMapped = csvMapped.filter(r => {
+    if(r.match) return true; // זוהה → תמיד מוצג
+    const dl = r.desc.toLowerCase();
+    return INSURANCE_KEYWORDS.some(kw => dl.includes(kw));
+  });
+  const filteredOut = totalBefore - csvMapped.length;
+  csvMapped._filteredOut = filteredOut; // שמור לתצוגה
+
   renderCSVPreview();
 }
 function matchPolicy(desc, csvAmount, txDate, excludeIds = new Set()) {
@@ -3682,7 +3703,9 @@ function renderCSVPreview() {
   document.getElementById('csv-mapping-section').style.display='none';
   document.getElementById('csv-preview-section').style.display='block';
   const matched=csvMapped.filter(r=>r.match).length;
-  document.getElementById('csv-match-count').textContent=`${matched}/${csvMapped.length} עסקאות מזוהות`;
+  const filteredOut = csvMapped._filteredOut || 0;
+  const filterNote = filteredOut > 0 ? ` · ${filteredOut} שורות לא רלוונטיות הוסתרו` : '';
+  document.getElementById('csv-match-count').textContent=`${matched}/${csvMapped.length} עסקאות מזוהות${filterNote}`;
   // Build ONE shared options string — reused for unmatched rows only (avoids duplicate DOM)
   const policyOptions=`<option value="">— בחר פוליסה —</option>`+policies.map(p=>`<option value="${p.id}">${typeIcon(p.type)} ${p.company}</option>`).join('');
   // Sort: matched rows first, then unmatched

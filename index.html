@@ -2157,7 +2157,7 @@ function isActive(p) {
   const notExpired = !p.expiry || new Date(p.expiry+'T23:59:59') >= now;
   return started && notExpired;
 }
-const BALANCE_TYPES = ['פנסיה','קרן השתלמות','קופת גמל','חסכון'];
+const BALANCE_TYPES = ['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון'];
 function isBalanceType(p) { return BALANCE_TYPES.includes(p.type); }
 function fmtBalanceDate(d) {
   if(!d) return 'צבירה';
@@ -2282,15 +2282,17 @@ function renderDonut() {
   const grayPalette = ['#666','#777','#888','#999','#aaa','#bbb'];
 
   // סוגים שנחשבים "חסכון וצבירה"
-  const SAVING_TYPES = ['פנסיה','קרן השתלמות','קופת גמל','חסכון'];
+  const SAVING_TYPES = ['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון'];
 
   // Collect active policies for selected month
   const active = policies.filter(p => {
     const start  = new Date(p.start  + 'T12:00:00');
-    const expiry = new Date(p.expiry + 'T12:00:00');
     const mStart = new Date(donutYear, donutMonth, 1);
     const mEnd   = new Date(donutYear, donutMonth + 1, 0);
-    return start <= mEnd && expiry >= mStart;
+    if(start > mEnd) return false;
+    if(!p.expiry) return true; // ללא תאריך פקיעה = תמיד פעיל
+    const expiry = new Date(p.expiry + 'T12:00:00');
+    return expiry >= mStart;
   });
 
   // פונקציה להחשיב סכום חודשי לפוליסה
@@ -2770,7 +2772,7 @@ function renderPolicies() {
     } else {
       const monthlySum = list.reduce((s,p)=> s + (p.amount>0 ? toMonthly(p.amount,p.frequency) : 0), 0);
       const balanceSum = list.reduce((s,p)=> s + (p.balance||0), 0);
-      const BALANCE_TYPES_LOCAL = ['פנסיה','קרן השתלמות','קופת גמל','חסכון'];
+      const BALANCE_TYPES_LOCAL = ['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון'];
       const showBalance = BALANCE_TYPES_LOCAL.includes(key) && balanceSum > 0;
       h += `<div class="section-label" style="display:flex;justify-content:space-between;align-items:center;">
         <span>${typeIcon(key)} ${key}</span>

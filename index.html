@@ -2977,16 +2977,18 @@ function renderPolicies() {
     const colSum = (keys) => keys.reduce((s, k) =>
       s + (groups[k]||[]).reduce((s2, p) => s2 + (p.amount>0 ? toMonthly(p.amount, p.frequency) : 0), 0), 0);
 
-    const colHeader = (label, sum) =>
+    const colCount = (keys) => keys.reduce((s, k) => s + (groups[k]||[]).length, 0);
+
+    const colHeader = (label, count, sum) =>
       `<div style="font-size:14px;font-weight:800;color:var(--text);letter-spacing:.03em;
         padding:6px 0 12px;border-bottom:2px solid var(--border);margin-bottom:16px;
         display:flex;justify-content:space-between;align-items:center;">
-        <span>${label}</span>
+        <span>${label} <span style="font-size:12px;font-weight:600;color:var(--text-dim);">(${count})</span></span>
         ${sum > 0 ? `<span style="font-size:13px;font-weight:700;color:var(--text);">${fmt$(sum)}<span style="font-size:11px;font-weight:500;color:var(--text-dim);">/חודש</span></span>` : ''}
       </div>`;
 
-    leftHtml  = (leftKeys.length  ? colHeader('ביטוחים',             colSum(leftKeys))  : '') + leftKeys.map(groupHtml).join('');
-    rightHtml = (rightKeys.length ? colHeader('חסכונות לא נזילים', colSum(rightKeys)) : '') + rightKeys.map(groupHtml).join('');
+    leftHtml  = (leftKeys.length  ? colHeader('ביטוחים',             colCount(leftKeys),  colSum(leftKeys))  : '') + leftKeys.map(groupHtml).join('');
+    rightHtml = (rightKeys.length ? colHeader('חסכונות לא נזילים', colCount(rightKeys), colSum(rightKeys)) : '') + rightKeys.map(groupHtml).join('');
   } else {
     // company grouping — auto-balance columns by item count
     const colCounts = [0, 0];

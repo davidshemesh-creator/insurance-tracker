@@ -2199,6 +2199,7 @@ function navigate(page, btn) {
   if(page==='history')         renderHistory();
   if(page==='monthly-summary') renderMonthlySummary();
   if(page==='settings')        renderSettings();
+  if(page==='import')          initCSVImportPage();
   closeSidebar();
 }
 
@@ -3795,7 +3796,28 @@ function importSelectedCSV() {
     n++;
   });
   if(n===0 && skipped===0){ toast('לא נבחרו שורות לייבוא — סמן שורות ולחץ שוב','warning'); return; }
-  if(n===0 && skipped>0){ toast(`⚠️ ${skipped} תשלומים כבר קיימים במערכת — לא יובאו כפילויות`,'warning'); return; }
+  if(n===0 && skipped>0){
+    if(confirm(`${skipped} תשלומים כבר קיימים.\nלמחוק אותם ולייבא מחדש עם התאריכים החדשים?`)) {
+      // מחק את הכפילויות ויבא מחדש
+      csvMapped.forEach((r,i)=>{
+        const cb=document.getElementById('csv-check-'+i);
+        if(!cb||!cb.checked) return;
+        const sel = document.getElementById('csv-policy-'+i);
+        const pid = r.match?.id || sel?.value || '';
+        if(!pid) return;
+        const useDate = dateOverride || r.date;
+        // מחק תשלום קיים מאותה פוליסה + סכום (ללא תלות בתאריך)
+        payments = payments.filter(pay => !(pay.policyId === pid && Math.abs(pay.amount - r.amount) < 0.5));
+        payments.push({id:uid(),policyId:pid,date:useDate,amount:r.amount,actualAmount:r.amount,note:r.desc,source:'csv',createdAt:new Date().toISOString()});
+        n++;
+      });
+      if(n===0) return;
+      py();
+      toast(`✅ יובאו מחדש ${n} תשלומים לחודש ${overrideVal?.value||''}`, 'success');
+      resetCSVImport(); renderHistory(); renderDashboard(); renderMonthlySummary();
+    }
+    return;
+  }
   py();
   // Show which months were actually imported so user knows where to look
   const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
@@ -3817,15 +3839,26 @@ function toggleDateOverride(cb) {
   }
 }
 
+function initCSVImportPage() {
+  // Auto-enable date override with the currently viewed dashboard month
+  const tog = document.getElementById('csv-date-override-toggle');
+  const inp = document.getElementById('csv-date-override-val');
+  if(tog && inp) {
+    tog.checked = true;
+    const m = String(donutMonth + 1).padStart(2, '0');
+    inp.value = `${donutYear}-${m}`;
+    inp.disabled = false;
+    inp.style.opacity = '1';
+  }
+}
+
 function resetCSVImport() {
   csvRows=[]; csvHeaders=[]; csvMapped=[];
   document.getElementById('csv-file-input').value='';
   document.getElementById('csv-mapping-section').style.display='none';
   document.getElementById('csv-preview-section').style.display='none';
-  const tog = document.getElementById('csv-date-override-toggle');
-  const inp = document.getElementById('csv-date-override-val');
-  if(tog) tog.checked = false;
-  if(inp) { inp.disabled = true; inp.style.opacity = '.5'; }
+  // Re-init date override with current dashboard month
+  initCSVImportPage();
 }
 
 // ══════════════════════════════════════════════════════════════════

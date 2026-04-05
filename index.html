@@ -3666,8 +3666,22 @@ function matchPolicy(desc, csvAmount, txDate, excludeIds = new Set()) {
     'חסכון':       ['חסכון','חיסכון'],
   };
 
+  // אם בתיאור יש שם חברה ברור — חפש רק בפוליסות של אותה חברה
+  const descCompany = Object.entries(COMPANY_ALIASES).find(([, aliases]) =>
+    aliases.some(a => a.length > 2 && dl.includes(a.toLowerCase()))
+  )?.[0];
+
   const refDate = txDate ? new Date(txDate) : new Date();
-  policies.filter(p => !excludeIds.has(p.id) && (!p.expiry || new Date(p.expiry) >= refDate)).forEach(p => {
+  policies.filter(p => {
+    if(excludeIds.has(p.id)) return false;
+    if(p.expiry && new Date(p.expiry) < refDate) return false;
+    if(descCompany) {
+      // רק פוליסות של אותה חברה — מניעת התאמה של פניקס למנורה
+      const pAliases = COMPANY_ALIASES[p.company] || [p.company];
+      return pAliases.some(a => a.length > 2 && dl.includes(a.toLowerCase()));
+    }
+    return true;
+  }).forEach(p => {
     let score = 0;
 
     // Match company name / aliases
@@ -3729,13 +3743,26 @@ function renderCSVPreview() {
     // Policy cell
     let policyCell;
     if(cat==='matched') {
-      policyCell = `<span id="csv-match-label-${i}" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">
+      policyCell = `<div style="display:flex;flex-direction:column;gap:3px;">
+        <span id="csv-match-label-${i}" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">
           ${typeIcon(r.match.type)} ${r.match.company} · <em style="color:var(--accent);font-style:normal;">${r.match.type}</em>
           <button onclick="csvRowEditMatch(${i})" title="שנה פוליסה" style="background:none;border:none;cursor:pointer;font-size:11px;padding:1px 4px;border-radius:4px;color:var(--text-dim);">✏️</button>
+          <button onclick="csvAddSplit(${i})" title="פצל לשתי פוליסות" style="background:none;border:none;cursor:pointer;font-size:11px;padding:1px 4px;border-radius:4px;color:var(--text-dim);">✂️</button>
         </span>
         <select id="csv-policy-${i}" style="display:none;font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);max-width:160px;" onchange="csvRowPolicyChange(${i},this)">
           ${policyOptions.replace(`value="${r.match.id}"`, `value="${r.match.id}" selected`)}
-        </select>`;
+        </select>
+        <div id="csv-split-${i}" style="display:${r.split?'flex':'none'};align-items:center;gap:4px;margin-top:2px;">
+          <span style="font-size:10px;color:var(--text-dim);">+ פוליסה שנייה:</span>
+          <select id="csv-split-pol-${i}" style="font-size:11px;padding:2px 5px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--text);max-width:130px;" onchange="csvSplitPolChange(${i},this)">
+            ${policyOptions}
+          </select>
+          <input type="number" id="csv-split-amt-${i}" placeholder="סכום" step="0.01" min="0"
+            value="${r.split?.amount||''}"
+            style="width:70px;font-size:11px;padding:2px 5px;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--text);"
+            oninput="csvSplitAmtChange(${i},this)">
+        </div>
+      </div>`;
     } else {
       policyCell = `<select id="csv-policy-${i}" style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);max-width:140px;" onchange="csvRowPolicyChange(${i},this)">
           ${policyOptions}
@@ -3764,6 +3791,20 @@ function renderCSVPreview() {
     if(cb && r.category==='matched') cb.checked = true;
   });
 }
+function csvAddSplit(i) {
+  const row = csvMapped[i];
+  if(!row.split) row.split = { policyId: '', amount: '' };
+  document.getElementById('csv-split-'+i).style.display = 'flex';
+}
+function csvSplitPolChange(i, sel) {
+  if(!csvMapped[i].split) csvMapped[i].split = {};
+  csvMapped[i].split.policyId = sel.value;
+}
+function csvSplitAmtChange(i, inp) {
+  if(!csvMapped[i].split) csvMapped[i].split = {};
+  csvMapped[i].split.amount = parseFloat(inp.value) || 0;
+}
+
 function csvCheckChange(i, cb) {
   // if no policy selected and trying to check, auto-focus the policy dropdown
   if(cb.checked && !csvMapped[i].match) {
@@ -3810,11 +3851,19 @@ function importSelectedCSV() {
     if(!pid) return;
     const useDate = dateOverride || r.date;
     // Dedup: skip if exact same payment already exists (same policy + date + amount)
+    // פיצול — אם הוגדרה פוליסה שנייה עם סכום
+    const split = r.split;
+    let mainAmount = r.amount;
+    if(split?.policyId && split?.amount > 0) {
+      mainAmount = r.amount - split.amount;
+      const splitDup = payments.some(pay => pay.policyId===split.policyId && pay.date===useDate && Math.abs(pay.amount-split.amount)<0.5);
+      if(!splitDup) payments.push({id:uid(),policyId:split.policyId,date:useDate,amount:split.amount,actualAmount:split.amount,note:r.desc+' (פיצול)',source:'csv',createdAt:new Date().toISOString()});
+    }
     const isDuplicate = payments.some(pay =>
-      pay.policyId === pid && pay.date === useDate && Math.abs(pay.amount - r.amount) < 0.5
+      pay.policyId === pid && pay.date === useDate && Math.abs(pay.amount - mainAmount) < 0.5
     );
     if(isDuplicate) { skipped++; return; }
-    payments.push({id:uid(),policyId:pid,date:useDate,amount:r.amount,actualAmount:r.amount,note:r.desc,source:'csv',createdAt:new Date().toISOString()});
+    payments.push({id:uid(),policyId:pid,date:useDate,amount:mainAmount,actualAmount:mainAmount,note:r.desc,source:'csv',createdAt:new Date().toISOString()});
     n++;
   });
   if(n===0 && skipped===0){ toast('לא נבחרו שורות לייבוא — סמן שורות ולחץ שוב','warning'); return; }

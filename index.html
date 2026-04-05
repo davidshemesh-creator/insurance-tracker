@@ -1715,11 +1715,22 @@ tr:hover td { background: var(--bg3); }
           </div>
           <div class="form-group">
             <label>תדירות תשלום</label>
-            <select id="f-frequency">
+            <select id="f-frequency" onchange="toggleInstallments()">
               <option value="monthly">חודשי</option>
               <option value="quarterly">רבעוני</option>
               <option value="semi-annual">חצי שנתי</option>
               <option value="annual">שנתי</option>
+            </select>
+          </div>
+          <div class="form-group" id="f-installments-group" style="display:none;">
+            <label>כמה תשלומים בשנה?</label>
+            <select id="f-installments">
+              <option value="1">תשלום אחד (בחודש ההתחלה)</option>
+              <option value="2">2 תשלומים (כל חצי שנה)</option>
+              <option value="3">3 תשלומים (כל 4 חודשים)</option>
+              <option value="4">4 תשלומים (כל רבעון)</option>
+              <option value="6">6 תשלומים (כל חודשיים)</option>
+              <option value="12">12 תשלומים (כל חודש)</option>
             </select>
           </div>
           <div class="form-group full">
@@ -2159,6 +2170,30 @@ function fmtBalanceDate(d) {
 function toMonthly(amount, freq) {
   return amount / ({monthly:1,quarterly:3,'semi-annual':6,annual:12}[freq]||1);
 }
+// Actual amount paid per installment when due (not monthly equivalent)
+function dueAmount(p) {
+  if(p.frequency === 'annual') return p.amount / (p.installments || 1);
+  return p.amount; // monthly/quarterly/semi-annual: pay full stated amount
+}
+// Returns true if policy has a scheduled payment in the given year+month
+function isDueInMonth(p, year, month) {
+  const s = new Date(p.start + 'T12:00:00');
+  const mStart = new Date(year, month, 1);
+  const mEnd   = new Date(year, month + 1, 0);
+  if(s > mEnd) return false;
+  if(p.expiry && new Date(p.expiry + 'T12:00:00') < mStart) return false;
+  const monthsSinceStart = (year - s.getFullYear()) * 12 + (month - s.getMonth());
+  if(monthsSinceStart < 0) return false;
+  const freq = p.frequency;
+  if(freq === 'monthly')     return true;
+  if(freq === 'quarterly')   return monthsSinceStart % 3  === 0;
+  if(freq === 'semi-annual') return monthsSinceStart % 6  === 0;
+  if(freq === 'annual') {
+    const interval = Math.round(12 / (p.installments || 1));
+    return monthsSinceStart % interval === 0;
+  }
+  return false;
+}
 function policyById(id) { return policies.find(p=>p.id===id); }
 function discountLabel(p){
   if(!p.hasDiscount) return '';
@@ -2290,6 +2325,18 @@ function renderDonut() {
   // פונקציה להחשיב סכום חודשי לפוליסה
   const getMonthly = p => {
     if(!p.amount) return 0;
+    // Annual policies: only count in the months they're actually due
+    if(p.frequency === 'annual') {
+      if(!isDueInMonth(p, donutYear, donutMonth)) return 0;
+      if(!isFuture) {
+        const actual = payments.find(pay => {
+          const d = new Date(pay.date + 'T12:00:00');
+          return pay.policyId === p.id && d.getFullYear() === donutYear && d.getMonth() === donutMonth && pay.actualAmount != null;
+        });
+        return actual ? actual.actualAmount : dueAmount(p);
+      }
+      return dueAmount(p);
+    }
     if(!isFuture) {
       const actual = payments.find(pay => {
         const d = new Date(pay.date + 'T12:00:00');
@@ -2343,9 +2390,14 @@ function renderDonut() {
   const el = id => document.getElementById(id);
 
   // ── סה"כ חודשי (ביטוחים + חסכון) ──
-  // Estimated = pure toMonthly() for all active policies (no actual amounts mixed in)
-  const estimatedIns = active.filter(p=>!SAVING_TYPES.includes(p.type)).reduce((s,p)=>s+toMonthly(p.amount,p.frequency),0);
-  const estimatedSav = active.filter(p=> SAVING_TYPES.includes(p.type)).reduce((s,p)=>s+toMonthly(p.amount,p.frequency),0);
+  // Estimated = expected amount this specific month (annual only counted when due)
+  const getEstimated = p => {
+    if(!p.amount) return 0;
+    if(p.frequency === 'annual') return isDueInMonth(p, donutYear, donutMonth) ? dueAmount(p) : 0;
+    return toMonthly(p.amount, p.frequency);
+  };
+  const estimatedIns = active.filter(p=>!SAVING_TYPES.includes(p.type)).reduce((s,p)=>s+getEstimated(p),0);
+  const estimatedSav = active.filter(p=> SAVING_TYPES.includes(p.type)).reduce((s,p)=>s+getEstimated(p),0);
   const estimatedAll = Math.round(estimatedIns + estimatedSav);
 
   if(isFuture) {
@@ -2605,7 +2657,10 @@ function renderMonthlyChecklistCore(year, month) {
     const monthsSinceStart = (year - startDate.getFullYear()) * 12 + (month - startDate.getMonth());
     if(freq === 'quarterly')    return monthsSinceStart % 3 === 0;
     if(freq === 'semi-annual')  return monthsSinceStart % 6 === 0;
-    if(freq === 'annual')       return monthsSinceStart % 12 === 0;
+    if(freq === 'annual') {
+      const interval = Math.round(12 / (p.installments || 1));
+      return monthsSinceStart % interval === 0;
+    }
     return false;
   });
 
@@ -2622,7 +2677,7 @@ function renderMonthlyChecklistCore(year, month) {
 
   const paidCount   = dueThisMonth.filter(p => paidThisMonth.has(p.id)).length;
   const unpaidCount = dueThisMonth.length - paidCount;
-  const totalDue    = dueThisMonth.reduce((s,p) => s + toMonthly(p.amount, p.frequency), 0);
+  const totalDue    = dueThisMonth.reduce((s,p) => s + dueAmount(p), 0);
   // totalPaid = only amounts I paid (excluding state deposits)
   const totalPaid   = dueThisMonth
     .filter(p => paidThisMonth.has(p.id))
@@ -2643,7 +2698,7 @@ function renderMonthlyChecklistCore(year, month) {
 
   const badge = document.getElementById('monthly-checklist-badge');
   if(unpaidCount > 0) {
-    const remainEst = dueThisMonth.filter(p=>!paidThisMonth.has(p.id)).reduce((s,p)=>s+toMonthly(p.amount,p.frequency),0);
+    const remainEst = dueThisMonth.filter(p=>!paidThisMonth.has(p.id)).reduce((s,p)=>s+dueAmount(p),0);
     badge.innerHTML = `<span class="monthly-checklist-badge" style="background:rgba(230,0,126,.2);color:#ff66b3;">
       ${unpaidCount} ממתינים · ~${fmt$(remainEst)}</span>`;
   } else if(dueThisMonth.length > 0) {
@@ -2674,12 +2729,11 @@ function renderMonthlyChecklistCore(year, month) {
     const paid    = paidThisMonth.has(p.id);
     const col     = typeColor(p.type);
     const col2    = typeColor2(p.type);
-    const monthly = toMonthly(p.amount, p.frequency);
     // Find the payment record(s) this month — prefer actual over estimate
     const payRec  = paymentsThisMonth.find(pay => pay.policyId === p.id);
     // If paid, always show the actual amount paid (not the estimate)
     const actualPaid = paid ? getActualPaid(p) : 0;
-    const displayAmt = paid && actualPaid ? actualPaid : monthly;
+    const displayAmt = paid && actualPaid ? actualPaid : dueAmount(p);
 
     return `<div class="mcl-row ${paid?'paid':''}" id="mclrow-${p.id}">
       <!-- Right: icon + type tag as one unit -->
@@ -2823,6 +2877,10 @@ function renderPolicies() {
   const sortedKeys = Object.keys(groups).sort((a,b)=>a.localeCompare(b,'he'));
 
   const freqLabel = {monthly:'חודשי',quarterly:'רבעוני','semi-annual':'חצי שנתי',annual:'שנתי'};
+  const pFreqLabel = p => {
+    if(p.frequency === 'annual' && (p.installments||1) > 1) return `שנתי (${p.installments}×)`;
+    return freqLabel[p.frequency] || p.frequency;
+  };
 
   // Build HTML per group
   function groupHtml(key) {
@@ -2868,7 +2926,7 @@ function renderPolicies() {
               ? `<div class="policy-row-amount">${fmt$(p.balance)}</div>
                  <div class="policy-row-freq">${fmtBalanceDate(p.balanceDate)}</div>`
               : `<div class="policy-row-amount">${fmt$(p.amount)}</div>
-                 <div class="policy-row-freq">${freqLabel[p.frequency]||p.frequency}</div>`
+                 <div class="policy-row-freq">${pFreqLabel(p)}</div>`
             }
             ${p.insured && p.insured.length > 1
               ? `<div style="font-size:9px;color:var(--text-sub);margin-top:2px;text-align:left;">${p.insured.map(r=>`${r.name}: ${fmt$(r.amount)}`).join(' · ')}</div>`
@@ -2965,6 +3023,7 @@ function openEditPolicy(id) {
   document.getElementById('f-agent').value    = p.agent||'';
   document.getElementById('f-type').value     = p.type;
   document.getElementById('f-frequency').value= p.frequency;
+  document.getElementById('f-installments').value = String(p.installments || 1);
   document.getElementById('f-amount').value   = p.amount;
   document.getElementById('f-start').value    = p.start;
   document.getElementById('f-expiry').value   = p.expiry;
@@ -3030,6 +3089,11 @@ function toggleBalanceField() {
   document.getElementById('f-fees-row-group').style.display      = show(isbal);
   document.getElementById('f-liquidity-group').style.display     = show(t === 'קרן השתלמות');
   document.getElementById('f-expiry').required = !isbal;
+  toggleInstallments();
+}
+function toggleInstallments() {
+  const freq = document.getElementById('f-frequency').value;
+  document.getElementById('f-installments-group').style.display = freq === 'annual' ? 'block' : 'none';
 }
 function savePolicy(e) {
   e.preventDefault();
@@ -3040,6 +3104,7 @@ function savePolicy(e) {
     agent:   document.getElementById('f-agent').value.trim(),
     type:    document.getElementById('f-type').value,
     frequency: document.getElementById('f-frequency').value,
+    installments: parseInt(document.getElementById('f-installments').value) || 1,
     amount:  parseFloat(document.getElementById('f-amount').value),
     start:   document.getElementById('f-start').value,
     expiry:  document.getElementById('f-expiry').value,

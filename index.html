@@ -2795,7 +2795,7 @@ function renderPolicies() {
           ${p.tag ? `<span class="policy-tag">${p.tag}</span>` : ''}
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
-          <div style="text-align:right;">
+          <div style="text-align:left;">
             ${isBalanceType(p) && p.balance
               ? `<div class="policy-row-amount">${fmt$(p.balance)}</div>
                  <div class="policy-row-freq">${fmtBalanceDate(p.balanceDate)}</div>`
@@ -2803,12 +2803,12 @@ function renderPolicies() {
                  <div class="policy-row-freq">${freqLabel[p.frequency]||p.frequency}</div>`
             }
             ${p.insured && p.insured.length > 1
-              ? `<div style="font-size:9px;color:var(--text-sub);margin-top:2px;text-align:right;">${p.insured.map(r=>`${r.name}: ${fmt$(r.amount)}`).join(' · ')}</div>`
+              ? `<div style="font-size:9px;color:var(--text-sub);margin-top:2px;text-align:left;">${p.insured.map(r=>`${r.name}: ${fmt$(r.amount)}`).join(' · ')}</div>`
               : ''
             }
             ${p.liquidityDate ? (() => {
               const isLiquid = new Date(p.liquidityDate+'T00:00:00') <= new Date();
-              return `<div style="font-size:9px;margin-top:2px;text-align:right;color:${isLiquid?'#2ecc71':'var(--text-sub)'};">
+              return `<div style="font-size:9px;margin-top:2px;text-align:left;color:${isLiquid?'#2ecc71':'var(--text-sub)'};">
                 🔓 ${isLiquid?'נזיל':'נזיל מ-'}${fmtDate(p.liquidityDate)}</div>`;
             })() : ''}
           </div>

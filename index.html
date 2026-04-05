@@ -892,10 +892,31 @@ tr:hover td { background: var(--bg3); }
 
 /* ── CSV checkboxes ─────────────────────────────────────────────── */
 #csv-preview-tbody input[type="checkbox"] {
-  width: 17px; height: 17px;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
   cursor: pointer;
-  accent-color: var(--accent);
+  position: relative;
+  flex-shrink: 0;
   vertical-align: middle;
+  transition: background .1s, border-color .1s;
+}
+#csv-preview-tbody input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+#csv-preview-tbody input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px; top: 0px;
+  width: 5px; height: 10px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
 }
 
 /* ── Gmail messages ─────────────────────────────────────────────── */

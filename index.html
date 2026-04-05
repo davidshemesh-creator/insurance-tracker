@@ -890,34 +890,13 @@ tr:hover td { background: var(--bg3); }
 .csv-unmatched td { color: var(--text-dim); }
 .csv-unmatched td:nth-child(4) { color: var(--text); } /* סכום תמיד ברור */
 
-/* ── Custom pink checkbox for matched CSV rows ──────────────────── */
-.csv-cb-matched {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px; height: 18px;
-  border: 2px solid var(--accent);
-  border-radius: 4px;
-  background: var(--accent);
+/* ── CSV checkboxes ─────────────────────────────────────────────── */
+#csv-preview-tbody input[type="checkbox"] {
+  width: 17px; height: 17px;
   cursor: pointer;
-  position: relative;
-  flex-shrink: 0;
+  accent-color: var(--accent);
   vertical-align: middle;
 }
-.csv-cb-matched::after {
-  content: '';
-  position: absolute;
-  left: 4px; top: 1px;
-  width: 5px; height: 9px;
-  border: 2px solid #fff;
-  border-top: none;
-  border-left: none;
-  transform: rotate(45deg);
-}
-.csv-cb-matched:not(:checked) {
-  background: transparent;
-  border-color: var(--border);
-}
-.csv-cb-matched:not(:checked)::after { display: none; }
 
 /* ── Gmail messages ─────────────────────────────────────────────── */
 .gmail-msg-row {

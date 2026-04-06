@@ -155,7 +155,7 @@ body {
 
 /* ── Pages ──────────────────────────────────────────────────────── */
 #content { flex: 1; overflow-y: auto; }
-.page { display: none; padding: 22px; }
+.page { display: none; padding: 20px 24px; }
 .page.active { display: block; }
 
 /* Mobile */
@@ -1249,8 +1249,8 @@ tr:hover td { background: var(--bg3); }
 /* Dashboard layout */
 .dash-grid {
   display: grid;
-  grid-template-columns: minmax(0,1fr) 210px;
-  gap: 20px;
+  grid-template-columns: minmax(0,3fr) minmax(200px,1.2fr);
+  gap: 24px;
   align-items: start;
   max-width: 100%;
   width: 100%;

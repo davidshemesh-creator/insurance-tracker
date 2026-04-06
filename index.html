@@ -3827,24 +3827,30 @@ function renderHistory() {
     const chipBg    = isExact ? 'rgba(255,255,255,.08)'  : isOver ? 'rgba(245,166,35,.15)'  : 'rgba(230,0,126,.15)';
     const chipColor = isExact ? 'var(--text-dim)'        : isOver ? '#f5c842'               : '#ff6ec0';
     const chipBorder= isExact ? '1px solid rgba(255,255,255,.1)' : isOver ? '1px solid rgba(245,166,35,.35)' : '1px solid rgba(230,0,126,.35)';
-    const duePols   = policies.filter(p => isDueInMonth(p, mYear, mMonth));
-    const dueTooltip = duePols.map(p => `${typeIcon(p.type)} ${p.type} — ${p.company}`).join('\n');
+    const duePols    = policies.filter(p => isDueInMonth(p, mYear, mMonth));
+    const paidPolIds = new Set(pays.map(p => p.policyId).filter(Boolean));
 
     // Build pidCount early so we can use it in the header too
     const pidCount = {};
     pays.forEach(p => { if(p.policyId) pidCount[p.policyId] = (pidCount[p.policyId]||0)+1; });
 
-    // Explain overcount in header
+    // Build explanatory note
     let extraNote = '';
-    if (actualCount > expectedCount) {
-      const unknownCount = pays.filter(p => p.unknown || (!p.policyId && p.source==='csv')).length;
-      const dupPols = Object.entries(pidCount)
-        .filter(([,cnt]) => cnt > 1)
-        .map(([pid]) => { const pol = policyById(pid); return pol ? pol.company : '?'; });
+    if (!isExact) {
       const parts = [];
-      if (unknownCount)    parts.push(`${unknownCount} לא מזוהה`);
-      if (dupPols.length)  parts.push(`כפול: ${dupPols.join(', ')}`);
-      if (parts.length) extraNote = `<span style="font-size:10px;color:rgba(255,255,255,.35);margin-right:4px;">(${parts.join(' · ')})</span>`;
+      if (!isOver) {
+        // Show which expected policies have no payment
+        const missing = duePols.filter(p => !paidPolIds.has(p.id));
+        missing.forEach(p => parts.push(`חסר: ${p.type} — ${p.company}`));
+      } else {
+        // Over: unknown payments + duplicates
+        const unknownCount = pays.filter(p => p.unknown || (!p.policyId && p.source==='csv')).length;
+        const dupPols = Object.entries(pidCount).filter(([,cnt]) => cnt > 1)
+          .map(([pid]) => { const pol = policyById(pid); return pol ? pol.company : '?'; });
+        if (unknownCount) parts.push(`${unknownCount} לא מזוהה`);
+        if (dupPols.length) parts.push(`כפול: ${dupPols.join(', ')}`);
+      }
+      if (parts.length) extraNote = `<span style="font-size:10px;color:rgba(255,255,255,.35);">(${parts.join(' · ')})</span>`;
     }
 
     html += `<div style="margin-bottom:6px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
@@ -3852,7 +3858,7 @@ function renderHistory() {
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
           <span style="font-size:10px;color:var(--text-dim);transition:transform .2s;display:inline-block;" id="${id}-arrow">${isOpen?'▲':'▼'}</span>
           <span style="font-size:14px;font-weight:700;">${monthNames[d.getMonth()]} ${d.getFullYear()}</span>
-          <span title="${dueTooltip}" style="font-size:11px;font-weight:700;color:${chipColor};background:${chipBg};border:${chipBorder};border-radius:20px;padding:2px 9px;cursor:help;">${countLabel} תשלומים</span>
+          <span style="font-size:11px;font-weight:700;color:${chipColor};background:${chipBg};border:${chipBorder};border-radius:20px;padding:2px 9px;">${countLabel} תשלומים</span>
           ${extraNote}
         </div>
         <span style="font-size:14px;font-weight:800;color:var(--accent);flex-shrink:0;">${fmt$(monthTotal)}</span>

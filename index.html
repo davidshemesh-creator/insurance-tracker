@@ -3802,7 +3802,7 @@ function renderHistory() {
 
     // Count expected policies for this month
     const mYear  = d.getFullYear();
-    const mMonth = d.getMonth() + 1;
+    const mMonth = d.getMonth(); // 0-indexed — isDueInMonth expects 0-indexed
     const expectedCount = policies.filter(p => isDueInMonth(p, mYear, mMonth)).length;
     const actualCount   = pays.length;
     const countColor    = actualCount > expectedCount ? 'var(--accent)' : 'var(--text-dim)';

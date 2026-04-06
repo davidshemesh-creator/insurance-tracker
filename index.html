@@ -2181,6 +2181,22 @@ tr:hover td { background: var(--bg3); }
   </div>
 </div>
 
+<!-- ── CONFLICT RESOLUTION MODAL ────────────────────────────────── -->
+<div class="modal-overlay hidden" id="conflict-modal">
+  <div class="modal" style="max-height:85vh;">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">⚠️ כפילויות בייבוא</h3>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">נמצאו תשלומים שכבר קיימים לחודש זה. בחר פעולה לכל אחד:</p>
+    </div>
+    <div class="modal-body" id="conflict-list" style="overflow-y:auto;max-height:52vh;padding:12px 16px;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" style="flex:1;" onclick="closeModal('conflict-modal')">ביטול</button>
+      <button class="btn" style="flex:2;background:var(--accent);color:#fff;" onclick="executeConflictImport()">✅ בצע ייבוא</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── DELETE CONFIRM MODAL ─────────────────────────────────────── -->
 <div class="modal-overlay hidden" id="delete-modal">
   <div class="modal" style="max-height:auto;">
@@ -3801,15 +3817,21 @@ function renderHistory() {
       </div>
       <div id="${id}" style="display:${isOpen?'block':'none'};">`;
 
+    // Build a set of policyIds that appear more than once in this month
+    const pidCount = {};
+    pays.forEach(p => { if(p.policyId) pidCount[p.policyId] = (pidCount[p.policyId]||0)+1; });
+
     pays.forEach(pay => {
       const pol = policyById(pay.policyId);
       const isUnknown = pay.unknown || (!pay.policyId && pay.source==='csv');
+      const isDup = pay.policyId && pidCount[pay.policyId] > 1;
       const col = isUnknown ? '#f5a623' : pol ? typeColor(pol.type) : '#666';
       const infoLine = pol ? [pol.company, pol.agent, pol.policyNumber].filter(Boolean).join(' · ') : '';
       const sourceTag = `<span class="tag ${pay.source==='csv'?'tag-csv':'tag-manual'}" style="padding:1px 6px;font-size:10px;">${pay.source==='csv'?'CSV':'ידני'}</span>`;
-      const metaLine = [fmtDate(pay.date), sourceTag, pay.paidBy==='state'?'🏛️ מדינה':'', pay.note&&!isUnknown?pay.note:''].filter(Boolean).join(' · ');
+      const dupTag = isDup ? `<span style="background:rgba(245,166,35,.2);color:#f5a623;border:1px solid rgba(245,166,35,.4);border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;">⚠️ כפול</span>` : '';
+      const metaLine = [fmtDate(pay.date), sourceTag, dupTag, pay.paidBy==='state'?'🏛️ מדינה':'', pay.note&&!isUnknown?pay.note:''].filter(Boolean).join(' · ');
 
-      html += `<div class="hist-item" style="border-radius:0;border-bottom:1px solid var(--border);${isUnknown?'border-right:3px solid #f5a623;background:rgba(245,166,35,.04);':''}">
+      html += `<div class="hist-item" style="border-radius:0;border-bottom:1px solid var(--border);${isUnknown?'border-right:3px solid #f5a623;background:rgba(245,166,35,.04);':isDup?'border-right:3px solid #f5a623;background:rgba(245,166,35,.03);':''}">
         <div class="hist-dot" style="background:${col}25;">${isUnknown?'⚠️':pol?typeIcon(pol.type):'💳'}</div>
         <div class="hist-info" style="flex:1;min-width:0;">
           <div style="font-size:14px;font-weight:700;color:var(--text);">${isUnknown ? '⚠️ לא משוייך' : pol ? `${pol.type}` : 'פוליסה נמחקה'}</div>
@@ -4353,73 +4375,127 @@ function csvSelectAll(master) {
   csvMapped.forEach((_,i)=>{ const cb=document.getElementById('csv-check-'+i); if(cb&&!cb.disabled) cb.checked=master.checked; });
 }
 function importSelectedCSV() {
-  // Date override: if user checked "עקוף תאריכים", use day-15 of chosen month
   const overrideCb  = document.getElementById('csv-date-override-toggle');
   const overrideVal = document.getElementById('csv-date-override-val');
-  const dateOverride = (overrideCb?.checked && overrideVal?.value)
-    ? overrideVal.value + '-15'   // e.g. "2026-01-15"
-    : null;
+  const dateOverride = (overrideCb?.checked && overrideVal?.value) ? overrideVal.value + '-15' : null;
+  const isStatePay  = document.getElementById('csv-state-payment')?.checked || false;
 
-  const isStatePay = document.getElementById('csv-state-payment')?.checked || false;
-  let n=0, skipped=0;
-  csvMapped.forEach((r,i)=>{
-    const cb=document.getElementById('csv-check-'+i);
-    if(!cb||!cb.checked) return;
-    const sel = document.getElementById('csv-policy-'+i);
+  const toImport = [], conflicts = [];
+
+  csvMapped.forEach((r, i) => {
+    const cb  = document.getElementById('csv-check-' + i);
+    if (!cb || !cb.checked) return;
+    const sel    = document.getElementById('csv-policy-' + i);
     const rawPid = r.match?.id || r._selValue || sel?.value || '';
-    if(!rawPid) return;
-    // __unknown__ = תשלום לא מזוהה — יישמר בלי policyId
-    const pid = rawPid === '__unknown__' ? null : rawPid;
+    if (!rawPid) return;
+    const pid     = rawPid === '__unknown__' ? null : rawPid;
     const useDate = dateOverride || r.date;
-    // פיצול — אם הוגדרה פוליסה שנייה עם סכום
-    const split = r.split;
-    let mainAmount = r.amount;
-    if(split?.policyId && split?.amount > 0) {
-      mainAmount = r.amount - split.amount;
-      const splitDup = payments.some(pay => pay.policyId===split.policyId && pay.date===useDate && Math.abs(pay.amount-split.amount)<0.5);
-      if(!splitDup) payments.push({id:uid(),policyId:split.policyId,date:useDate,amount:split.amount,actualAmount:split.amount,note:r.desc+' (פיצול)',source:'csv',createdAt:new Date().toISOString()});
-    }
-    const isDuplicate = pid && payments.some(pay =>
-      pay.policyId === pid && pay.date === useDate && Math.abs(pay.amount - mainAmount) < 0.5
-    );
-    if(isDuplicate) { skipped++; return; }
-    const payObj = {id:uid(),policyId:pid||null,date:useDate,amount:mainAmount,actualAmount:mainAmount,note:r.desc,source:'csv',unknown:!pid,createdAt:new Date().toISOString()};
-    if(isStatePay && pid) payObj.paidBy = 'state';
-    payments.push(payObj);
-    n++;
+    let mainAmount = r.split?.policyId && r.split?.amount > 0 ? r.amount - r.split.amount : r.amount;
+
+    // Conflict = same policy + same calendar month
+    const existing = pid ? payments.find(pay =>
+      pay.policyId === pid && pay.date?.slice(0,7) === useDate?.slice(0,7)
+    ) : null;
+
+    if (existing) conflicts.push({ i, r, pid, useDate, mainAmount, existingPay: existing, decision: 'skip' });
+    else          toImport.push({ i, r, pid, useDate, mainAmount });
   });
-  if(n===0 && skipped===0){ toast('לא נבחרו שורות לייבוא — סמן שורות ולחץ שוב','warning'); return; }
-  if(n===0 && skipped>0){
-    if(confirm(`${skipped} תשלומים כבר קיימים.\nלמחוק אותם ולייבא מחדש עם התאריכים החדשים?`)) {
-      // מחק את הכפילויות ויבא מחדש
-      csvMapped.forEach((r,i)=>{
-        const cb=document.getElementById('csv-check-'+i);
-        if(!cb||!cb.checked) return;
-        const sel = document.getElementById('csv-policy-'+i);
-        const pid = r.match?.id || sel?.value || '';
-        if(!pid) return;
-        const useDate = dateOverride || r.date;
-        // מחק תשלום קיים מאותה פוליסה + סכום (ללא תלות בתאריך)
-        payments = payments.filter(pay => !(pay.policyId === pid && Math.abs(pay.amount - r.amount) < 0.5));
-        payments.push({id:uid(),policyId:pid,date:useDate,amount:r.amount,actualAmount:r.amount,note:r.desc,source:'csv',createdAt:new Date().toISOString()});
-        n++;
-      });
-      if(n===0) return;
-      py();
-      toast(`✅ יובאו מחדש ${n} תשלומים לחודש ${overrideVal?.value||''}`, 'success');
-      resetCSVImport(); renderHistory(); renderDashboard(); renderMonthlySummary();
-    }
-    return;
+
+  if (!toImport.length && !conflicts.length) {
+    toast('לא נבחרו שורות לייבוא — סמן שורות ולחץ שוב', 'warning'); return;
   }
+  if (!conflicts.length) { _executeImport(toImport, [], isStatePay); return; }
+
+  // Show conflict modal
+  window._importState = { toImport, conflicts, isStatePay };
+  _showConflictModal(conflicts);
+}
+
+function _showConflictModal(conflicts) {
+  const MN = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  let html = '';
+  conflicts.forEach((c, ci) => {
+    const pol = policyById(c.pid);
+    const polName = pol ? `${typeIcon(pol.type)} ${pol.type} — ${pol.company}` : 'פוליסה לא ידועה';
+    const existSrc = c.existingPay.source === 'csv' ? 'CSV' : 'ידני';
+    html += `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${polName}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;font-size:12px;">
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 10px;">
+          <div style="color:var(--text-dim);margin-bottom:3px;">קיים (${existSrc})</div>
+          <div style="font-weight:700;">${fmt$(c.existingPay.actualAmount ?? c.existingPay.amount)}</div>
+          <div style="color:var(--text-dim);">${fmtDate(c.existingPay.date)}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 10px;">
+          <div style="color:var(--text-dim);margin-bottom:3px;">CSV חדש</div>
+          <div style="font-weight:700;">${fmt$(c.mainAmount)}</div>
+          <div style="color:var(--text-dim);">${fmtDate(c.useDate)}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+        <button id="cd-${ci}-skip"    onclick="setConflictDecision(${ci},'skip')"    class="btn btn-sm">דלג</button>
+        <button id="cd-${ci}-replace" onclick="setConflictDecision(${ci},'replace')" class="btn btn-sm">החלף קיים</button>
+        <button id="cd-${ci}-add"     onclick="setConflictDecision(${ci},'add')"     class="btn btn-sm">הוסף בנוסף</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('conflict-list').innerHTML = html;
+  conflicts.forEach((_, ci) => setConflictDecision(ci, 'skip'));
+  openModal('conflict-modal');
+}
+
+function setConflictDecision(ci, decision) {
+  if (window._importState) window._importState.conflicts[ci].decision = decision;
+  const styles = {
+    skip:    { active:'rgba(255,255,255,.22)', idle:'rgba(255,255,255,.07)', color:'var(--text)' },
+    replace: { active:'rgba(155,89,182,.55)',  idle:'rgba(155,89,182,.18)', color:'var(--accent2)' },
+    add:     { active:'rgba(230,0,126,.45)',   idle:'rgba(230,0,126,.15)', color:'var(--accent)' }
+  };
+  ['skip','replace','add'].forEach(d => {
+    const btn = document.getElementById(`cd-${ci}-${d}`);
+    if (!btn) return;
+    const s = styles[d];
+    btn.style.background  = d === decision ? s.active : s.idle;
+    btn.style.color       = s.color;
+    btn.style.fontWeight  = d === decision ? '800' : '600';
+    btn.style.border      = d === decision ? `1px solid ${s.color}` : '1px solid transparent';
+  });
+}
+
+function executeConflictImport() {
+  const { toImport, conflicts, isStatePay } = window._importState || {};
+  if (!toImport) return;
+  closeModal('conflict-modal');
+  _executeImport(toImport, conflicts, isStatePay);
+}
+
+function _executeImport(toImport, conflicts, isStatePay) {
+  let n = 0;
+  const push = (pid, useDate, amount, desc, unknown) => {
+    const obj = { id:uid(), policyId:pid||null, date:useDate, amount, actualAmount:amount, note:desc, source:'csv', unknown:!!unknown, createdAt:new Date().toISOString() };
+    if (isStatePay && pid) obj.paidBy = 'state';
+    payments.push(obj); n++;
+  };
+
+  toImport.forEach(({ r, pid, useDate, mainAmount }) => {
+    if (r.split?.policyId && r.split?.amount > 0) {
+      const splitDup = payments.some(p => p.policyId===r.split.policyId && p.date===useDate && Math.abs(p.amount-r.split.amount)<0.5);
+      if (!splitDup) push(r.split.policyId, useDate, r.split.amount, r.desc+' (פיצול)', false);
+    }
+    push(pid, useDate, mainAmount, r.desc, !pid);
+  });
+
+  conflicts.forEach(({ r, pid, useDate, mainAmount, existingPay, decision }) => {
+    if (decision === 'skip') return;
+    if (decision === 'replace') payments = payments.filter(p => p.id !== existingPay.id);
+    push(pid, useDate, mainAmount, r.desc, !pid);
+  });
+
+  if (n === 0) { toast('לא יובאו תשלומים', 'warning'); return; }
   py();
-  // Show which months were actually imported so user knows where to look
-  const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
-  const importedMonths = [...new Set(payments.slice(-n).map(p => {
-    const d = new Date(p.date+'T12:00:00');
-    return `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-  }))].join(', ');
-  const skipNote = skipped > 0 ? ` (${skipped} כפילויות דולגו)` : '';
-  toast(`✅ יובאו ${n} תשלומים — ${importedMonths}${skipNote}`,'success');
+  const MN = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  const months = [...new Set(payments.slice(-n).map(p => { const d=new Date(p.date+'T12:00:00'); return `${MN[d.getMonth()]} ${d.getFullYear()}`; }))].join(', ');
+  toast(`✅ יובאו ${n} תשלומים — ${months}`, 'success');
   resetCSVImport(); renderHistory(); renderDashboard(); renderMonthlySummary();
 }
 function toggleDateOverride(cb) {

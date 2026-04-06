@@ -2745,6 +2745,7 @@ function renderMonthlyChecklistCore(year, month) {
     // If paid, always show the actual amount paid (not the estimate)
     const actualPaid = paid ? getActualPaid(p) : 0;
     const displayAmt = paid && actualPaid ? actualPaid : dueAmount(p);
+    const monthly    = toMonthly(p.amount, p.frequency);
 
     return `<div class="mcl-row ${paid?'paid':''}" id="mclrow-${p.id}">
       <!-- Right: icon + type tag as one unit -->

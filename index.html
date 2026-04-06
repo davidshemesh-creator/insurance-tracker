@@ -2683,16 +2683,18 @@ function renderDonut() {
     });
   }
 
-  const insPctAnn = annualExpIns > 0 ? Math.min(100, Math.round(annualIns / annualExpIns * 100)) : 0;
-  const savPctAnn = annualExpSav > 0 ? Math.min(100, Math.round(annualSav / annualExpSav * 100)) : 0;
+  // Bar = time progress through the year (Feb=2/12, Dec=12/12)
+  const yearPct   = Math.round((curMonth + 1) / 12 * 100);
+  const insPctAnn = yearPct;
+  const savPctAnn = yearPct;
 
   if(el('dash-annual-ins-paid'))  el('dash-annual-ins-paid').textContent  = fmt$(Math.round(annualIns));
   if(el('dash-annual-ins-exp'))   el('dash-annual-ins-exp').textContent   = fmt$(Math.round(annualExpIns));
-  if(el('dash-annual-ins-pct'))   el('dash-annual-ins-pct').textContent   = insPctAnn + '%';
+  if(el('dash-annual-ins-pct'))   el('dash-annual-ins-pct').textContent   = `${curMonth + 1}/12`;
   if(el('dash-annual-ins-fill'))  el('dash-annual-ins-fill').style.width  = insPctAnn + '%';
   if(el('dash-annual-sav-paid'))  el('dash-annual-sav-paid').textContent  = fmt$(Math.round(annualSav));
   if(el('dash-annual-sav-exp'))   el('dash-annual-sav-exp').textContent   = fmt$(Math.round(annualExpSav));
-  if(el('dash-annual-sav-pct'))   el('dash-annual-sav-pct').textContent   = savPctAnn + '%';
+  if(el('dash-annual-sav-pct'))   el('dash-annual-sav-pct').textContent   = `${curMonth + 1}/12`;
   if(el('dash-annual-sav-fill'))  el('dash-annual-sav-fill').style.width  = savPctAnn + '%';
   if(el('dash-annual-total'))     el('dash-annual-total').textContent     = fmt$(Math.round(annualTotal));
   if(el('dash-annual-total-exp')) el('dash-annual-total-exp').textContent = `/ ${fmt$(Math.round(annualExpIns + annualExpSav))}`;

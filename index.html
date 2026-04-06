@@ -808,6 +808,32 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
   padding-top: 10px; margin-top: 4px; border-top: 1px solid var(--border);
 }
 
+/* Savings accordion */
+.sav-group { border-bottom: 1px solid var(--border); }
+.sav-group:last-of-type { border-bottom: none; }
+.sav-group-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 0; cursor: pointer; user-select: none;
+}
+.sav-group-header:hover { opacity: .8; }
+.sav-group-name { font-size: 13px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; }
+.sav-group-badge {
+  font-size: 10px; font-weight: 700; background: rgba(155,89,182,.2);
+  color: var(--accent2); border-radius: 20px; padding: 1px 7px;
+}
+.sav-group-right { display: flex; align-items: center; gap: 8px; }
+.sav-group-total { font-size: 15px; font-weight: 800; color: var(--accent2); }
+.sav-group-arrow { font-size: 10px; color: var(--text-dim); transition: transform .2s; }
+.sav-group-arrow.open { transform: rotate(180deg); }
+.sav-group-rows { display: none; padding-bottom: 6px; }
+.sav-group-rows.open { display: block; }
+.sav-item-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 4px 0 4px 8px; font-size: 11px;
+}
+.sav-item-lbl { color: var(--text-dim); }
+.sav-item-val { font-weight: 700; color: var(--accent2); font-size: 12px; }
+
 /* Split progress bar (inside checklist header) */
 .dash-split-wrap { padding: 0 18px 12px; }
 .split-tracks {
@@ -1209,11 +1235,14 @@ tr:hover td { background: var(--bg3); }
 /* Dashboard layout */
 .dash-grid {
   display: grid;
-  grid-template-columns: minmax(0,58fr) minmax(0,42fr);
-  gap: 16px;
+  grid-template-columns: minmax(0,66fr) minmax(0,34fr);
+  gap: 20px;
   align-items: start;
   max-width: 100%;
   width: 100%;
+}
+.dash-sidebar {
+  padding-right: 6px;
 }
 .dash-grid > * {
   min-width: 0;
@@ -2598,17 +2627,48 @@ function renderDonut() {
   if(el('dash-annual-total'))     el('dash-annual-total').textContent     = fmt$(Math.round(annualTotal));
   if(el('dash-annual-total-exp')) el('dash-annual-total-exp').textContent = `/ ${fmt$(Math.round(annualExpIns + annualExpSav))}`;
 
-  // ── Savings (צבירה) ──
-  const savingsPols = policies.filter(p => SAVING_TYPES.includes(p.type) && (p.balance||0) > 0)
-    .sort((a,b) => (b.balance||0) - (a.balance||0));
+  // ── Savings (צבירה) — מקובץ לפי סוג עם אקורדיון ──
+  const savingsPols = policies.filter(p => SAVING_TYPES.includes(p.type) && (p.balance||0) > 0);
   const totalBalance = policies.reduce((s,p) => s + (p.balance||0), 0);
   if(el('dash-savings-list')) {
-    el('dash-savings-list').innerHTML = savingsPols.map(p =>
-      `<div class="savings-row">
-        <span class="savings-lbl">${p.type} · ${p.company}</span>
-        <span class="savings-val">${fmt$(p.balance)}</span>
-      </div>`
-    ).join('') || '<div style="font-size:12px;color:var(--text-dim);padding:8px 0;">אין נתוני צבירה</div>';
+    // Group by type
+    const typeOrder = ['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון'];
+    const grouped = {};
+    savingsPols.forEach(p => {
+      if(!grouped[p.type]) grouped[p.type] = [];
+      grouped[p.type].push(p);
+    });
+    const types = typeOrder.filter(t => grouped[t]);
+
+    if(!types.length) {
+      el('dash-savings-list').innerHTML = '<div style="font-size:12px;color:var(--text-dim);padding:8px 0;">אין נתוני צבירה</div>';
+    } else {
+      el('dash-savings-list').innerHTML = types.map((type, gi) => {
+        const pols = grouped[type].sort((a,b) => (b.balance||0)-(a.balance||0));
+        const groupTotal = pols.reduce((s,p) => s+(p.balance||0), 0);
+        const multi = pols.length > 1;
+        const id = `sav-grp-${gi}`;
+        return `<div class="sav-group">
+          <div class="sav-group-header" onclick="${multi ? `toggleSavGroup('${id}')` : ''}">
+            <div class="sav-group-name">
+              ${type}
+              ${multi ? `<span class="sav-group-badge">${pols.length}</span>` : ''}
+            </div>
+            <div class="sav-group-right">
+              <span class="sav-group-total">${fmt$(groupTotal)}</span>
+              ${multi ? `<span class="sav-group-arrow" id="${id}-arrow">▼</span>` : ''}
+            </div>
+          </div>
+          ${multi ? `<div class="sav-group-rows" id="${id}">
+            ${pols.map(p => `
+              <div class="sav-item-row">
+                <span class="sav-item-lbl">${p.company}</span>
+                <span class="sav-item-val">${fmt$(p.balance)}</span>
+              </div>`).join('')}
+          </div>` : ''}
+        </div>`;
+      }).join('');
+    }
   }
   if(el('dash-savings-total')) el('dash-savings-total').textContent = fmt$(totalBalance);
 
@@ -2903,6 +2963,14 @@ function renderMonthlyChecklistCore(year, month) {
         </div>`).join('')}
     </div>`;
   }
+}
+
+function toggleSavGroup(id) {
+  const rows  = document.getElementById(id);
+  const arrow = document.getElementById(id + '-arrow');
+  if(!rows) return;
+  const open = rows.classList.toggle('open');
+  if(arrow) arrow.classList.toggle('open', open);
 }
 
 function toggleMonthlyPaid(policyId, alreadyPaid, existingPayId) {

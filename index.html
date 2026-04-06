@@ -510,10 +510,11 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 
 /* ── Monthly summary table ──────────────────────────────────────── */
 .monthly-table {
-  width: auto;
+  width: 100%;
   border-collapse: collapse;
   font-size: 12px;
-  min-width: 500px;
+  min-width: 600px;
+  table-layout: fixed;
 }
 .monthly-table th {
   background: var(--bg2);
@@ -527,7 +528,8 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
-.monthly-table th:first-child { text-align: right; }
+.monthly-table th:first-child { text-align: right; width: 140px; }
+.monthly-table th:last-child { width: 70px; }
 .monthly-table td {
   padding: 9px 10px;
   text-align: center;
@@ -539,8 +541,7 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
   font-weight: 600;
   color: var(--text);
   white-space: normal;
-  max-width: 160px;
-  min-width: 120px;
+  overflow: hidden;
 }
 .monthly-table td.actual {
   color: var(--text);
@@ -4695,9 +4696,9 @@ function renderMonthlySummary() {
   // Build header — months as columns
   const head = document.getElementById('monthly-summary-head');
   head.innerHTML = `<tr>
-    <th style="min-width:120px;max-width:160px;text-align:right;padding:8px 10px;">פוליסה</th>
-    ${monthNames.map(m => `<th style="min-width:58px;font-size:11px;padding:6px 4px;text-align:center;">${m}</th>`).join('')}
-    <th style="min-width:70px;text-align:center;">סה"כ</th>
+    <th style="text-align:right;padding:8px 10px;">פוליסה</th>
+    ${monthNames.map(m => `<th style="font-size:11px;padding:6px 4px;text-align:center;">${m}</th>`).join('')}
+    <th style="text-align:center;">סה"כ</th>
   </tr>`;
 
   // Build body — one row per policy

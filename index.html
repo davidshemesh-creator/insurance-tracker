@@ -2602,15 +2602,27 @@ function renderDonut() {
   const insPolsPaid = insPolsDue.filter(p => paidThisMonthIds.has(p.id));
   const savPolsDue  = active.filter(p =>  SAVING_TYPES_SET.has(p.type) && isDueInMonth(p, donutYear, donutMonth));
   const savPolsPaid = savPolsDue.filter(p => paidThisMonthIds.has(p.id));
-  const insPct = insPolsDue.length > 0 ? Math.round(insPolsPaid.length / insPolsDue.length * 100) : 0;
+  // Unmatched payments this month (no policyId, not state) — count toward insurance
+  const unmatchedThisMonth = payments.filter(pay => {
+    const d = new Date(pay.date+'T12:00:00');
+    return d.getFullYear()===donutYear && d.getMonth()===donutMonth &&
+           (pay.unknown || (!pay.policyId && pay.source==='csv')) && pay.paidBy!=='state';
+  }).length;
+  const insActualCount = insPolsPaid.length + unmatchedThisMonth;
+  const insIsOver = insActualCount > insPolsDue.length;
+  const insPct = insPolsDue.length > 0 ? Math.min(100, Math.round(insPolsPaid.length / insPolsDue.length * 100)) : 0;
   const savPct = savPolsDue.length  > 0 ? Math.round(savPolsPaid.length  / savPolsDue.length  * 100) : 0;
   if(el('dash-split-ins-fill')) el('dash-split-ins-fill').style.width = (isFuture ? 0 : insPct) + '%';
   if(el('dash-split-sav-fill')) el('dash-split-sav-fill').style.width = (isFuture ? 0 : savPct) + '%';
+  const insCountLabel = isFuture || insPolsDue.length === 0 ? '' :
+    insIsOver
+      ? `<span style="color:#f5c842;font-weight:700">${insActualCount}</span><span style="color:var(--accent);font-weight:700">/${insPolsDue.length}</span>`
+      : `<span style="color:var(--accent);font-weight:700">${insPolsPaid.length}/${insPolsDue.length}</span>`;
   if(el('dash-split-ins-label')) el('dash-split-ins-label').innerHTML =
     `<span class="split-dot" style="background:var(--accent);"></span>` +
     `ביטוחים&nbsp;<strong style="color:var(--text)">${isFuture ? fmt$(Math.round(estimatedIns)) : fmt$(Math.round(actualPaidIns))}</strong>` +
     `<span style="color:var(--text-dim)"> / ${fmt$(Math.round(estimatedIns))}</span>` +
-    `&nbsp;<span style="color:var(--accent);font-weight:700">${isFuture ? '' : insPolsDue.length > 0 ? `${insPolsPaid.length}/${insPolsDue.length}` : ''}</span>`;
+    `&nbsp;${insCountLabel}`;
   if(el('dash-split-sav-label')) el('dash-split-sav-label').innerHTML =
     `<span class="split-dot" style="background:var(--accent2);"></span>` +
     `חסכון&nbsp;<strong style="color:var(--text)">${isFuture ? fmt$(Math.round(estimatedSav)) : fmt$(Math.round(actualPaidSav))}</strong>` +

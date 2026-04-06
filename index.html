@@ -2592,7 +2592,8 @@ function renderDonut() {
   }).map(pay => pay.policyId));
   const insPolsDue  = active.filter(p => !SAVING_TYPES_SET.has(p.type) && isDueInMonth(p, donutYear, donutMonth));
   const insPolsPaid = insPolsDue.filter(p => paidThisMonthIds.has(p.id));
-  const savPolsDue  = active.filter(p =>  SAVING_TYPES_SET.has(p.type) && isDueInMonth(p, donutYear, donutMonth));
+  // Savings: no fixed schedule — due = all active savings, paid = those with a payment this month
+  const savPolsDue  = active.filter(p => SAVING_TYPES_SET.has(p.type));
   const savPolsPaid = savPolsDue.filter(p => paidThisMonthIds.has(p.id));
   // Unmatched payments this month (no policyId, not state) — count toward insurance
   const unmatchedThisMonth = payments.filter(pay => {

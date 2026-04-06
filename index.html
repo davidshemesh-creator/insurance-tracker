@@ -874,6 +874,7 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 .dash-chip { background: var(--bg3); border-radius: 8px; padding: 9px 12px; border: 1px solid var(--border); }
 .dash-chip-lbl { font-size: 9px; font-weight: 700; color: var(--text-dim); letter-spacing: .4px; margin-bottom: 3px; }
 .dash-chip-val { font-size: 17px; font-weight: 800; }
+.dash-chip-count { font-size: 10px; color: var(--text-dim); margin-top: 4px; font-weight: 600; }
 
 /* Month selector inside checklist header */
 .dash-month-sel {
@@ -1410,7 +1411,6 @@ tr:hover td { background: var(--bg3); }
               <p id="monthly-checklist-sub" style="font-size:12px;color:var(--text-dim);margin-top:2px;"></p>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
-              <span id="monthly-checklist-badge"></span>
               <div class="dash-month-sel">
                 <select id="donut-sel-month" onchange="donutSelChange()">
                   <option value="0">ינואר</option><option value="1">פברואר</option><option value="2">מרץ</option>
@@ -1446,10 +1446,12 @@ tr:hover td { background: var(--bg3); }
             <div class="dash-chip" style="border-color:rgba(46,204,113,.3);background:rgba(46,204,113,.05);">
               <div class="dash-chip-lbl">שולם בפועל</div>
               <div class="dash-chip-val" id="dash-chip-paid" style="color:#2ecc71">₪0</div>
+              <div class="dash-chip-count" id="dash-chip-paid-count"></div>
             </div>
             <div class="dash-chip" style="border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.05);">
               <div class="dash-chip-lbl">נותר לתשלום</div>
               <div class="dash-chip-val" id="dash-chip-remain" style="color:var(--orange)">₪0</div>
+              <div class="dash-chip-count" id="dash-chip-remain-count"></div>
             </div>
           </div>
 
@@ -2883,23 +2885,14 @@ function renderMonthlyChecklistCore(year, month) {
   // Header
   document.getElementById('monthly-checklist-title').textContent =
     `💳 תשלומים — ${monthNames[month]} ${year !== new Date().getFullYear() ? year : ''}`;
-  const subPaid  = totalPaid > 0 ? `שולם: ${fmt$(totalPaid)}` : '';
-  const subState = totalStatePaid > 0 ? `🏛️ מדינה: ${fmt$(totalStatePaid)}` : '';
-  const subDue   = unpaidCount > 0 ? `צפוי: ~${fmt$(totalDue - totalPaid)}` : '';
-  const subParts = [subPaid, subState, subDue].filter(Boolean).join(' · ');
   document.getElementById('monthly-checklist-sub').textContent =
-    `${paidCount} מתוך ${dueThisMonth.length} שולמו` + (subParts ? ` · ${subParts}` : '');
+    `${paidCount} מתוך ${dueThisMonth.length} שולמו`;
 
-  const badge = document.getElementById('monthly-checklist-badge');
-  if(unpaidCount > 0) {
-    const remainEst = dueThisMonth.filter(p=>!paidThisMonth.has(p.id)).reduce((s,p)=>s+dueAmount(p),0);
-    badge.innerHTML = `<span class="monthly-checklist-badge" style="background:rgba(230,0,126,.2);color:#ff66b3;">
-      ${unpaidCount} ממתינים · ~${fmt$(remainEst)}</span>`;
-  } else if(dueThisMonth.length > 0) {
-    badge.innerHTML = `<span class="monthly-checklist-badge" style="background:rgba(46,204,113,.2);color:#2ecc71;">✓ הכל שולם · ${fmt$(totalPaid)}</span>`;
-  } else {
-    badge.innerHTML = '';
-  }
+  // Count labels on chips
+  const paidCountEl  = document.getElementById('dash-chip-paid-count');
+  const remainCountEl = document.getElementById('dash-chip-remain-count');
+  if(paidCountEl)   paidCountEl.textContent  = paidCount > 0   ? `${paidCount} פוליסות` : '';
+  if(remainCountEl) remainCountEl.textContent = unpaidCount > 0 ? `${unpaidCount} פוליסות` : (dueThisMonth.length > 0 ? '✓ הכל שולם' : '');
 
   const el = document.getElementById('monthly-checklist');
   if(!dueThisMonth.length) {

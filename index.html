@@ -2612,12 +2612,28 @@ function renderDonut() {
   // ── 3 chips ──
   const remaining = Math.max(0, estimatedAll - actualPaidAll);
   const over      = actualPaidAll > estimatedAll ? actualPaidAll - estimatedAll : 0;
+
+  // Check if every policy due this month has at least one payment
+  const duePolIds  = new Set(policies.filter(p => isDueInMonth(p, donutYear, donutMonth)).map(p => p.id));
+  const paidPolIds = new Set(payments.filter(pay => {
+    const d = new Date(pay.date+'T12:00:00');
+    return d.getFullYear()===donutYear && d.getMonth()===donutMonth && pay.policyId;
+  }).map(pay => pay.policyId));
+  const allPoliciesPaid = duePolIds.size > 0 && [...duePolIds].every(id => paidPolIds.has(id));
+
   if(el('dash-chip-est'))    el('dash-chip-est').textContent    = fmt$(estimatedAll);
   if(el('dash-chip-paid'))   el('dash-chip-paid').textContent   = isFuture ? '—' : fmt$(actualPaidAll);
   if(el('dash-chip-remain')) {
-    if(isFuture) { el('dash-chip-remain').textContent = '—'; el('dash-chip-remain').style.color = 'var(--text-dim)'; }
-    else if(over > 0) { el('dash-chip-remain').textContent = `+${fmt$(over)}`; el('dash-chip-remain').style.color = 'var(--text-dim)'; }
-    else { el('dash-chip-remain').textContent = remaining > 0 ? `~${fmt$(remaining)}` : '✓ שולם הכל'; el('dash-chip-remain').style.color = remaining > 0 ? 'var(--orange)' : '#2ecc71'; }
+    const remEl = el('dash-chip-remain');
+    if(isFuture) {
+      remEl.textContent = '—'; remEl.style.color = 'var(--text-dim)';
+    } else if(allPoliciesPaid) {
+      if(over > 0) { remEl.textContent = `+${fmt$(over)} מעל ההערכה`; remEl.style.color = 'var(--text-dim)'; }
+      else         { remEl.textContent = ''; remEl.style.color = 'var(--text-dim)'; }
+    } else {
+      remEl.textContent = remaining > 0 ? `~${fmt$(remaining)}` : '✓ שולם הכל';
+      remEl.style.color = remaining > 0 ? 'var(--orange)' : '#2ecc71';
+    }
   }
 
   // ── Annual stats (ינואר עד החודש הנוכחי — actual) ──
@@ -3807,9 +3823,9 @@ function renderHistory() {
     const actualCount   = pays.length;
     const isExact = actualCount === expectedCount;
     const countLabel = expectedCount > 0 ? `${actualCount}/${expectedCount}` : `${actualCount}`;
-    const chipBg    = isExact ? 'rgba(255,255,255,.1)'   : 'rgba(230,0,126,.25)';
-    const chipColor = isExact ? 'var(--text-dim)'        : 'var(--accent)';
-    const chipBorder= isExact ? '1px solid rgba(255,255,255,.12)' : '1px solid rgba(230,0,126,.5)';
+    const chipBg    = isExact ? 'rgba(255,255,255,.08)'  : 'rgba(230,0,126,.15)';
+    const chipColor = isExact ? 'var(--text-dim)'        : '#ff6ec0';
+    const chipBorder= isExact ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(230,0,126,.35)';
 
     // Build pidCount early so we can use it in the header too
     const pidCount = {};

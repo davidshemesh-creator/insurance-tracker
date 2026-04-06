@@ -1467,16 +1467,12 @@ tr:hover td { background: var(--bg3); }
 
           <!-- תשלומים שנתיים עם progress -->
           <div class="dash-side-card">
-            <div class="dash-side-title">📊 תשלומים שנתיים</div>
+            <div class="dash-side-title">📊 תשלומים שנתיים <span id="dash-annual-year" style="color:var(--text-dim);font-size:12px;font-weight:400;"></span></div>
 
             <div class="annual-block">
               <div class="annual-block-header">
                 <span class="annual-block-name">🛡 ביטוחים</span>
-                <span class="annual-block-pct" id="dash-annual-ins-pct" style="color:var(--accent)">0%</span>
-              </div>
-              <div class="annual-amounts">
-                <span>שולם: <strong id="dash-annual-ins-paid">₪0</strong></span>
-                <span>צפי: <span id="dash-annual-ins-exp">₪0</span></span>
+                <strong id="dash-annual-ins-paid" style="color:var(--accent);font-size:13px;">₪0</strong>
               </div>
               <div class="annual-track">
                 <div class="annual-fill" id="dash-annual-ins-fill" style="background:var(--accent);width:0%"></div>
@@ -1486,11 +1482,7 @@ tr:hover td { background: var(--bg3); }
             <div class="annual-block">
               <div class="annual-block-header">
                 <span class="annual-block-name">💰 חסכון</span>
-                <span class="annual-block-pct" id="dash-annual-sav-pct" style="color:var(--accent2)">0%</span>
-              </div>
-              <div class="annual-amounts">
-                <span>שולם: <strong id="dash-annual-sav-paid">₪0</strong></span>
-                <span>צפי: <span id="dash-annual-sav-exp">₪0</span></span>
+                <strong id="dash-annual-sav-paid" style="color:var(--accent2);font-size:13px;">₪0</strong>
               </div>
               <div class="annual-track">
                 <div class="annual-fill" id="dash-annual-sav-fill" style="background:var(--accent2);width:0%"></div>
@@ -1500,7 +1492,7 @@ tr:hover td { background: var(--bg3); }
             <div class="annual-divider"></div>
             <div class="annual-total-row">
               <span class="annual-total-lbl">סה״כ השנה</span>
-              <span class="annual-total-val" id="dash-annual-total">₪0 <span id="dash-annual-total-exp" style="font-size:12px;font-weight:400;color:var(--text-dim)"></span></span>
+              <span class="annual-total-val" id="dash-annual-total">₪0</span>
             </div>
           </div>
 
@@ -2688,16 +2680,12 @@ function renderDonut() {
   const insPctAnn = yearPct;
   const savPctAnn = yearPct;
 
+  if(el('dash-annual-year'))      el('dash-annual-year').textContent      = curYear;
   if(el('dash-annual-ins-paid'))  el('dash-annual-ins-paid').textContent  = fmt$(Math.round(annualIns));
-  if(el('dash-annual-ins-exp'))   el('dash-annual-ins-exp').textContent   = fmt$(Math.round(annualExpIns));
-  if(el('dash-annual-ins-pct'))   el('dash-annual-ins-pct').textContent   = `${curMonth + 1}/12`;
   if(el('dash-annual-ins-fill'))  el('dash-annual-ins-fill').style.width  = insPctAnn + '%';
   if(el('dash-annual-sav-paid'))  el('dash-annual-sav-paid').textContent  = fmt$(Math.round(annualSav));
-  if(el('dash-annual-sav-exp'))   el('dash-annual-sav-exp').textContent   = fmt$(Math.round(annualExpSav));
-  if(el('dash-annual-sav-pct'))   el('dash-annual-sav-pct').textContent   = `${curMonth + 1}/12`;
   if(el('dash-annual-sav-fill'))  el('dash-annual-sav-fill').style.width  = savPctAnn + '%';
   if(el('dash-annual-total'))     el('dash-annual-total').textContent     = fmt$(Math.round(annualTotal));
-  if(el('dash-annual-total-exp')) el('dash-annual-total-exp').textContent = `/ ${fmt$(Math.round(annualExpIns + annualExpSav))}`;
 
   // ── Savings (צבירה) — מקובץ לפי סוג עם אקורדיון ──
   const savingsPols = policies.filter(p => SAVING_TYPES.includes(p.type) && (p.balance||0) > 0);

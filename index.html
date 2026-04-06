@@ -755,6 +755,101 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 }
 
 /* ── Monthly checklist ──────────────────────────────────────────── */
+.dash-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dash-side-card {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 16px;
+}
+.dash-side-title {
+  font-size: 11px; font-weight: 700; color: var(--text-dim);
+  letter-spacing: .6px; text-transform: uppercase; margin-bottom: 14px;
+}
+.annual-block { margin-bottom: 14px; }
+.annual-block:last-of-type { margin-bottom: 0; }
+.annual-block-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 6px;
+}
+.annual-block-name { font-size: 14px; font-weight: 700; }
+.annual-block-pct  { font-size: 14px; font-weight: 800; }
+.annual-amounts {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text-dim); margin-bottom: 7px;
+}
+.annual-amounts strong { color: var(--text); }
+.annual-track {
+  height: 10px; border-radius: 5px;
+  background: var(--bg3); overflow: hidden;
+}
+.annual-fill { height: 100%; border-radius: 5px; transition: width .4s ease; }
+.annual-divider { height: 1px; background: var(--border); margin: 14px 0; }
+.annual-total-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.annual-total-lbl { font-size: 13px; font-weight: 700; }
+.annual-total-val { font-size: 20px; font-weight: 800; }
+.savings-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.savings-row:first-child { padding-top: 0; }
+.savings-row:last-child  { border-bottom: none; }
+.savings-lbl { color: var(--text-dim); }
+.savings-val { font-size: 15px; font-weight: 800; color: var(--accent2); }
+.savings-total-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding-top: 10px; margin-top: 4px; border-top: 1px solid var(--border);
+}
+
+/* Split progress bar (inside checklist header) */
+.dash-split-wrap { padding: 0 18px 12px; }
+.split-tracks {
+  display: grid; grid-template-columns: 1fr 3px 1fr;
+  height: 12px; border-radius: 6px; overflow: hidden;
+  background: var(--bg3); border: 1px solid var(--border);
+}
+.split-ins-track { background: rgba(224,0,126,.12); position: relative; overflow: hidden; }
+.split-ins-fill  { position: absolute; top:0; right:0; bottom:0; background: var(--accent); transition: width .4s ease; }
+.split-divider   { background: var(--border); }
+.split-sav-track { background: rgba(155,89,182,.1); position: relative; overflow: hidden; }
+.split-sav-fill  { position: absolute; top:0; right:0; bottom:0; background: var(--accent2); transition: width .4s ease; }
+.split-labels {
+  display: flex; justify-content: space-between;
+  margin-top: 7px; font-size: 12px; color: var(--text-dim);
+}
+.split-label { display: flex; align-items: center; gap: 5px; }
+.split-dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* Monthly stat chips */
+.dash-chips {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; padding: 0 18px 14px;
+}
+.dash-chip { background: var(--bg3); border-radius: 8px; padding: 9px 12px; border: 1px solid var(--border); }
+.dash-chip-lbl { font-size: 9px; font-weight: 700; color: var(--text-dim); letter-spacing: .4px; margin-bottom: 3px; }
+.dash-chip-val { font-size: 17px; font-weight: 800; }
+
+/* Month selector inside checklist header */
+.dash-month-sel {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg3); border-radius: 8px;
+  padding: 5px 10px; font-size: 12px; font-weight: 700;
+  border: 1px solid var(--border); color: var(--text);
+  white-space: nowrap; cursor: pointer;
+}
+.dash-month-sel select {
+  background: transparent; border: none; color: var(--text);
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  outline: none; appearance: none; -webkit-appearance: none;
+}
+
 .monthly-checklist-wrap {
   background: var(--bg2);
   border-radius: var(--radius);
@@ -799,22 +894,22 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 .mcl-amount  { font-size: 14px; font-weight: 800; white-space: nowrap; min-width: 72px; text-align: left; }
 .mcl-amount.paid-amt { color: #2ecc71; }
 .mcl-toggle {
-  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
-  border: 2px solid; cursor: pointer; font-size: 15px;
+  width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,.2); cursor: pointer; font-size: 13px;
   display: flex; align-items: center; justify-content: center;
-  transition: all .15s; background: none;
+  transition: all .15s; background: none; color: transparent;
 }
 .mcl-toggle.unpaid {
-  border-color: rgba(255,255,255,.2); color: rgba(255,255,255,.3);
+  border-color: rgba(255,255,255,.2); color: transparent;
 }
 .mcl-toggle.unpaid:hover {
-  border-color: #2ecc71; color: #2ecc71; background: rgba(46,204,113,.1);
+  border-color: var(--accent); background: rgba(224,0,126,.1);
 }
 .mcl-toggle.paid-btn {
-  border-color: #2ecc71; color: #2ecc71; background: rgba(46,204,113,.15);
+  border-color: var(--accent); background: var(--accent); color: #fff;
 }
 .mcl-toggle.paid-btn:hover {
-  border-color: #e74c3c; color: #e74c3c; background: rgba(231,76,60,.1);
+  border-color: #e74c3c; background: #e74c3c;
 }
 .mcl-freq-tag {
   font-size: 10px; padding: 2px 6px; border-radius: 10px;
@@ -1114,7 +1209,7 @@ tr:hover td { background: var(--bg3); }
 /* Dashboard layout */
 .dash-grid {
   display: grid;
-  grid-template-columns: 320px minmax(0,1fr) 210px;
+  grid-template-columns: minmax(0,58fr) minmax(0,42fr);
   gap: 16px;
   align-items: start;
   max-width: 100%;
@@ -1267,105 +1362,120 @@ tr:hover td { background: var(--bg3); }
 
       <div class="dash-grid">
 
-        <!-- COLUMN 1 (ימין): Donut + Stats -->
-        <div style="display:flex;flex-direction:column;gap:12px;min-width:0;">
-
-          <!-- בורר חודש/שנה -->
-          <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
-            <select id="donut-sel-month" onchange="donutSelChange()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:4px 6px;font-size:12px;font-weight:600;cursor:pointer;flex:1;min-width:90px;max-width:130px;">
-              <option value="0">ינואר</option><option value="1">פברואר</option><option value="2">מרץ</option>
-              <option value="3">אפריל</option><option value="4">מאי</option><option value="5">יוני</option>
-              <option value="6">יולי</option><option value="7">אוגוסט</option><option value="8">ספטמבר</option>
-              <option value="9">אוקטובר</option><option value="10">נובמבר</option><option value="11">דצמבר</option>
-            </select>
-            <select id="donut-sel-year" onchange="donutSelChange()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:4px 6px;font-size:12px;font-weight:600;cursor:pointer;min-width:65px;max-width:80px;"></select>
-          </div>
-
-          <!-- קוביה גדולה: סה"כ תשלומים החודש -->
-          <div class="stat-card" style="background:linear-gradient(135deg,var(--bg3),var(--bg2));border:1px solid var(--accent);padding:14px 16px;">
-            <div class="stat-card-label" style="font-size:11px;letter-spacing:.5px;" id="stat-total-monthly-label">💳 שולם החודש</div>
-            <div class="stat-card-value" id="stat-total-monthly" style="font-size:28px;color:var(--accent);">₪0</div>
-            <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
-              <span style="font-size:11px;color:var(--text-dim);">🛡 ביטוחים: <strong id="stat-total-ins-label" style="color:var(--text);">₪0</strong></span>
-              <span style="font-size:11px;color:var(--text-dim);">💰 חסכון: <strong id="stat-total-sav-label" style="color:var(--text);">₪0</strong></span>
-            </div>
-            <div id="stat-total-vs-est" style="margin-top:8px;font-size:11px;color:var(--text-dim);border-top:1px solid rgba(255,255,255,.07);padding-top:7px;display:none;"></div>
-          </div>
-
-          <!-- פאי ביטוחים -->
-          <div class="donut-wrap">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;width:100%;margin-bottom:4px;">
-              <span id="stat-ins-count-label" style="font-size:11px;color:var(--text-dim);font-weight:600;"></span>
-              <span style="font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;">🛡 ביטוחים</span>
-            </div>
-            <svg id="donut-svg-ins" width="100%" height="160" viewBox="0 0 240 240"></svg>
-            <div class="donut-legend" id="donut-legend-ins"></div>
-          </div>
-
-          <!-- פאי חסכון -->
-          <div class="donut-wrap">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;width:100%;margin-bottom:4px;">
-              <span id="stat-sav-count-label" style="font-size:11px;color:var(--text-dim);font-weight:600;"></span>
-              <span style="font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;">💰 חסכון וצבירה</span>
-            </div>
-            <svg id="donut-svg-sav" width="100%" height="160" viewBox="0 0 240 240"></svg>
-            <div class="donut-legend" id="donut-legend-sav"></div>
-          </div>
-
-          <!-- Expiring soon -->
-          <div id="dash-expiring-section" style="display:none;">
-            <div class="section-label">⏳ פוגות תוקף בקרוב</div>
-            <div id="dash-expiring"></div>
-          </div>
-        </div>
-
-        <!-- COLUMN 2 (אמצע): Monthly payment checklist -->
+        <!-- עמודה ימנית: Checklist -->
         <div class="monthly-checklist-wrap">
+          <!-- Header -->
           <div class="monthly-checklist-header">
             <div>
-              <h3 id="monthly-checklist-title">💳 תשלומים החודש</h3>
+              <h3 id="monthly-checklist-title">💳 תשלומים</h3>
               <p id="monthly-checklist-sub" style="font-size:12px;color:var(--text-dim);margin-top:2px;"></p>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
               <span id="monthly-checklist-badge"></span>
-              <button class="btn btn-ghost btn-sm" onclick="navigate('import',null)" title="ייבא CSV מאשראי / בנק" style="font-size:11px;padding:4px 10px;white-space:nowrap;">📥 ייבוא</button>
+              <div class="dash-month-sel">
+                <select id="donut-sel-month" onchange="donutSelChange()">
+                  <option value="0">ינואר</option><option value="1">פברואר</option><option value="2">מרץ</option>
+                  <option value="3">אפריל</option><option value="4">מאי</option><option value="5">יוני</option>
+                  <option value="6">יולי</option><option value="7">אוגוסט</option><option value="8">ספטמבר</option>
+                  <option value="9">אוקטובר</option><option value="10">נובמבר</option><option value="11">דצמבר</option>
+                </select>
+                <select id="donut-sel-year" onchange="donutSelChange()" style="background:transparent;border:none;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;"></select>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="navigate('import',null)" title="ייבא CSV" style="font-size:11px;padding:4px 10px;white-space:nowrap;">📥 ייבוא</button>
             </div>
           </div>
+
+          <!-- Split progress bar -->
+          <div class="dash-split-wrap">
+            <div class="split-tracks">
+              <div class="split-ins-track"><div class="split-ins-fill" id="dash-split-ins-fill" style="width:0%"></div></div>
+              <div class="split-divider"></div>
+              <div class="split-sav-track"><div class="split-sav-fill" id="dash-split-sav-fill" style="width:0%"></div></div>
+            </div>
+            <div class="split-labels">
+              <span class="split-label" id="dash-split-ins-label"><span class="split-dot" style="background:var(--accent);"></span>ביטוחים</span>
+              <span class="split-label" id="dash-split-sav-label"><span class="split-dot" style="background:var(--accent2);"></span>חסכון</span>
+            </div>
+          </div>
+
+          <!-- 3 stat chips -->
+          <div class="dash-chips">
+            <div class="dash-chip">
+              <div class="dash-chip-lbl">הערכה חודשית</div>
+              <div class="dash-chip-val" id="dash-chip-est" style="color:var(--text-dim)">₪0</div>
+            </div>
+            <div class="dash-chip" style="border-color:rgba(46,204,113,.3);background:rgba(46,204,113,.05);">
+              <div class="dash-chip-lbl">שולם בפועל</div>
+              <div class="dash-chip-val" id="dash-chip-paid" style="color:#2ecc71">₪0</div>
+            </div>
+            <div class="dash-chip" style="border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.05);">
+              <div class="dash-chip-lbl">נותר לתשלום</div>
+              <div class="dash-chip-val" id="dash-chip-remain" style="color:var(--orange)">₪0</div>
+            </div>
+          </div>
+
+          <!-- Checklist rows -->
           <div id="monthly-checklist"></div>
         </div>
 
-        <!-- COLUMN 3 (שמאל): Annual summary -->
-        <div style="display:flex;flex-direction:column;gap:12px;min-width:0;">
+        <!-- עמודה שמאלית: Sidebar -->
+        <div class="dash-sidebar">
 
-          <!-- צבירה כוללת — ראש עמודה שמאל -->
-          <div class="stat-card" style="padding:14px 16px;border:1px solid var(--accent2);text-align:center;">
-            <div class="stat-card-label" id="stat-balance-label" style="font-size:11px;margin-bottom:4px;">🏦 צבירה כוללת</div>
-            <div class="stat-card-value" id="stat-balance" style="font-size:22px;letter-spacing:-0.5px;color:var(--accent2);">₪0</div>
-            <div class="stat-card-sub" id="stat-balance-sub" style="margin-top:2px;">חסכונות וקרנות</div>
+          <!-- תשלומים שנתיים עם progress -->
+          <div class="dash-side-card">
+            <div class="dash-side-title">📊 תשלומים שנתיים</div>
+
+            <div class="annual-block">
+              <div class="annual-block-header">
+                <span class="annual-block-name">🛡 ביטוחים</span>
+                <span class="annual-block-pct" id="dash-annual-ins-pct" style="color:var(--accent)">0%</span>
+              </div>
+              <div class="annual-amounts">
+                <span>שולם: <strong id="dash-annual-ins-paid">₪0</strong></span>
+                <span>צפי: <span id="dash-annual-ins-exp">₪0</span></span>
+              </div>
+              <div class="annual-track">
+                <div class="annual-fill" id="dash-annual-ins-fill" style="background:var(--accent);width:0%"></div>
+              </div>
+            </div>
+
+            <div class="annual-block">
+              <div class="annual-block-header">
+                <span class="annual-block-name">💰 חסכון</span>
+                <span class="annual-block-pct" id="dash-annual-sav-pct" style="color:var(--accent2)">0%</span>
+              </div>
+              <div class="annual-amounts">
+                <span>שולם: <strong id="dash-annual-sav-paid">₪0</strong></span>
+                <span>צפי: <span id="dash-annual-sav-exp">₪0</span></span>
+              </div>
+              <div class="annual-track">
+                <div class="annual-fill" id="dash-annual-sav-fill" style="background:var(--accent2);width:0%"></div>
+              </div>
+            </div>
+
+            <div class="annual-divider"></div>
+            <div class="annual-total-row">
+              <span class="annual-total-lbl">סה״כ השנה</span>
+              <span class="annual-total-val" id="dash-annual-total">₪0 <span id="dash-annual-total-exp" style="font-size:12px;font-weight:400;color:var(--text-dim)"></span></span>
+            </div>
           </div>
 
-          <div style="font-size:10px;font-weight:700;color:var(--text-dim);letter-spacing:.8px;text-align:right;padding:2px 0;">📊 סיכום שנתי</div>
-
-          <!-- תשלומים השנה = סה"כ ביטוחים + חסכון -->
-          <div class="stat-card" style="padding:14px 16px;border:1px solid var(--accent);">
-            <div class="stat-card-label" id="stat-annual-label">תשלומים השנה</div>
-            <div class="stat-card-value" id="stat-annual" style="font-size:22px;color:var(--accent);">₪0</div>
-            <div class="stat-card-sub" id="stat-annual-sub">ביטוחים + חסכון</div>
+          <!-- צבירה מצטברת -->
+          <div class="dash-side-card" style="border-color:rgba(155,89,182,.25);">
+            <div class="dash-side-title">🏦 צבירה מצטברת</div>
+            <div id="dash-savings-list"></div>
+            <div class="savings-total-row">
+              <span class="annual-total-lbl">סה״כ צבירה</span>
+              <span class="annual-total-val" id="dash-savings-total" style="color:var(--accent2)">₪0</span>
+            </div>
           </div>
 
-          <!-- ביטוחים השנה -->
-          <div class="stat-card" style="padding:14px 16px;">
-            <div class="stat-card-label">🛡 ביטוחים השנה</div>
-            <div class="stat-card-value" id="stat-annual-ins" style="font-size:22px;">₪0</div>
-            <div class="stat-card-sub" id="stat-annual-ins-sub">בפועל</div>
+          <!-- פוגות תוקף -->
+          <div id="dash-expiring-section" style="display:none;">
+            <div class="section-label">⏳ פוגות תוקף בקרוב</div>
+            <div id="dash-expiring"></div>
           </div>
 
-          <!-- חסכון השנה -->
-          <div class="stat-card" style="padding:14px 16px;">
-            <div class="stat-card-label">💰 חסכון השנה</div>
-            <div class="stat-card-value" id="stat-annual-sav" style="font-size:22px;">₪0</div>
-            <div class="stat-card-sub" id="stat-annual-sav-sub">בפועל</div>
-          </div>
         </div>
 
       </div>
@@ -2384,23 +2494,14 @@ function renderDonut() {
   const segIns = Object.values(insAggr).sort((a,b) => b.value - a.value);
   const segSav = Object.values(savAggr).sort((a,b) => b.value - a.value);
 
-  drawDonut(segIns, totalIns, isFuture, 'donut-svg-ins', 'donut-legend-ins', 'ביטוחים');
-  drawDonut(segSav, totalSav, isFuture, 'donut-svg-sav', 'donut-legend-sav', 'חסכון');
-
-  // ── Update stat cards ──
+  // ── Update all dashboard elements ──
   const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
-  const isCurrentMonth = donutYear === now.getFullYear() && donutMonth === now.getMonth();
-  const monthLabel = isCurrentMonth ? 'החודש' : monthNames[donutMonth];
-  const monthSuffix = isFuture ? `הערכה — ${monthLabel}` : `בפועל — ${monthLabel}`;
-
-  // ── ביטוחים: סכום חודשי + מספר פוליסות ──
   const insPols = active.filter(p => !SAVING_TYPES.includes(p.type));
   const savPols = active.filter(p =>  SAVING_TYPES.includes(p.type));
-
+  const SAVING_TYPES_SET = new Set(SAVING_TYPES);
   const el = id => document.getElementById(id);
 
-  // ── סה"כ חודשי (ביטוחים + חסכון) ──
-  // Estimated = expected amount this specific month (annual only counted when due)
+  // ── Estimated this month ──
   const getEstimated = p => {
     if(!p.amount) return 0;
     if(p.frequency === 'annual') return isDueInMonth(p, donutYear, donutMonth) ? dueAmount(p) : 0;
@@ -2410,69 +2511,59 @@ function renderDonut() {
   const estimatedSav = active.filter(p=> SAVING_TYPES.includes(p.type)).reduce((s,p)=>s+getEstimated(p),0);
   const estimatedAll = Math.round(estimatedIns + estimatedSav);
 
-  if(isFuture) {
-    // For future months — show estimate as before
-    if(el('stat-total-monthly-label')) el('stat-total-monthly-label').textContent = '💳 הערכת תשלומים';
-    if(el('stat-total-monthly'))       el('stat-total-monthly').textContent       = fmt$(estimatedAll);
-    if(el('stat-total-ins-label'))     el('stat-total-ins-label').textContent     = fmt$(Math.round(estimatedIns));
-    if(el('stat-total-sav-label'))     el('stat-total-sav-label').textContent     = fmt$(Math.round(estimatedSav));
-    if(el('stat-total-vs-est'))        el('stat-total-vs-est').style.display      = 'none';
-  } else {
-    // For past/current months — show actual paid
-    const SAVING_TYPES_SET = new Set(SAVING_TYPES);
-    const actualPaidIns = payments.filter(pay => {
-      const d = new Date(pay.date+'T12:00:00');
-      if(d.getFullYear()!==donutYear || d.getMonth()!==donutMonth) return false;
-      if(pay.paidBy==='state') return false;
-      const pol = policies.find(p=>p.id===pay.policyId);
-      return !pol || !SAVING_TYPES_SET.has(pol.type);
-    }).reduce((s,pay)=>s+(pay.actualAmount??pay.amount),0);
-    const actualPaidSav = payments.filter(pay => {
-      const d = new Date(pay.date+'T12:00:00');
-      if(d.getFullYear()!==donutYear || d.getMonth()!==donutMonth) return false;
-      if(pay.paidBy==='state') return false;
-      const pol = policies.find(p=>p.id===pay.policyId);
-      return pol && SAVING_TYPES_SET.has(pol.type);
-    }).reduce((s,pay)=>s+(pay.actualAmount??pay.amount),0);
-    const actualPaidAll = Math.round(actualPaidIns + actualPaidSav);
+  // ── Actual paid this month ──
+  const actualPaidIns = payments.filter(pay => {
+    const d = new Date(pay.date+'T12:00:00');
+    if(d.getFullYear()!==donutYear || d.getMonth()!==donutMonth) return false;
+    if(pay.paidBy==='state') return false;
+    const pol = policies.find(p=>p.id===pay.policyId);
+    return !pol || !SAVING_TYPES_SET.has(pol.type);
+  }).reduce((s,pay)=>s+(pay.actualAmount??pay.amount),0);
+  const actualPaidSav = payments.filter(pay => {
+    const d = new Date(pay.date+'T12:00:00');
+    if(d.getFullYear()!==donutYear || d.getMonth()!==donutMonth) return false;
+    if(pay.paidBy==='state') return false;
+    const pol = policies.find(p=>p.id===pay.policyId);
+    return pol && SAVING_TYPES_SET.has(pol.type);
+  }).reduce((s,pay)=>s+(pay.actualAmount??pay.amount),0);
+  const actualPaidAll = Math.round(actualPaidIns + actualPaidSav);
 
-    if(el('stat-total-monthly-label')) el('stat-total-monthly-label').textContent = '💳 שולם החודש';
-    if(el('stat-total-monthly'))       el('stat-total-monthly').textContent       = fmt$(actualPaidAll);
-    if(el('stat-total-ins-label'))     el('stat-total-ins-label').textContent     = fmt$(Math.round(actualPaidIns));
-    if(el('stat-total-sav-label'))     el('stat-total-sav-label').textContent     = fmt$(Math.round(actualPaidSav));
+  // ── Split progress bar ──
+  const insPct = estimatedIns > 0 ? Math.min(100, Math.round(actualPaidIns / estimatedIns * 100)) : 0;
+  const savPct = estimatedSav > 0 ? Math.min(100, Math.round(actualPaidSav / estimatedSav * 100)) : 0;
+  if(el('dash-split-ins-fill')) el('dash-split-ins-fill').style.width = (isFuture ? 0 : insPct) + '%';
+  if(el('dash-split-sav-fill')) el('dash-split-sav-fill').style.width = (isFuture ? 0 : savPct) + '%';
+  if(el('dash-split-ins-label')) el('dash-split-ins-label').innerHTML =
+    `<span class="split-dot" style="background:var(--accent);"></span>` +
+    `ביטוחים&nbsp;<strong style="color:var(--text)">${isFuture ? fmt$(Math.round(estimatedIns)) : fmt$(Math.round(actualPaidIns))}</strong>` +
+    `<span style="color:var(--text-dim)"> / ${fmt$(Math.round(estimatedIns))}</span>` +
+    `&nbsp;<span style="color:var(--accent);font-weight:700">${isFuture ? '' : insPct + '%'}</span>`;
+  if(el('dash-split-sav-label')) el('dash-split-sav-label').innerHTML =
+    `<span class="split-dot" style="background:var(--accent2);"></span>` +
+    `חסכון&nbsp;<strong style="color:var(--text)">${isFuture ? fmt$(Math.round(estimatedSav)) : fmt$(Math.round(actualPaidSav))}</strong>` +
+    `<span style="color:var(--text-dim)"> / ${fmt$(Math.round(estimatedSav))}</span>` +
+    `&nbsp;<span style="color:var(--accent2);font-weight:700">${isFuture ? '' : savPct + '%'}</span>`;
 
-    // vs-estimate line
-    const vsEl = el('stat-total-vs-est');
-    if(vsEl) {
-      vsEl.style.display = '';
-      const delta = actualPaidAll - estimatedAll;
-      const remaining = estimatedAll - actualPaidAll;
-      if(actualPaidAll === 0) {
-        vsEl.innerHTML = `משוער: <strong style="color:var(--text);">${fmt$(estimatedAll)}</strong>`;
-      } else if(remaining > 0) {
-        vsEl.innerHTML = `משוער: ${fmt$(estimatedAll)} &nbsp;·&nbsp; <span style="color:var(--text-dim);">נותר ~${fmt$(remaining)}</span>`;
-      } else if(delta > 0) {
-        vsEl.innerHTML = `משוער: ${fmt$(estimatedAll)} &nbsp;·&nbsp; <span style="color:var(--text-dim);">+${fmt$(delta)} מעל ההערכה</span>`;
-      } else {
-        vsEl.innerHTML = `משוער: <strong style="color:var(--text);">${fmt$(estimatedAll)}</strong> &nbsp;✓`;
-      }
-    }
+  // ── 3 chips ──
+  const remaining = Math.max(0, estimatedAll - actualPaidAll);
+  const over      = actualPaidAll > estimatedAll ? actualPaidAll - estimatedAll : 0;
+  if(el('dash-chip-est'))    el('dash-chip-est').textContent    = fmt$(estimatedAll);
+  if(el('dash-chip-paid'))   el('dash-chip-paid').textContent   = isFuture ? '—' : fmt$(actualPaidAll);
+  if(el('dash-chip-remain')) {
+    if(isFuture) { el('dash-chip-remain').textContent = '—'; el('dash-chip-remain').style.color = 'var(--text-dim)'; }
+    else if(over > 0) { el('dash-chip-remain').textContent = `+${fmt$(over)}`; el('dash-chip-remain').style.color = 'var(--text-dim)'; }
+    else { el('dash-chip-remain').textContent = remaining > 0 ? `~${fmt$(remaining)}` : '✓ שולם הכל'; el('dash-chip-remain').style.color = remaining > 0 ? 'var(--orange)' : '#2ecc71'; }
   }
 
-  // ── פוליסות פעילות — שורת כותרת ──
-  if(el('stat-ins-count-label')) el('stat-ins-count-label').textContent = `${insPols.length} פוליסות פעילות`;
-  if(el('stat-sav-count-label')) el('stat-sav-count-label').textContent = `${savPols.length} פוליסות פעילות`;
-
-  // ── מצטבר שנתי — בפועל מינואר עד החודש הנוכחי ──
+  // ── Annual stats (ינואר עד החודש הנוכחי — actual) ──
   const curYear  = now.getFullYear();
   const curMonth = now.getMonth();
   let annualTotal = 0, annualIns = 0, annualSav = 0;
   for(let m2 = 0; m2 <= curMonth; m2++) {
-    const paysThisMonth = payments.filter(pay => {
+    payments.filter(pay => {
       const d = new Date(pay.date + 'T12:00:00');
       return d.getFullYear() === curYear && d.getMonth() === m2;
-    });
-    paysThisMonth.forEach(pay => {
+    }).forEach(pay => {
       const amt = pay.actualAmount ?? pay.amount;
       annualTotal += amt;
       const pol = policies.find(p => p.id === pay.policyId);
@@ -2480,25 +2571,46 @@ function renderDonut() {
       else annualIns += amt;
     });
   }
-  const mn = monthNames;
-  const periodLabel = curMonth === 0 ? 'ינואר בלבד' : `ינואר–${mn[curMonth]}`;
-  if(el('stat-annual-label')) el('stat-annual-label').textContent = 'תשלומים השנה';
-  if(el('stat-annual'))       el('stat-annual').textContent       = fmt$(Math.round(annualTotal));
-  if(el('stat-annual-sub'))   el('stat-annual-sub').textContent   = periodLabel;
-  if(el('stat-annual-ins'))     el('stat-annual-ins').textContent     = fmt$(Math.round(annualIns));
-  if(el('stat-annual-ins-sub')) el('stat-annual-ins-sub').textContent = periodLabel;
-  if(el('stat-annual-sav'))     el('stat-annual-sav').textContent     = fmt$(Math.round(annualSav));
-  if(el('stat-annual-sav-sub')) el('stat-annual-sav-sub').textContent = periodLabel;
 
-  // ── צבירה כוללת ──
+  // Annual expected (year-to-date estimate)
+  let annualExpIns = 0, annualExpSav = 0;
+  for(let m2 = 0; m2 <= curMonth; m2++) {
+    active.forEach(p => {
+      const est = p.frequency === 'annual'
+        ? (isDueInMonth(p, curYear, m2) ? dueAmount(p) : 0)
+        : toMonthly(p.amount, p.frequency);
+      if(SAVING_TYPES.includes(p.type)) annualExpSav += est;
+      else annualExpIns += est;
+    });
+  }
+
+  const insPctAnn = annualExpIns > 0 ? Math.min(100, Math.round(annualIns / annualExpIns * 100)) : 0;
+  const savPctAnn = annualExpSav > 0 ? Math.min(100, Math.round(annualSav / annualExpSav * 100)) : 0;
+
+  if(el('dash-annual-ins-paid'))  el('dash-annual-ins-paid').textContent  = fmt$(Math.round(annualIns));
+  if(el('dash-annual-ins-exp'))   el('dash-annual-ins-exp').textContent   = fmt$(Math.round(annualExpIns));
+  if(el('dash-annual-ins-pct'))   el('dash-annual-ins-pct').textContent   = insPctAnn + '%';
+  if(el('dash-annual-ins-fill'))  el('dash-annual-ins-fill').style.width  = insPctAnn + '%';
+  if(el('dash-annual-sav-paid'))  el('dash-annual-sav-paid').textContent  = fmt$(Math.round(annualSav));
+  if(el('dash-annual-sav-exp'))   el('dash-annual-sav-exp').textContent   = fmt$(Math.round(annualExpSav));
+  if(el('dash-annual-sav-pct'))   el('dash-annual-sav-pct').textContent   = savPctAnn + '%';
+  if(el('dash-annual-sav-fill'))  el('dash-annual-sav-fill').style.width  = savPctAnn + '%';
+  if(el('dash-annual-total'))     el('dash-annual-total').textContent     = fmt$(Math.round(annualTotal));
+  if(el('dash-annual-total-exp')) el('dash-annual-total-exp').textContent = `/ ${fmt$(Math.round(annualExpIns + annualExpSav))}`;
+
+  // ── Savings (צבירה) ──
+  const savingsPols = policies.filter(p => SAVING_TYPES.includes(p.type) && (p.balance||0) > 0)
+    .sort((a,b) => (b.balance||0) - (a.balance||0));
   const totalBalance = policies.reduce((s,p) => s + (p.balance||0), 0);
-  if(el('stat-balance-label')) el('stat-balance-label').textContent = 'צבירה כוללת';
-  if(el('stat-balance'))       el('stat-balance').textContent       = fmt$(totalBalance);
-  if(el('stat-balance-sub'))   el('stat-balance-sub').textContent   = 'חסכונות וקרנות';
-
-  // ── Summary bar (שורה תחתונה) ──
-  const sbMonthly = Math.round(totalIns + totalSav);
-  const sbAnnual  = Math.round(sbMonthly * 12);
+  if(el('dash-savings-list')) {
+    el('dash-savings-list').innerHTML = savingsPols.map(p =>
+      `<div class="savings-row">
+        <span class="savings-lbl">${p.type} · ${p.company}</span>
+        <span class="savings-val">${fmt$(p.balance)}</span>
+      </div>`
+    ).join('') || '<div style="font-size:12px;color:var(--text-dim);padding:8px 0;">אין נתוני צבירה</div>';
+  }
+  if(el('dash-savings-total')) el('dash-savings-total').textContent = fmt$(totalBalance);
 
   // Update monthly checklist to selected month
   renderMonthlyChecklistForMonth(donutYear, donutMonth);
@@ -2699,7 +2811,7 @@ function renderMonthlyChecklistCore(year, month) {
 
   // Header
   document.getElementById('monthly-checklist-title').textContent =
-    `💳 תשלומים — ${monthNames[month]} ${year}`;
+    `💳 תשלומים — ${monthNames[month]} ${year !== new Date().getFullYear() ? year : ''}`;
   const subPaid  = totalPaid > 0 ? `שולם: ${fmt$(totalPaid)}` : '';
   const subState = totalStatePaid > 0 ? `🏛️ מדינה: ${fmt$(totalStatePaid)}` : '';
   const subDue   = unpaidCount > 0 ? `צפוי: ~${fmt$(totalDue - totalPaid)}` : '';

@@ -3804,23 +3804,23 @@ function renderHistory() {
     pays.forEach(pay => {
       const pol = policyById(pay.policyId);
       const isUnknown = pay.unknown || (!pay.policyId && pay.source==='csv');
-      const col  = isUnknown ? '#b07d10' : pol ? typeColor(pol.type)  : '#444';
-      const col2 = isUnknown ? '#8a6010' : pol ? typeColor2(pol.type) : '#333';
+      const col = isUnknown ? '#f5a623' : pol ? typeColor(pol.type) : '#666';
       const infoLine = pol ? [pol.company, pol.agent, pol.policyNumber].filter(Boolean).join(' · ') : '';
       const sourceTag = `<span class="tag ${pay.source==='csv'?'tag-csv':'tag-manual'}" style="padding:1px 6px;font-size:10px;">${pay.source==='csv'?'CSV':'ידני'}</span>`;
-      const metaLine  = [fmtDate(pay.date), sourceTag, pay.paidBy==='state'?'🏛️ מדינה':'', pay.note&&!isUnknown?pay.note:''].filter(Boolean).join(' · ');
+      const metaLine = [fmtDate(pay.date), sourceTag, pay.paidBy==='state'?'🏛️ מדינה':'', pay.note&&!isUnknown?pay.note:''].filter(Boolean).join(' · ');
 
-      html += `<div class="policy-row" style="background:linear-gradient(135deg,${col},${col2});border-radius:0;margin-bottom:0;border-bottom:1px solid rgba(0,0,0,.18);">
-        <div class="policy-row-left">
-          <div class="policy-row-type">${isUnknown ? '⚠️ לא משוייך' : pol ? `${typeIcon(pol.type)} ${pol.type}` : '💳 פוליסה נמחקה'}</div>
-          ${pol?.tag ? `<span class="policy-tag">${pol.tag}</span>` : ''}
-          <div class="policy-row-company">${isUnknown ? (pay.note||'') : infoLine}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px;">${metaLine}</div>
+      html += `<div class="hist-item" style="border-radius:0;border-bottom:1px solid var(--border);${isUnknown?'border-right:3px solid #f5a623;background:rgba(245,166,35,.04);':''}">
+        <div class="hist-dot" style="background:${col}25;">${isUnknown?'⚠️':pol?typeIcon(pol.type):'💳'}</div>
+        <div class="hist-info" style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;color:var(--text);">${isUnknown ? '⚠️ לא משוייך' : pol ? `${pol.type}` : 'פוליסה נמחקה'}</div>
+          ${pol?.tag ? `<span style="display:inline-block;margin-top:3px;background:rgba(255,255,255,.08);color:var(--text-dim);border:1px solid var(--border);border-radius:20px;padding:1px 8px;font-size:10px;font-weight:600;">${pol.tag}</span>` : ''}
+          <div style="font-size:12px;color:var(--text-dim);margin-top:2px;">${isUnknown ? (pay.note||'') : infoLine}</div>
+          <div style="font-size:11px;color:var(--text-sub);margin-top:3px;">${metaLine}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
           <div style="text-align:left;">
-            <div class="policy-row-amount">${fmt$(pay.actualAmount ?? pay.amount)}</div>
-            ${pay.actualAmount != null ? `<div class="policy-row-freq">בפועל</div>` : ''}
+            <div class="hist-amount">${fmt$(pay.actualAmount ?? pay.amount)}</div>
+            ${pay.actualAmount != null ? `<div style="font-size:10px;color:var(--text-dim);text-align:center;">בפועל</div>` : ''}
           </div>
           <button class="btn btn-ghost btn-sm btn-icon" onclick="editPayment('${pay.id}')" title="עריכה">✏️</button>
           <button class="btn btn-danger btn-sm btn-icon" onclick="deletePayment('${pay.id}')">✕</button>

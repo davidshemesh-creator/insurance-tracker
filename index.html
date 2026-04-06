@@ -2610,12 +2610,12 @@ function renderDonut() {
     `<span class="split-dot" style="background:var(--accent);"></span>` +
     `ביטוחים&nbsp;<strong style="color:var(--text)">${isFuture ? fmt$(Math.round(estimatedIns)) : fmt$(Math.round(actualPaidIns))}</strong>` +
     `<span style="color:var(--text-dim)"> / ${fmt$(Math.round(estimatedIns))}</span>` +
-    `&nbsp;<span style="color:var(--accent);font-weight:700">${isFuture ? '' : insPct + '%'}</span>`;
+    `&nbsp;<span style="color:var(--accent);font-weight:700">${isFuture ? '' : insPolsDue.length > 0 ? `${insPolsPaid.length}/${insPolsDue.length}` : ''}</span>`;
   if(el('dash-split-sav-label')) el('dash-split-sav-label').innerHTML =
     `<span class="split-dot" style="background:var(--accent2);"></span>` +
     `חסכון&nbsp;<strong style="color:var(--text)">${isFuture ? fmt$(Math.round(estimatedSav)) : fmt$(Math.round(actualPaidSav))}</strong>` +
     `<span style="color:var(--text-dim)"> / ${fmt$(Math.round(estimatedSav))}</span>` +
-    `&nbsp;<span style="color:var(--accent2);font-weight:700">${isFuture ? '' : savPct + '%'}</span>`;
+    `&nbsp;<span style="color:var(--accent2);font-weight:700">${isFuture ? '' : savPolsDue.length > 0 ? `${savPolsPaid.length}/${savPolsDue.length}` : ''}</span>`;
 
   // ── 3 chips ──
   const remaining = Math.max(0, estimatedAll - actualPaidAll);

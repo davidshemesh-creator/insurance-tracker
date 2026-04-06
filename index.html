@@ -3778,12 +3778,21 @@ function renderHistory() {
     const isOpen = monthKey === nowKey;
     const id = `hist-month-${gi}`;
 
+    // Count expected policies for this month
+    const mYear  = d.getFullYear();
+    const mMonth = d.getMonth() + 1;
+    const expectedCount = policies.filter(p => isActive(p) || isDueInMonth(p, mYear, mMonth))
+                                  .filter(p => isDueInMonth(p, mYear, mMonth)).length;
+    const actualCount   = pays.length;
+    const countColor    = actualCount > expectedCount ? 'var(--accent)' : 'var(--text-dim)';
+    const countLabel    = expectedCount > 0 ? `${actualCount}/${expectedCount}` : `${actualCount}`;
+
     html += `<div style="margin-bottom:6px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
       <div onclick="toggleHistMonth('${id}')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;background:var(--bg3);user-select:none;" id="${id}-hdr">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-size:10px;color:var(--text-dim);transition:transform .2s;display:inline-block;" id="${id}-arrow">${isOpen?'▲':'▼'}</span>
           <span style="font-size:14px;font-weight:700;">${monthNames[d.getMonth()]} ${d.getFullYear()}</span>
-          <span style="font-size:11px;color:var(--text-dim);">${pays.length} תשלומים</span>
+          <span style="font-size:11px;color:${countColor};">${countLabel} תשלומים</span>
         </div>
         <span style="font-size:14px;font-weight:800;color:var(--accent);">${fmt$(monthTotal)}</span>
       </div>

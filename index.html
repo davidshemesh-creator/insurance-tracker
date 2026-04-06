@@ -538,7 +538,9 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
   text-align: right;
   font-weight: 600;
   color: var(--text);
-  white-space: nowrap;
+  white-space: normal;
+  max-width: 160px;
+  min-width: 120px;
 }
 .monthly-table td.actual {
   color: var(--text);
@@ -4693,7 +4695,7 @@ function renderMonthlySummary() {
   // Build header — months as columns
   const head = document.getElementById('monthly-summary-head');
   head.innerHTML = `<tr>
-    <th style="width:1px;white-space:nowrap;text-align:right;padding:8px 10px;">פוליסה</th>
+    <th style="min-width:120px;max-width:160px;text-align:right;padding:8px 10px;">פוליסה</th>
     ${monthNames.map(m => `<th style="min-width:58px;font-size:11px;padding:6px 4px;text-align:center;">${m}</th>`).join('')}
     <th style="min-width:70px;text-align:center;">סה"כ</th>
   </tr>`;

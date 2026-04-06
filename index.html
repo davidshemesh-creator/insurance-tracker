@@ -2593,9 +2593,17 @@ function renderDonut() {
   }).reduce((s,pay)=>s+(pay.actualAmount??pay.amount),0);
   const actualPaidAll = Math.round(actualPaidIns + actualPaidSav);
 
-  // ── Split progress bar ──
-  const insPct = estimatedIns > 0 ? Math.min(100, Math.round(actualPaidIns / estimatedIns * 100)) : 0;
-  const savPct = estimatedSav > 0 ? Math.min(100, Math.round(actualPaidSav / estimatedSav * 100)) : 0;
+  // ── Split progress bar — count-based (100% when all policies paid) ──
+  const paidThisMonthIds = new Set(payments.filter(pay => {
+    const d = new Date(pay.date+'T12:00:00');
+    return d.getFullYear()===donutYear && d.getMonth()===donutMonth && pay.policyId && pay.paidBy!=='state';
+  }).map(pay => pay.policyId));
+  const insPolsDue  = active.filter(p => !SAVING_TYPES_SET.has(p.type) && isDueInMonth(p, donutYear, donutMonth));
+  const insPolsPaid = insPolsDue.filter(p => paidThisMonthIds.has(p.id));
+  const savPolsDue  = active.filter(p =>  SAVING_TYPES_SET.has(p.type) && isDueInMonth(p, donutYear, donutMonth));
+  const savPolsPaid = savPolsDue.filter(p => paidThisMonthIds.has(p.id));
+  const insPct = insPolsDue.length > 0 ? Math.round(insPolsPaid.length / insPolsDue.length * 100) : 0;
+  const savPct = savPolsDue.length  > 0 ? Math.round(savPolsPaid.length  / savPolsDue.length  * 100) : 0;
   if(el('dash-split-ins-fill')) el('dash-split-ins-fill').style.width = (isFuture ? 0 : insPct) + '%';
   if(el('dash-split-sav-fill')) el('dash-split-sav-fill').style.width = (isFuture ? 0 : savPct) + '%';
   if(el('dash-split-ins-label')) el('dash-split-ins-label').innerHTML =

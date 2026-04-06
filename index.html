@@ -3819,7 +3819,9 @@ function renderHistory() {
     // Count expected policies for this month
     const mYear  = d.getFullYear();
     const mMonth = d.getMonth(); // 0-indexed — isDueInMonth expects 0-indexed
-    const expectedCount = policies.filter(p => isDueInMonth(p, mYear, mMonth)).length;
+    const SAVING_TYPES_SET = new Set(['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון']);
+    const duePols    = policies.filter(p => !SAVING_TYPES_SET.has(p.type) && isDueInMonth(p, mYear, mMonth));
+    const expectedCount = duePols.length;
     const actualCount   = pays.length;
     const isExact = actualCount === expectedCount;
     const isOver  = actualCount > expectedCount;
@@ -3827,7 +3829,6 @@ function renderHistory() {
     const chipBg    = isExact ? 'rgba(255,255,255,.08)'  : isOver ? 'rgba(245,166,35,.15)'  : 'rgba(230,0,126,.15)';
     const chipColor = isExact ? 'var(--text-dim)'        : isOver ? '#f5c842'               : '#ff6ec0';
     const chipBorder= isExact ? '1px solid rgba(255,255,255,.1)' : isOver ? '1px solid rgba(245,166,35,.35)' : '1px solid rgba(230,0,126,.35)';
-    const duePols    = policies.filter(p => isDueInMonth(p, mYear, mMonth));
     const paidPolIds = new Set(pays.map(p => p.policyId).filter(Boolean));
 
     // Build pidCount early so we can use it in the header too

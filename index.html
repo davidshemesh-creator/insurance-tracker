@@ -154,7 +154,7 @@ body {
 }
 
 /* ── Pages ──────────────────────────────────────────────────────── */
-#content { flex: 1; overflow-y: auto; overflow-x: hidden; }
+#content { flex: 1; overflow-y: auto; overflow-x: auto; }
 .page { display: none; padding: 20px 24px; }
 .page.active { display: block; }
 
@@ -1248,11 +1248,12 @@ tr:hover td { background: var(--bg3); }
 /* Dashboard layout */
 .dash-grid {
   display: grid;
-  grid-template-columns: 72% 24%;
-  gap: 4%;
+  grid-template-columns: 68% 26%;
+  gap: 3%;
   align-items: start;
-  width: 80%;
-  margin: 0 auto;
+  width: 100%;
+  padding: 0 5%;
+  box-sizing: border-box;
 }
 .dash-grid > * {
   min-width: 0;

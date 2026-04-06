@@ -3822,10 +3822,11 @@ function renderHistory() {
     const expectedCount = policies.filter(p => isDueInMonth(p, mYear, mMonth)).length;
     const actualCount   = pays.length;
     const isExact = actualCount === expectedCount;
+    const isOver  = actualCount > expectedCount;
     const countLabel = expectedCount > 0 ? `${actualCount}/${expectedCount}` : `${actualCount}`;
-    const chipBg    = isExact ? 'rgba(255,255,255,.08)'  : 'rgba(230,0,126,.15)';
-    const chipColor = isExact ? 'var(--text-dim)'        : '#ff6ec0';
-    const chipBorder= isExact ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(230,0,126,.35)';
+    const chipBg    = isExact ? 'rgba(255,255,255,.08)'  : isOver ? 'rgba(245,166,35,.15)'  : 'rgba(230,0,126,.15)';
+    const chipColor = isExact ? 'var(--text-dim)'        : isOver ? '#f5c842'               : '#ff6ec0';
+    const chipBorder= isExact ? '1px solid rgba(255,255,255,.1)' : isOver ? '1px solid rgba(245,166,35,.35)' : '1px solid rgba(230,0,126,.35)';
 
     // Build pidCount early so we can use it in the header too
     const pidCount = {};
@@ -3841,7 +3842,7 @@ function renderHistory() {
       const parts = [];
       if (unknownCount)    parts.push(`${unknownCount} לא מזוהה`);
       if (dupPols.length)  parts.push(`כפול: ${dupPols.join(', ')}`);
-      if (parts.length) extraNote = `<span style="font-size:10px;color:var(--accent);margin-right:4px;">(${parts.join(' · ')})</span>`;
+      if (parts.length) extraNote = `<span style="font-size:10px;color:rgba(255,255,255,.35);margin-right:4px;">(${parts.join(' · ')})</span>`;
     }
 
     html += `<div style="margin-bottom:6px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">

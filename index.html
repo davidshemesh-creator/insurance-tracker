@@ -3800,25 +3800,39 @@ function renderHistory() {
     // Count expected policies for this month
     const mYear  = d.getFullYear();
     const mMonth = d.getMonth() + 1;
-    const expectedCount = policies.filter(p => isActive(p) || isDueInMonth(p, mYear, mMonth))
-                                  .filter(p => isDueInMonth(p, mYear, mMonth)).length;
+    const expectedCount = policies.filter(p => isDueInMonth(p, mYear, mMonth)).length;
     const actualCount   = pays.length;
     const countColor    = actualCount > expectedCount ? 'var(--accent)' : 'var(--text-dim)';
     const countLabel    = expectedCount > 0 ? `${actualCount}/${expectedCount}` : `${actualCount}`;
 
+    // Build pidCount early so we can use it in the header too
+    const pidCount = {};
+    pays.forEach(p => { if(p.policyId) pidCount[p.policyId] = (pidCount[p.policyId]||0)+1; });
+
+    // Explain overcount in header
+    let extraNote = '';
+    if (actualCount > expectedCount) {
+      const unknownCount = pays.filter(p => p.unknown || (!p.policyId && p.source==='csv')).length;
+      const dupPols = Object.entries(pidCount)
+        .filter(([,cnt]) => cnt > 1)
+        .map(([pid]) => { const pol = policyById(pid); return pol ? pol.company : '?'; });
+      const parts = [];
+      if (unknownCount)    parts.push(`${unknownCount} לא מזוהה`);
+      if (dupPols.length)  parts.push(`כפול: ${dupPols.join(', ')}`);
+      if (parts.length) extraNote = `<span style="font-size:10px;color:var(--accent);margin-right:4px;">(${parts.join(' · ')})</span>`;
+    }
+
     html += `<div style="margin-bottom:6px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
       <div onclick="toggleHistMonth('${id}')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;background:var(--bg3);user-select:none;" id="${id}-hdr">
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
           <span style="font-size:10px;color:var(--text-dim);transition:transform .2s;display:inline-block;" id="${id}-arrow">${isOpen?'▲':'▼'}</span>
           <span style="font-size:14px;font-weight:700;">${monthNames[d.getMonth()]} ${d.getFullYear()}</span>
           <span style="font-size:11px;color:${countColor};">${countLabel} תשלומים</span>
+          ${extraNote}
         </div>
-        <span style="font-size:14px;font-weight:800;color:var(--accent);">${fmt$(monthTotal)}</span>
+        <span style="font-size:14px;font-weight:800;color:var(--accent);flex-shrink:0;">${fmt$(monthTotal)}</span>
       </div>
       <div id="${id}" style="display:${isOpen?'block':'none'};">`;
-
-    // Build a set of policyIds that appear more than once in this month
-    const pidCount = {};
     pays.forEach(p => { if(p.policyId) pidCount[p.policyId] = (pidCount[p.policyId]||0)+1; });
 
     pays.forEach(pay => {

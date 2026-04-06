@@ -3805,8 +3805,11 @@ function renderHistory() {
     const mMonth = d.getMonth(); // 0-indexed — isDueInMonth expects 0-indexed
     const expectedCount = policies.filter(p => isDueInMonth(p, mYear, mMonth)).length;
     const actualCount   = pays.length;
-    const countColor    = actualCount > expectedCount ? 'var(--accent)' : 'var(--text-dim)';
-    const countLabel    = expectedCount > 0 ? `${actualCount}/${expectedCount}` : `${actualCount}`;
+    const isExact = actualCount === expectedCount;
+    const countLabel = expectedCount > 0 ? `${actualCount}/${expectedCount}` : `${actualCount}`;
+    const chipBg    = isExact ? 'rgba(255,255,255,.1)'   : 'rgba(230,0,126,.25)';
+    const chipColor = isExact ? 'var(--text-dim)'        : 'var(--accent)';
+    const chipBorder= isExact ? '1px solid rgba(255,255,255,.12)' : '1px solid rgba(230,0,126,.5)';
 
     // Build pidCount early so we can use it in the header too
     const pidCount = {};
@@ -3830,7 +3833,7 @@ function renderHistory() {
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
           <span style="font-size:10px;color:var(--text-dim);transition:transform .2s;display:inline-block;" id="${id}-arrow">${isOpen?'▲':'▼'}</span>
           <span style="font-size:14px;font-weight:700;">${monthNames[d.getMonth()]} ${d.getFullYear()}</span>
-          <span style="font-size:11px;color:${countColor};">${countLabel} תשלומים</span>
+          <span style="font-size:11px;font-weight:700;color:${chipColor};background:${chipBg};border:${chipBorder};border-radius:20px;padding:2px 9px;">${countLabel} תשלומים</span>
           ${extraNote}
         </div>
         <span style="font-size:14px;font-weight:800;color:var(--accent);flex-shrink:0;">${fmt$(monthTotal)}</span>

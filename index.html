@@ -3820,8 +3820,14 @@ function renderHistory() {
     const mYear  = d.getFullYear();
     const mMonth = d.getMonth(); // 0-indexed — isDueInMonth expects 0-indexed
     const SAVING_TYPES_SET = new Set(['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון']);
+    // Savings types: count only months where there's an actual payment recorded
+    const savingsPaidCount = pays.filter(p => {
+      if (!p.policyId) return false;
+      const pol = policyById(p.policyId);
+      return pol && SAVING_TYPES_SET.has(pol.type);
+    }).length;
     const duePols    = policies.filter(p => !SAVING_TYPES_SET.has(p.type) && isDueInMonth(p, mYear, mMonth));
-    const expectedCount = duePols.length;
+    const expectedCount = duePols.length + savingsPaidCount;
     const actualCount   = pays.length;
     const isExact = actualCount === expectedCount;
     const isOver  = actualCount > expectedCount;

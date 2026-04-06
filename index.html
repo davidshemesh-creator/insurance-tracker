@@ -1703,7 +1703,10 @@ tr:hover td { background: var(--bg3); }
             <h4>נקה תשלומים כפולים</h4>
             <p id="dup-payments-info">בודק…</p>
           </div>
-          <button class="btn btn-sm" style="background:var(--accent2);color:#fff;" onclick="deduplicatePayments()">🧹 נקה כפילויות</button>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-sm" style="background:var(--accent);color:#fff;" onclick="deduplicateKeepCSV()">🧹 העדפת CSV</button>
+            <button class="btn btn-sm" style="background:var(--accent2);color:#fff;" onclick="deduplicatePayments()">נקה כפולים מדויקים</button>
+          </div>
         </div>
         <div class="settings-row">
           <div class="settings-row-info">
@@ -4997,6 +5000,38 @@ function clearAllPayments() {
   py();
   renderSettings(); renderDashboard(); renderMonthlySummary();
   toast('🗑️ כל התשלומים נמחקו', 'success');
+}
+
+function deduplicateKeepCSV() {
+  // Group by policyId + calendar month
+  const groups = {};
+  payments.forEach(pay => {
+    const key = `${pay.policyId}|${pay.date?.slice(0,7)}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(pay);
+  });
+
+  const toRemove = new Set();
+  Object.values(groups).forEach(group => {
+    if (group.length <= 1) return;
+    const csvPays    = group.filter(p => p.source === 'csv');
+    const manualPays = group.filter(p => p.source !== 'csv');
+    // If mix of CSV + manual → remove all manual
+    if (csvPays.length > 0 && manualPays.length > 0)
+      manualPays.forEach(p => toRemove.add(p.id));
+    // If multiple CSV for same policy+month → keep newest, remove rest
+    if (csvPays.length > 1) {
+      csvPays.sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+      csvPays.slice(1).forEach(p => toRemove.add(p.id));
+    }
+  });
+
+  const before = payments.length;
+  payments = payments.filter(p => !toRemove.has(p.id));
+  const removed = before - payments.length;
+  py();
+  renderSettings(); renderDashboard(); renderMonthlySummary(); renderHistory();
+  toast(removed > 0 ? `🧹 הוסרו ${removed} תשלומים ידניים כפולים — נשארו CSV` : 'אין כפילויות ידני+CSV', removed > 0 ? 'success' : 'success');
 }
 
 function deduplicatePayments() {

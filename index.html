@@ -2940,7 +2940,7 @@ function renderPolicies() {
                  <div class="policy-row-freq">${pFreqLabel(p)}</div>`
             }
             ${p.insured && p.insured.length > 1
-              ? `<div style="font-size:9px;color:var(--text-sub);margin-top:2px;text-align:left;">${p.insured.map(r=>`${r.name}: ${fmt$(r.amount)}`).join(' · ')}</div>`
+              ? `<div style="font-size:9px;color:rgba(255,255,255,.75);margin-top:2px;text-align:left;">${p.insured.map(r=>`${r.name}: ${fmt$(r.amount)}`).join(' · ')}</div>`
               : ''
             }
             ${p.liquidityDate ? (() => {

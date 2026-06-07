@@ -4,13 +4,112 @@
 
 ---
 
+## ⭐ Latest Redesign — 2026-05-19 (Design DNA from claude.ai)
+
+**מצב נוכחי (יציב):** Dashboard + Policies + Popup הוטמעו מחדש בשפה ויזואלית אחידה ע"פ design מ-`claude.ai/design` (oklch warm-purple, Heebo, magenta accent, hue-coded per category). זה הסגנון העכשווי — סקציות הישנות בקובץ הזה (תחת "אפריל 2026") **לא רלוונטיות יותר**.
+
+### Design Tokens — מוגדרים על `#page-dashboard, #page-policies`
+```css
+--d-bg:        oklch(0.16 0.012 320);   /* dark warm-purple base */
+--d-surf:      oklch(0.215 0.013 320);
+--d-line:      oklch(0.34 0.013 320);
+--d-fg:        oklch(0.97 0.005 320);
+--d-fg-mut:    oklch(0.68 0.012 320);
+--d-fg-dim:    oklch(0.5 0.01 320);
+--d-accent:    oklch(0.72 0.22 350);    /* magenta */
+--d-green:     oklch(0.78 0.18 150);
+```
+**Font:** Heebo (Google Fonts) + tabular-nums lining-nums on `.dash3-money`/`.pc-money`.
+
+### Category Hue Mapping — Single Source of Truth
+```js
+DASH3_CATS = {
+  'בריאות':      { hue: 12,  icon: 'heart'   },  // red
+  'חיים':        { hue: 230, icon: 'shield'  },  // blue
+  'סיעודי':      { hue: 280, icon: 'helix'   },  // purple
+  'רכב':         { hue: 55,  icon: 'car'     },  // orange (was 38, moved 2026-05-19 to differentiate from health)
+  'דירה':        { hue: 152, icon: 'home'    },  // green
+  'נסיעות':      { hue: 60,  icon: 'shield'  },
+  'אחר':         { hue: 200, icon: 'shield'  },
+  'פנסיה':       { hue: 312, icon: 'pension' },  // magenta
+  'קרן השתלמות': { hue: 88,  icon: 'study'   },  // yellow-green
+  'קופת גמל':    { hue: 195, icon: 'gem'     },  // teal
+  'חסכון':       { hue: 0,   icon: 'piggy'   },
+};
+DASH3_ICONS // inline SVGs (Lucide-style)
+dash3CategoryOf(p) // returns cat object for any policy
+```
+Used **everywhere**: dashboard rows, popup header (gradient), policy cards (gradient + border + inline `--hue`).
+
+### Dashboard v3 — `#page-dashboard`
+**Layout (1440px max):** topbar → 2 summary cards (1.45fr / 1.25fr) → 2 sections (ביטוחים / חיסכון) with policy rows.
+
+- **Topbar:** brand icon + month switcher (`dash3PrevMonth/dash3NextMonth`, chevrons: prev=right-pointing, next=left-pointing in RTL) + search + status pulse. **No "+ הוסף פוליסה"** (lives only on policies page).
+- **Card 1 — "תשלום החודש":** big number = **paid actual** (not "remaining"), eyebrow "שולם בחודש זה", ring = paid/due ratio, footer chips = unpaid policies. **Overage logic:** if `paidAmountTotal > insMonthlyTotal + ₪50` → show "שולם ₪X יותר מההערכה" (neutral if ≤10% over, **red** if >10% — index variance tolerance).
+- **Card 2 — "צבירה כוללת":** big balance + monthly deposits + breakdown chips per savings sub-type.
+- **Sections:** rows with category icon · tag+insured · company+# · **12 trail dots (Jan-Dec of dash3Year, current month = highlighted)** · monthly amount · balance+liquidity (savings) · paid toggle (⚡/✓).
+- **Per-month accuracy:** uses `dueAmount(p)` + `dash3IsDueInMonth(p,y,m)` — **NOT** averaged `toMonthly()`. So יולי may show ₪1,716 (includes car installment) while מאי shows ₪1,116.
+- **Trail dots:** calendar-year, not rolling. Future months (after today) = dashed empty circle.
+- **State:** `dash3Year`, `dash3Month` globals; `dash3TogglePaid(id)` creates/deletes a payment for current view-month.
+
+### Policies Page v2 — `#page-policies`
+**Layout (1440px max):** topbar → grouped sections.
+
+- **Topbar:** page-icon + "פוליסות / X פעילות · Y פגות" + segment (פעילות/פגות תוקף) · search (min-width 200px) · `<select class="group-select pc-group-select">` (width 110px, "לפי סוג / לפי חברה") · **"+ הוסף פוליסה" button** (`.dash3-btn-primary`, white-space:nowrap, flex-shrink:0).
+- **Grid:** `repeat(3, 1fr)` desktop · 2 cols ≤1100px · 1 col ≤700px.
+- **Card structure:** header (icon + tag/company + 📎 clip placeholder) → stat box (big amount + label, border-top/bottom soft) → people line (מבוטחים/סוכן) → chips (פעיל/פוגת/נזיל). **`--hue` inline per card** drives the gradient + border.
+- **By-type mode (default):** 2 sections (ביטוחים/חסכון) with sub-section per type (כל סוג מקבל header של אייקון+שם+ספירה+סטטיסטיקה ב-`/שנה`). **Gap בין סוגי-משנה: 60px** (לא 18 — דחוס מדי).
+- **By-company mode:** sections per company with `.pc-company-logo` (white square + img) or fallback letter. Companies with logos sort first.
+- **Sub-section sort:** קרן השתלמות ממוינת לפי `liquidityDate` עולה (כבר נזיל → קרוב → רחוק → ללא תאריך).
+- **Annual totals (not monthly):** policies page has no month context, so all sums are **`annualAmount(p)`** = `amount × {12, 4, 2, 1}` by frequency. Label: "עלות שנתית" / "הפקדה שנתית" / "X ₪/שנה" — never "חודשי" here.
+
+### Popup (view-modal) — Policy Details
+- **Header:** colored gradient by category hue (`linear-gradient(135deg, oklch(0.34 0.13 H), oklch(0.22 0.05 H))`) · SVG cat-icon (oklch tinted box) · title (`p.tag || p.type`) · sub (`company · # · agent`) · big number on left (balance for savings, amount+frequency for insurance).
+- **Edit pencil icon** (`.popup-edit-btn` Lucide pencil SVG) in the `.popup-section-title-row` next to "פרטי הפוליסה" (left side in RTL). **No more floating top-right edit emoji.**
+- **Detail cards:** 2-col grid. Row 1: עלות חודשית | סטטוס. Row 2: תחילת תוקף | תאריך פקיעה. Row 3+: optional (נזילות, צבירה עדכנית ל-).
+- **Documents section:** dropzone placeholder calling `uploadPolicyDoc(id)` → toast "בפיתוח".
+- **Payments section (collapsed by default — `display: none` on rows):** summary line (`X תשלומים ב-{currentYear} · סה"כ ₪Y · אחרון DATE`) + 2 action buttons inline: `+ הוסף תשלום` + `ראה הכל (N)`. Expanded: **max-height 160px scrollable list** + year tabs (`.payments-tabs` shown only if multiple years exist; clicks `filterPaymentsByYear(year)`). Pay row = 4-col grid (date · source · amount · 🗑).
+
+### Key Helpers Added (2026-05-19)
+| פונקציה | מה עושה |
+|---|---|
+| `dash3CategoryOf(p)` | מחזיר `{he, hue, icon}` לפי `p.type` |
+| `DASH3_ICONS[name]` | מחרוזת SVG inline (heart, shield, car, ...). **Heart rewritten 2026-05-19** ל-Lucide path נקי. |
+| `dash3PolicyHistory(p, year)` | 12 ערכים (ינואר-דצמבר) של 1/0 לפי `payments` |
+| `dash3IsDueInMonth(p,y,m)` | האם הפוליסה אמורה להיגבות בחודש נתון (לפי `paymentMonths`/frequency). **תמיד false לחסכון.** |
+| `dash3NextDueLabel(p,y,m)` | "תשלום הבא: יום X" / "אוק׳ YYYY" |
+| `dash3TogglePaid(id)` | מוסיף/מסיר payment ל-`dash3Year`/`dash3Month` |
+| `annualAmount(p)` *(inline ב-renderPolicies)* | `amount × {12,4,2,1}` |
+| `editFromView()` | קורא ל-`openEditPolicy(viewModalPolicyId)` |
+| `togglePolicyPayments(btn)` | מצב מקופל/פתוח של רשימת תשלומים בpopup |
+| `filterPaymentsByYear(y)` | סינון פנימי של רשימת התשלומים בpopup לפי טאב שנה |
+| `uploadPolicyDoc(id)` | placeholder — מציג toast "בפיתוח" |
+
+### Critical Rules — Don't Break
+1. **`--d-*` variables must be defined on every page that uses them.** Today's bug: `#page-policies` was missing the var definitions → button looked dead. Fix: declarations on `#page-dashboard, #page-policies {}`.
+2. **`--hue` inline on each card** drives ALL color (background gradient + border + icon tint). Never hard-code per-type colors elsewhere.
+3. **`white-space: nowrap` + `flex-shrink: 0`** on `.dash3-btn-primary` — without it the button wrapped to 2 lines when topbar got crowded.
+4. **Dashboard = per-month actual (`dueAmount` + `isDueInMonth`); Policies page = annual total (`annualAmount`).** Never use `toMonthly` for cash-flow displays — it averages and lies about July vs February for car insurance.
+5. **SAVING_TYPES still always return `false` from `dash3IsDueInMonth`** — savings don't have a fixed schedule. For sub/total calculations, savings monthly amount comes from `p.amount > 0 ? toMonthly(...) : 0` (averaged is fine for savings — usually they ARE monthly).
+6. **RTL chevrons:** prev button (visual right in RTL) = SVG points right (no rotation). Next button (visual left) = `transform: rotate(180deg)`. Reverse of LTR intuition.
+
+### Dead Code (Safe to Remove Eventually)
+- `renderDonut()`, `donutSelChange()`, `initDonutSelects()`, `donutYear`/`donutMonth` globals — orphaned after dashboard rewrite. Still defined but unreferenced from the new dashboard.
+- `renderMonthlyChecklistForMonth()`, `renderMonthlyChecklist()`, `renderMonthlyChecklistCore()` — same.
+- `toggleMonthlyPaid()` — replaced by `dash3TogglePaid()` for the new dashboard.
+- Old policies-page CSS classes (`.policies-grid`, `.policies-col`, `.ptable-*`, `.anchor-*`, `.policies-missing-tag-banner`) — replaced by `.pc-*`.
+- `openMissingTagsModal()` / `saveMissingTags()` / `#missing-tags-modal` — the missing-tag banner was removed from the new policies page. Functions still exist; modal HTML still in DOM; reachable only if some old code path calls `openMissingTagsModal()`. Leave as-is for now.
+
+---
+
 ## מה הפרויקט הזה
 
 אפליקציית Web לניהול פוליסות ביטוח וחסכון אישיות — כרגע של דוד.
 
 **קובץ יחיד:** `index.html` — כל ה-HTML, CSS, JavaScript בקובץ אחד.
-**אחסון:** localStorage בלבד, אין שרת, אין DB.
-**שרת dev:** `server.js` (Node.js) על פורט 8080.
+**אחסון:** Firebase Firestore + Google Auth.
+**שרת dev:** `node server.js` מתיקיית הפרויקט → `http://localhost:8080`
+**GitHub Pages (פרודקשן):** `https://davidshemesh-creator.github.io/insurance-tracker/`
 
 ---
 
@@ -29,7 +128,16 @@ KEYS.payments  → מערך תשלומים בפועל
 
 ### תדירויות תשלום
 `monthly | quarterly | semi-annual | annual | one-time`
-הפונקציה `toMonthly(amount, frequency)` ממירה לסכום חודשי.
+
+**שדות מיוחדים לפוליסה שנתית:**
+- `installments: number` — כמה תשלומים בשנה (ברירת מחדל: 1)
+- `paymentMonths: number[]` — אילו חודשים ספציפית (1=ינואר...12=דצמבר)
+- דוגמה: רכב בתשלום 3 חודשים: `installments: 3, paymentMonths: [1,2,3]`
+
+**פונקציות חישוב — הבחנה קריטית:**
+- `toMonthly(amount, freq)` — ממוצע חודשי לתצוגה בלבד (לא ל-"כמה יורד החודש")
+- `dueAmount(p)` — מה שמשלמים בפועל בכל תשלום (`amount / installments`)
+- `isDueInMonth(p, year, month)` — האם הפוליסה בתשלום בחודש נתון
 
 ---
 
@@ -45,7 +153,22 @@ KEYS.payments  → מערך תשלומים בפועל
 
 ---
 
-## Dashboard — מצב נוכחי (פברואר 2026)
+## Policies Page — מצב נוכחי (אפריל 2026)
+
+- **Layout:** 2 עמודות — ביטוחים (ימין) | חסכונות לא נזילים (שמאל)
+- **CSS:** `.policies-grid { gap: 20px }` + `.policies-col { background: #1a1a1a; border-radius: 14px; padding: 20px 18px 24px; }` — ללא border
+- **כותרת עמודה:** `ביטוחים (N)` — מספר פוליסות ליד השם, סכום חודשי בצד השני
+- **padding הדף:** `36px 44px`
+- **היררכיה בכרטיס:** סוג (גדול) → tag → חברה·סוכן·מספר (שורה אחת)
+- **צבעים:** לפי סוג בלבד (`TYPE_COLORS`) — לא לפי חברה
+
+## Dashboard — מצב נוכחי (אפריל 2026)
+
+### קוביית "שולם החודש" — לוגיקה נכונה
+- **המספר הגדול:** `actualPaidThisMonth` = תשלומים מאושרים בלבד (ללא state)
+- **שורה מתחת:** `משוער: ₪X · נותר ~₪Y` או `+₪Y מעל ההערכה` (ניטרלי, לא אדום)
+- **הערכה:** `getEstimated(p)` — לפוליסה שנתית: `dueAmount(p)` רק בחודשים שב-`paymentMonths`
+- **חודשים עתידיים:** מציג הערכה בלבד, כותרת "💳 הערכת תשלומים"
 
 ### Layout: 3 עמודות (RTL)
 ```
@@ -89,11 +212,41 @@ grid-template-columns: 320px  minmax(0,1fr)  210px
 | `renderMonthlyChecklistForMonth(year, month)` | מציג רשימת תשלומים לחודש |
 | `toggleMonthlyPaid(policyId, alreadyPaid, existingPayId)` | מסמן/מבטל תשלום |
 | `renderMonthlyTable()` | טבלת 12 חודשים עם footer |
-| `toMonthly(amount, frequency)` | ממיר לסכום חודשי |
+| `toMonthly(amount, frequency)` | ממוצע חודשי — לתצוגה בלבד |
+| `dueAmount(p)` | סכום בפועל לתשלום (amount / installments לפוליסה שנתית) |
+| `isDueInMonth(p, year, month)` | האם הפוליסה בתשלום בחודש נתון — משתמש ב-paymentMonths |
+| `renderHistory()` | היסטוריית תשלומים מקובצת לפי חודש עם headers, פילטרים: policy/year/month |
+| `applyDefaultPolicy(sel)` | ממפה את כל שורות ה-CSV שלא הותאמו לפוליסה שנבחרה |
+| `histYearChange()` | מאפס פילטר חודש בעת שינוי שנה בהיסטוריה |
+| `toggleInstallments(existingMonths)` | מציג/מסתיר שדות installments + בונה month dropdowns דינמי |
 
 ---
 
 ## Bugs שתוקנו — כדי לא לחזור עליהם
+
+14. **SAVING_TYPES + isDueInMonth — באג שחזר 3 פעמים (2026-04-06)**
+    הסיבה: `isDueInMonth` מחזיר תוצאות שגויות לפוליסות חסכון (אין להן לוח זמנים קבוע).
+    תיקון כפול:
+    - `renderHistory` expectedCount: מסנן SAVING_TYPES מ-isDueInMonth + מוסיף `savingsPaidCount` בנפרד
+    - Split bar בלוח בקרה: `savPolsDue = savPolsPaid` (חסכונות = רק מה שנשלם בפועל)
+    **כלל:** בכל שימוש ב-isDueInMonth — לבדוק קודם `!SAVING_TYPES_SET.has(p.type)`
+
+15. **State payments בספירת חסכונות (2026-04-06)**
+    הסיבה: `paidThisMonthIds` סינן `paidBy==='state'` — אך הפקדות מעביד לפנסיה/קרן השתלמות הן state.
+    תיקון: `paidThisMonthIdsSav` — Set נפרד ללא סינון state, רק לחסכונות.
+
+16. **Progress bar = count-based (2026-04-06)**
+    הסיבה: amount-based bar לא מגיע ל-100% כי סכומים משתנים בין חודשים.
+    תיקון: `insPct = insPolsPaid.length / insPolsDue.length * 100` — מגיע ל-100% כשכל הפוליסות שולמו.
+    תווית: `צפוי/שולם` (X/Y) — לא אחוזים. עודף: ספרת שולם בצהוב.
+
+17. **Annual bar = time-based (2026-04-06)**
+    פברואר = 2/12, דצמבר = מלא. לא תלוי בסכומים. מציג שולם בפועל בלבד (ללא "צפי").
+    שנת התצוגה מוצגת בכותרת (`id="dash-annual-year"`).
+
+13. **Monthly summary — רווח ענק משמאל לטבלה (2026-04-06)**
+    הסיבה: `table { width: auto }` ב-RTL — הטבלה מצמצמת לתוכן ומיושרת ימינה, מותירה רווח ריק ב-container.
+    תיקון: `width: 100%` + `table-layout: fixed` על `.monthly-table`. רוחב עמודה ראשונה (`140px`) ואחרונה (`70px`) מוגדרים ב-CSS. הוסרו `min-width`/`max-width` מ-inline styles ב-JS.
 
 1. **`isActive()` — start=today נכשל**
    תיקון: `new Date(p.start+'T00:00:00') <= now` (לא T12:00:00)
@@ -109,6 +262,31 @@ grid-template-columns: 320px  minmax(0,1fr)  210px
 
 5. **`align-items: center` על flex container מצמצם ילדים**
    תיקון: `align-items: stretch` + `align-self: center` על SVG/legend.
+
+6. **Annual summary filter — Invalid Date על פוליסות בלי expiry**
+   תיקון: `const e = p.expiry ? new Date(p.expiry+'T12:00:00') : null` — null check חובה לפני כל שימוש בתאריך תפוגה.
+
+7. **CSV import — שורות סה"כ נכנסות כתשלומים**
+   תיקון: לדלג על שורות שבהן `dateC >= 0` אבל `parseIsraeliDate` מחזיר ריק.
+
+8. **Firestore silent failures**
+   תיקון: הוסף `.catch(e => console.error(...))` ל-`pp()` ו-`py()` + קריאה ל-`db.enablePersistence()` לפני כל גישה אחרת.
+
+9. **Dashboard מציג מספר שגוי — ערבוב actual + estimated**
+   הבעיה: `getMonthly()` החזיר `actualAmount` לפוליסות ששולמו + `toMonthly()` לשאר → מספר שלא תואם שום view אחר.
+   תיקון: הפרדה מוחלטת — `actualPaidThisMonth` = תשלומים בלבד, `estimatedAll` = toMonthly() בלבד.
+
+10. **Annual installments — interval אוטומטי לא עובד בביטוח ישראלי**
+    הבעיה: ביטוח רכב בתשלומים = לא כל 6 חודשים, אלא 3 חודשים עוקבים ואז נגמר.
+    תיקון: `paymentMonths: [1,2,3]` — המשתמש בוחר חודשים ספציפיים, לא interval.
+
+11. **CSS inline style גובר על class**
+    הבעיה: `tr.classList.toggle('csv-unmatched')` לא עובד כשיש `tr.style.opacity = '0.4'` קשיח.
+    תיקון: לאפס גם inline style: `tr.style.opacity = sel.value ? '' : '0.4'`
+
+12. **Company colors הוסרו לגמרי (2026-04-06)**
+    צבעים לפי TYPE בלבד (`TYPE_COLORS`). הוסרו: `companyColor()`, `COMPANY_COLORS_DEFAULT`, picker בSettings.
+    כל שימוש ב-`companyColor()` הוחלף ב-`typeColor(p.type)`.
 
 ---
 
@@ -234,6 +412,16 @@ CSS class: `.summary-bar`, `.summary-bar-item`, `.summary-bar-value.accent`
 
 ---
 
+## State Payments (הפקדת מדינה)
+
+- **שדה:** `payment.paidBy = 'state'`
+- **CSV import:** צ'קבוקס "🏛️ הפקדת מדינה" + dropdown "מפה הכל ל..." לפוליסה ספציפית
+- **Monthly checklist:** מציג 🏛️ במקום ✓ — נפרד מ-`totalPaid` של המשתמש
+- **History:** מציג tag של 🏛️ מדינה בשורת התשלום
+- **Annual summary:** נכלל בסכומים בפועל (actual totals)
+
+---
+
 ## Session End Protocol (MANDATORY)
 
 בסוף כל שיחת פיתוח — לפני סגירה — בצע סגירת לופ אוטומטית:
@@ -303,3 +491,9 @@ service cloud.firestore {
 | `signOutUser()` | יציאה |
 
 *עודכן לאחרונה: 2026-04-04*
+
+---
+
+## Related
+
+[[the-system-v8/P-projects/_personal/insurance-tracker/project-brief|Insurance Tracker Brief]] · [[the-system-v8/A-agents/developer-agent|Eli (Developer)]]

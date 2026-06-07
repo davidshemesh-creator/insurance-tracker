@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ביטוחים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -181,34 +184,240 @@ body {
 }
 .section-label:first-child { margin-top: 4px; }
 
-/* ── Policies grid (2 columns) ───────────────────────────────────── */
-.policies-grid {
+/* ── Policies page — hybrid (anchor cards + table list) ─────────── */
+.policies-page-container {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+/* anchor cards row */
+.anchor-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0 20px;
-  align-items: start;
+  gap: 14px;
+  margin-bottom: 22px;
 }
 @media (max-width: 700px) {
-  .policies-grid { grid-template-columns: 1fr; }
+  .anchor-row { grid-template-columns: 1fr; }
 }
-/* כל עמודה — ריבוע כהה */
-.policies-col {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.anchor-card {
   background: #1a1a1a;
   border-radius: 14px;
-  padding: 20px 18px 24px;
+  padding: 20px 22px;
+  border-right: 3px solid #3a6fd8;
+  position: relative;
 }
-.policies-col .section-label {
+.anchor-card.savings { border-right-color: #8e44ad; }
+.anchor-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.anchor-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: .02em;
+}
+.anchor-card-icon { font-size: 18px; }
+.anchor-card-count {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+.anchor-card-primary {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -.5px;
+}
+.anchor-card-primary-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 500;
+  margin-top: 4px;
+}
+.anchor-card-secondary {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.anchor-card-secondary strong {
+  color: var(--accent2);
+  font-weight: 700;
+  font-size: 14px;
+}
+.anchor-card-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.anchor-card-breakdown span { white-space: nowrap; }
+.anchor-card-breakdown b {
+  color: var(--text);
+  font-weight: 600;
+  margin-right: 3px;
+}
+
+/* missing-tag banner */
+.policies-missing-tag-banner {
+  background: rgba(230,0,126,.12);
+  border-right: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  color: var(--accent);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+.policies-missing-tag-banner button {
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* cards-as-table list */
+.policies-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ptable-divider {
+  padding: 14px 4px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: .08em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ptable-divider:first-child { padding-top: 4px; }
+.ptable-divider .ptable-divider-sum {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0;
+}
+.ptable-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1.6fr) minmax(0, 1fr) 100px 120px 32px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #1a1a1a;
+  border-radius: 10px;
+  border-right: 3px solid transparent;
+  cursor: pointer;
+  transition: background 0.12s;
+  min-height: 50px;
+}
+.ptable-row:hover { background: #1f1f1f; }
+.ptable-icon {
   font-size: 16px;
-  margin-top: 20px;
-  margin-bottom: 10px;
+  text-align: center;
 }
-.policies-col .section-label:first-child {
-  margin-top: 0;
+.ptable-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
-.policies-col .section-label:first-child { margin-top: 0; }
+.ptable-tag {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ptable-meta {
+  font-size: 10px;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ptable-company {
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ptable-amount {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.ptable-amount.empty {
+  color: var(--text-sub);
+  font-weight: 400;
+  font-size: 12px;
+}
+.ptable-amount .sub {
+  display: block;
+  font-size: 10px;
+  color: var(--text-dim);
+  font-weight: 500;
+  margin-top: 2px;
+}
+.ptable-balance {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent2);
+  white-space: nowrap;
+}
+.ptable-balance.empty {
+  color: var(--text-sub);
+  font-weight: 400;
+  font-size: 12px;
+}
+.ptable-balance .sub {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+.ptable-balance .sub.liquid { color: #2ecc71; }
+.ptable-balance .sub.future { color: var(--text-sub); }
+.ptable-row .quick-update-btn {
+  width: 28px;
+  height: 28px;
+  opacity: 1;
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 7px;
+  font-size: 13px;
+}
+.ptable-row:hover .quick-update-btn { background: rgba(255,255,255,.12); color: var(--text); }
 
 /* ── Policy rows (the big colorful ones) ────────────────────────── */
 .policy-row {
@@ -469,6 +678,1227 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
   display: flex; align-items: center; justify-content: center;
 }
 .btn-close:hover { color: var(--text); background: #444; }
+
+/* ── Policy view-modal — new layout (v2) ───────────────────────── */
+#view-modal .modal { max-width: 780px; }
+#view-modal .modal-body {
+  padding: 0;
+  overflow-y: auto;
+}
+
+/* corner icon buttons */
+.modal-close-x,
+.modal-edit-icon {
+  position: absolute;
+  top: 14px;
+  z-index: 5;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-close-x {
+  left: 14px;
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+}
+.modal-close-x:hover { background: rgba(255,255,255,.16); }
+.modal-edit-icon {
+  right: 14px;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 12px;
+}
+.modal-edit-icon:hover { background: rgba(255,255,255,.08); color: var(--text); }
+
+/* full-bleed slim header — background tinted with policy hue */
+.popup-header {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 22px 22px 20px 56px;
+}
+.popup-header .popup-header-cat-icon {
+  width: 42px; height: 42px; border-radius: 11px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.popup-header .popup-header-cat-icon svg { width: 22px; height: 22px; }
+.popup-header-text { min-width: 0; }
+.popup-header-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.popup-header-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,.75);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.popup-header-value { text-align: left; white-space: nowrap; }
+.popup-header-value-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -.5px;
+  line-height: 1;
+}
+.popup-header-value-label {
+  font-size: 11px;
+  color: rgba(255,255,255,.7);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* content wrapper inside body */
+.popup-content { padding: 24px 22px 26px; }
+.popup-section { margin-bottom: 22px; }
+.popup-section:last-child { margin-bottom: 0; }
+.popup-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  padding-right: 2px;
+}
+.popup-section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.popup-section-title-row .popup-section-title { margin-bottom: 0; }
+.popup-edit-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: color .12s, background .12s;
+}
+.popup-edit-btn:hover {
+  color: var(--text);
+  background: rgba(255,255,255,.05);
+}
+.popup-edit-btn svg { width: 14px; height: 14px; }
+.popup-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 22px -22px;
+}
+
+/* detail cards grid */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+@media (max-width: 480px) {
+  .detail-grid { grid-template-columns: 1fr; }
+}
+.detail-card {
+  background: #1a1a1a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+}
+.detail-card-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-sub);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.detail-card-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.2px;
+  line-height: 1.15;
+}
+.detail-card-value.accent2 { color: var(--accent2); }
+.detail-card-value.green   { color: #2ecc71; }
+.detail-card-value.warn    { color: #ff7a7a; }
+.detail-card-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 3px;
+  font-weight: 500;
+}
+.detail-card.full { grid-column: 1 / -1; }
+
+/* pills row (ד"נ, הנחה) */
+.pills-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.popup-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.popup-pill.discount {
+  color: #2ecc71;
+  background: rgba(46,204,113,.08);
+  border-color: rgba(46,204,113,.25);
+}
+
+/* insured list */
+.insured-list {
+  background: #1a1a1a;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.insured-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+}
+.insured-row:first-child { border-top: 0; }
+.insured-row-name { color: var(--text); font-weight: 500; }
+.insured-row-amount { color: var(--text); font-weight: 700; }
+
+/* notes box */
+.notes-box {
+  background: #1a1a1a;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* docs dropzone */
+.docs-dropzone {
+  background: #1a1a1a;
+  border: 1.5px dashed rgba(255,255,255,.15);
+  border-radius: 12px;
+  padding: 22px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.docs-dropzone:hover {
+  border-color: var(--accent);
+  background: rgba(230,0,126,.04);
+}
+.docs-dropzone-icon { font-size: 26px; margin-bottom: 6px; opacity: .7; }
+.docs-dropzone-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.docs-dropzone-sub { font-size: 11px; color: var(--text-sub); }
+
+/* payments summary + list */
+.payments-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.payments-summary-info { font-size: 12px; color: var(--text-dim); }
+.payments-summary-info strong { color: var(--text); font-weight: 700; }
+.payments-see-all {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.payments-see-all:hover { color: var(--text); background: rgba(255,255,255,.04); }
+
+.payments-list { display: flex; flex-direction: column; gap: 0; }
+.payments-list .pay-row-v2 { display: none; }
+.payments-list.expanded .pay-row-v2 { display: grid; }
+.payments-list.expanded {
+  max-height: 160px;
+  overflow-y: auto;
+  padding-inline-end: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.payments-list.expanded::-webkit-scrollbar { width: 6px; }
+.payments-list.expanded::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.payments-list.expanded::-webkit-scrollbar-track { background: transparent; }
+.pay-row-v2.hidden-by-year { display: none !important; }
+
+.payments-actions { display: flex; gap: 6px; align-items: center; }
+
+.payments-tabs {
+  display: none;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.payments-tab {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.payments-tab:hover { color: var(--text); background: rgba(255,255,255,.04); }
+.payments-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.payments-tab .count { opacity: .7; font-weight: 500; margin-inline-start: 4px; }
+
+.pay-row-v2 {
+  display: grid;
+  grid-template-columns: auto 1fr auto 24px;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 2px;
+  background: transparent;
+  border-radius: 0;
+  font-size: 13px;
+}
+.pay-row-v2-date { font-weight: 500; color: var(--text-dim); white-space: nowrap; }
+.pay-row-v2-source {
+  font-size: 11px;
+  color: var(--text-sub);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.pay-row-v2-amount { font-weight: 600; color: var(--text); text-align: left; white-space: nowrap; }
+.pay-row-v2-del {
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  cursor: pointer;
+  font-size: 12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity .12s, color .12s;
+}
+.pay-row-v2:hover .pay-row-v2-del { opacity: 1; }
+.pay-row-v2-del:hover { color: #ff7a7a; }
+
+.pay-add-v2 {
+  margin-top: 10px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 9px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.pay-add-v2:hover { color: var(--text); border-color: var(--text-dim); }
+
+/* inline add-payment form (toggled) */
+.vp-pay-form-v2 {
+  display: none;
+  background: #1a1a1a;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 12px;
+  margin-top: 8px;
+}
+.vp-pay-form-v2.open { display: block; }
+.vp-pay-form-v2 .row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.vp-pay-form-v2 input[type="date"],
+.vp-pay-form-v2 input[type="number"],
+.vp-pay-form-v2 input[type="text"] {
+  padding: 7px 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+/* ── Dashboard v3 — claude.ai design port ──────────────────────── */
+#page-dashboard, #page-policies {
+  --d-bg:        oklch(0.16 0.012 320);
+  --d-bg-2:      oklch(0.185 0.012 320);
+  --d-surf:      oklch(0.215 0.013 320);
+  --d-surf-2:    oklch(0.25 0.014 320);
+  --d-surf-3:    oklch(0.295 0.015 320);
+  --d-line:      oklch(0.34 0.013 320);
+  --d-line-soft: oklch(0.26 0.012 320);
+  --d-fg:        oklch(0.97 0.005 320);
+  --d-fg-mut:    oklch(0.68 0.012 320);
+  --d-fg-dim:    oklch(0.5 0.01 320);
+  --d-accent:    oklch(0.72 0.22 350);
+  --d-accent-soft: oklch(0.38 0.18 350);
+  --d-green:     oklch(0.78 0.18 150);
+}
+#page-dashboard {
+  background: var(--d-bg);
+  color: var(--d-fg);
+  font-family: 'Heebo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Hebrew", sans-serif;
+  min-height: 100%;
+  padding: 28px 40px 80px;
+}
+#page-dashboard.page { display: none; }
+#page-dashboard.page.active { display: block; }
+
+.dash3-app {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* topbar */
+.dash3-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.dash3-topbar-l, .dash3-topbar-r {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.dash3-page-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dash3-page-icon {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--d-accent), oklch(0.5 0.2 320));
+  display: grid; place-items: center;
+  color: #fff;
+  box-shadow: 0 8px 20px oklch(0.5 0.2 320 / .25), inset 0 1px 0 oklch(1 0 0 / .25);
+}
+.dash3-page-icon svg { width: 22px; height: 22px; }
+.dash3-page-name {
+  font-weight: 800; font-size: 17px; letter-spacing: -0.01em;
+}
+.dash3-page-sub {
+  font-size: 11.5px; color: var(--d-fg-mut); margin-top: 2px;
+}
+
+.dash3-month-switch {
+  display: flex; align-items: center;
+  background: var(--d-surf);
+  border: .5px solid var(--d-line);
+  border-radius: 12px;
+  padding: 4px;
+}
+.dash3-ms-btn {
+  width: 30px; height: 30px; border-radius: 8px;
+  border: 0; background: transparent; color: var(--d-fg-mut);
+  display: grid; place-items: center; cursor: pointer;
+}
+.dash3-ms-btn svg { width: 14px; height: 14px; }
+.dash3-ms-btn:hover { background: var(--d-surf-2); color: var(--d-fg); }
+.dash3-ms-val {
+  padding: 0 12px;
+  display: flex; flex-direction: column; align-items: center; line-height: 1.1;
+}
+.dash3-ms-label { font-size: 10px; color: var(--d-fg-dim); letter-spacing: 0.05em; }
+.dash3-ms-val strong { font-size: 13px; font-weight: 700; color: var(--d-fg); }
+
+.dash3-search {
+  position: relative;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--d-surf);
+  border: .5px solid var(--d-line);
+  border-radius: 10px;
+  padding: 0 10px;
+  height: 36px;
+  width: 320px;
+}
+.dash3-search svg { width: 15px; height: 15px; color: var(--d-fg-dim); flex-shrink: 0; }
+.dash3-search input {
+  flex: 1; background: transparent; border: 0; outline: none;
+  color: var(--d-fg); font: inherit; min-width: 0;
+}
+.dash3-search input::placeholder { color: var(--d-fg-dim); }
+.dash3-search kbd {
+  font: 500 10px/1 ui-monospace, 'JetBrains Mono', monospace;
+  background: var(--d-surf-2);
+  color: var(--d-fg-mut);
+  border: .5px solid var(--d-line);
+  border-radius: 5px;
+  padding: 3px 5px;
+}
+
+.dash3-status {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--d-fg-mut);
+  padding: 0 4px;
+}
+.dash3-pulse {
+  width: 8px; height: 8px; border-radius: 999px;
+  background: var(--d-accent);
+  animation: dash3-pulse 2.4s ease-out infinite;
+}
+@keyframes dash3-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(0.7); opacity: 0.6; }
+}
+
+.dash3-btn-primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 14px;
+  border: 0; border-radius: 10px;
+  background: var(--d-accent);
+  color: #1a1018;
+  font-weight: 700; font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 6px 18px oklch(0.5 0.2 350 / .3), inset 0 1px 0 oklch(1 0 0 / .3);
+  transition: transform .12s ease, filter .12s ease;
+}
+.dash3-btn-primary svg { width: 14px; height: 14px; flex-shrink: 0; }
+.dash3-btn-primary:hover { transform: translateY(-1px); filter: brightness(1.07); }
+
+/* Group select — fixed narrow width (just enough for "לפי חברה" + arrow) */
+.pc-group-select { width: 110px; flex-shrink: 0; }
+/* Search keeps a usable min-width so user can actually type into it */
+.pc-search { flex-shrink: 1; min-width: 200px; }
+
+/* summary cards */
+.dash3-summary {
+  display: grid;
+  grid-template-columns: 1.45fr 1.25fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+@media (max-width: 1000px) {
+  .dash3-summary { grid-template-columns: 1fr; }
+}
+.dash3-card {
+  position: relative;
+  background: var(--d-surf);
+  border: .5px solid var(--d-line);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 1px 0 oklch(1 0 0 / .04) inset, 0 14px 30px oklch(0 0 0 / .25);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.dash3-card-body { flex: 1; }
+.dash3-card-f { margin-top: auto; }
+.dash3-card-h {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; margin-bottom: 18px;
+}
+.dash3-eyebrow {
+  font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--d-fg-dim); font-weight: 600;
+}
+.dash3-card-title {
+  font-size: 16px; font-weight: 700; margin-top: 4px;
+  letter-spacing: -0.005em; color: var(--d-fg);
+}
+.dash3-card-corner {
+  text-align: end; display: flex; flex-direction: column;
+  align-items: flex-end; gap: 2px;
+}
+.dash3-card-corner-l { font-size: 10.5px; color: var(--d-fg-dim); }
+.dash3-card-f { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 16px; }
+
+.dash3-badge {
+  font-size: 11px; font-weight: 500;
+  color: var(--d-fg-mut);
+  background: var(--d-surf-2);
+  border: .5px solid var(--d-line);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+/* this-month card */
+.dash3-card--month::after {
+  content: '';
+  position: absolute; top: -40%; left: -10%; width: 60%; height: 120%;
+  background: radial-gradient(ellipse at center, var(--d-accent-soft) 0%, transparent 60%);
+  opacity: 0.35; pointer-events: none;
+}
+.dash3-month-body {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 20px; position: relative;
+}
+.dash3-month-amount { display: flex; flex-direction: column; gap: 6px; }
+.dash3-month-amount-eyebrow { font-size: 11px; color: var(--d-fg-mut); }
+.dash3-month-amount-l { font-size: 12px; color: var(--d-fg-mut); margin-top: 4px; }
+.dash3-month-ring-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.dash3-month-ring-l { font-size: 11px; color: var(--d-fg-mut); }
+
+.dash3-due-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11.5px; color: var(--d-fg-mut);
+  background: var(--d-surf-2);
+  border: .5px solid var(--d-line);
+  border-radius: 999px;
+  padding: 4px 10px 4px 8px;
+  max-width: 100%;
+}
+.dash3-due-chip i {
+  width: 6px; height: 6px; border-radius: 999px; flex-shrink: 0;
+}
+.dash3-due-chip--more { color: var(--d-accent); }
+
+/* balance card — body mirrors month card structure */
+.dash3-balance-sub {
+  font-size: 12px; color: var(--d-fg-mut);
+  display: inline-flex; align-items: baseline; gap: 6px;
+  margin-top: 4px;
+}
+.dash3-balance-sub em { font-style: normal; color: var(--d-green); font-weight: 600; }
+.dash3-bd-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11.5px; color: var(--d-fg);
+  background: var(--d-surf-2);
+  border: .5px solid var(--d-line);
+  border-radius: 8px;
+  padding: 5px 9px;
+}
+.dash3-bd-chip i { width: 7px; height: 7px; border-radius: 2px; }
+.dash3-bd-chip em {
+  font-style: normal; color: var(--d-fg-mut); font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  padding-inline-start: 4px;
+  border-inline-start: .5px solid var(--d-line);
+}
+
+/* money display */
+.dash3-money {
+  display: inline-flex; align-items: baseline;
+  font-variant-numeric: tabular-nums lining-nums;
+  direction: ltr; color: var(--d-fg);
+}
+.dash3-money .num { font-weight: 700; letter-spacing: -0.01em; line-height: 1; }
+.dash3-money .sym { font-weight: 600; opacity: 0.7; transform: translateY(-1px); }
+.dash3-money .sign { color: var(--d-accent); font-weight: 700; margin-inline-end: 1px; }
+.dash3-money--sm  .num { font-size: 14px; }
+.dash3-money--sm  .sym { font-size: 10px; margin-inline-start: 3px; }
+.dash3-money--md  .num { font-size: 18px; }
+.dash3-money--md  .sym { font-size: 12px; margin-inline-start: 3px; }
+.dash3-money--lg  .num { font-size: 30px; }
+.dash3-money--lg  .sym { font-size: 18px; margin-inline-start: 4px; }
+.dash3-money--xxl .num { font-size: 60px; font-weight: 800; letter-spacing: -0.025em; }
+.dash3-money--xxl .sym { font-size: 32px; margin-inline-start: 6px; }
+.dash3-money--xxl .sign { font-size: 32px; }
+.dash3-money.muted .num, .dash3-money.muted .sym { color: var(--d-fg-mut); }
+
+/* sections */
+.dash3-section {
+  margin-top: 22px;
+  /* Shared grid template — section header + rows use the same columns */
+  --dash3-grid: minmax(220px, 1.7fr) minmax(140px, 0.95fr) 120px minmax(170px, 1fr) 112px;
+}
+.dash3-section-h {
+  display: grid;
+  grid-template-columns: var(--dash3-grid);
+  gap: 18px;
+  align-items: end;
+  margin-bottom: 10px;
+  padding: 0 20px 0 16px;
+}
+.dash3-section-h-l {
+  grid-column: 1;
+  display: flex; align-items: baseline; gap: 10px;
+}
+.dash3-section-pip {
+  width: 6px; height: 18px; border-radius: 2px; align-self: center;
+}
+.dash3-section-h h2 {
+  margin: 0; font-size: 18px; font-weight: 700;
+  letter-spacing: -0.01em; color: var(--d-fg);
+}
+.dash3-section-meta { font-size: 12px; color: var(--d-fg-dim); }
+.dash3-section-h-r {
+  grid-column: 4;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: end;
+}
+.dash3-section-stat {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+}
+.dash3-section-stat > span:first-child {
+  font-size: 10.5px; color: var(--d-fg-dim); letter-spacing: 0.04em;
+}
+.dash3-section-body {
+  background: var(--d-surf);
+  border: .5px solid var(--d-line);
+  border-radius: 14px;
+  padding: 4px;
+  box-shadow: 0 1px 0 oklch(1 0 0 / .03) inset, 0 10px 24px oklch(0 0 0 / .2);
+}
+
+/* policy row */
+.dash3-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--dash3-grid);
+  align-items: center;
+  gap: 18px;
+  padding: 12px 16px 12px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.dash3-row + .dash3-row { border-top: .5px solid var(--d-line-soft); }
+.dash3-row:hover { background: var(--d-surf-2); }
+.dash3-row-off { opacity: 0.55; }
+.dash3-row-stripe {
+  position: absolute; right: -1px; top: 8px; bottom: 8px;
+  width: 3px; border-radius: 2px;
+  opacity: 0.85;
+}
+.dash3-row-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.dash3-row-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dash3-row-name {
+  font-size: 14px; font-weight: 600; letter-spacing: -0.005em;
+  color: var(--d-fg);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dash3-row-sub {
+  font-size: 11.5px; color: var(--d-fg-mut);
+  display: inline-flex; gap: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dash3-row-co {
+  display: flex; flex-direction: column; gap: 2px;
+  font-size: 12px;
+}
+.dash3-row-co-name { color: var(--d-fg); font-weight: 500; }
+.dash3-row-co-num {
+  font-family: ui-monospace, 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--d-fg-dim); letter-spacing: 0.02em;
+}
+.dash3-row-trail {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+}
+.dash3-row-trail-l { font-size: 10px; color: var(--d-fg-dim); letter-spacing: 0.04em; }
+.dash3-row-trail-dots {
+  display: flex; gap: 3px; align-items: center;
+  direction: rtl;
+}
+.dash3-row-trail-dots span {
+  width: 6px; height: 6px; border-radius: 999px; flex-shrink: 0;
+  background: oklch(0.36 0.01 320);
+  opacity: 0.7;
+}
+.dash3-row-trail-dots span.on {
+  background: oklch(0.78 0.13 350 / .55);
+  opacity: 1;
+}
+.dash3-row-trail-dots span.future {
+  background: transparent;
+  border: 1px dashed oklch(0.36 0.01 320);
+  width: 5px; height: 5px;
+  opacity: 0.5;
+}
+.dash3-row-trail-dots span.now {
+  width: 7px; height: 7px;
+  background: oklch(0.36 0.01 320);
+  box-shadow: 0 0 0 2px var(--d-surf), 0 0 0 3px var(--d-accent);
+}
+.dash3-row-trail-dots span.now.on { background: var(--d-accent); }
+.dash3-row-trail-dots span.now.future {
+  background: var(--d-surf);
+  border: 1px solid var(--d-accent);
+}
+/* committed = promised but not yet cleared → a ring (hollow), not a solid dot */
+.dash3-row-trail-dots span.committed {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.6px oklch(0.72 0.16 312 / .9);
+  opacity: 1;
+}
+.dash3-row-trail-dots span.now.committed {
+  background: var(--d-surf);
+  box-shadow: 0 0 0 2px var(--d-surf), 0 0 0 3px var(--d-accent), inset 0 0 0 1.6px oklch(0.72 0.16 312);
+}
+
+.dash3-row-amounts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: center;
+}
+.dash3-row-monthly, .dash3-row-balance {
+  display: flex; flex-direction: column; gap: 3px; align-items: flex-end;
+}
+.dash3-row-monthly-l { font-size: 10.5px; color: var(--d-fg-dim); }
+.dash3-row-end {
+  display: flex; align-items: center; gap: 10px;
+}
+.dash3-row-due {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+  min-width: 64px;
+}
+.dash3-row-due-l { font-size: 10px; color: var(--d-fg-dim); letter-spacing: 0.04em; }
+.dash3-row-due-v {
+  font-size: 12px; font-weight: 500; color: var(--d-fg);
+  font-variant-numeric: tabular-nums;
+}
+.dash3-row-due-v.ok { color: var(--d-green); }
+
+/* category icon */
+.dash3-cat-icon {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  display: grid; place-items: center;
+}
+.dash3-cat-icon svg { width: 20px; height: 20px; }
+
+/* paid toggle */
+.dash3-paid-tog {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: grid; place-items: center;
+  border: .5px solid var(--d-line);
+  background: var(--d-surf-2);
+  color: var(--d-fg-mut);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.dash3-paid-tog svg { width: 18px; height: 18px; }
+.dash3-paid-tog.pending {
+  color: var(--d-accent);
+  background: color-mix(in oklab, var(--d-accent) 12%, var(--d-surf-2));
+  border-color: color-mix(in oklab, var(--d-accent) 40%, var(--d-line));
+}
+.dash3-paid-tog.pending:hover {
+  background: color-mix(in oklab, var(--d-accent) 22%, var(--d-surf-2));
+  transform: scale(1.04);
+}
+.dash3-paid-tog.on {
+  color: #11261a;
+  background: var(--d-green);
+  border-color: color-mix(in oklab, var(--d-green) 60%, transparent);
+  box-shadow: 0 0 0 3px oklch(0.78 0.18 150 / .15), 0 4px 12px oklch(0.6 0.18 150 / .3);
+}
+.dash3-paid-tog.on:hover { filter: brightness(1.06); }
+.dash3-paid-tog.off {
+  color: var(--d-fg-dim);
+  background: transparent;
+  border-style: dashed;
+}
+/* committed = registered in advance, not yet cleared → ghost green, dashed */
+.dash3-paid-tog.committed {
+  color: var(--d-green);
+  background: color-mix(in oklab, var(--d-green) 8%, var(--d-surf-2));
+  border: 1px dashed color-mix(in oklab, var(--d-green) 55%, var(--d-line));
+}
+.dash3-paid-tog.committed:hover {
+  background: color-mix(in oklab, var(--d-green) 18%, var(--d-surf-2));
+  transform: scale(1.04);
+}
+
+.dash3-footer {
+  margin-top: 40px; padding: 16px 8px;
+  text-align: center; font-size: 11px; color: var(--d-fg-dim);
+  letter-spacing: 0.02em;
+}
+
+/* ── Policies page v2 — cards in dashboard DNA ─────────────────── */
+#page-policies {
+  background: var(--d-bg);
+  color: var(--d-fg);
+  font-family: 'Heebo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Hebrew", sans-serif;
+  padding: 28px 40px 80px !important;
+  min-height: 100%;
+}
+#page-policies::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 80% -10%, oklch(0.3 0.12 350 / .25), transparent 50%),
+    radial-gradient(ellipse at 10% 110%, oklch(0.3 0.08 280 / .15), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+#page-policies > * { position: relative; z-index: 1; }
+
+.pc-app { max-width: 1440px; margin: 0 auto; }
+
+/* topbar */
+.pc-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.pc-topbar-l, .pc-topbar-r { display: flex; align-items: center; gap: 14px; }
+.pc-page-title { display: flex; align-items: center; gap: 12px; }
+.pc-page-icon {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--d-accent), oklch(0.5 0.2 320));
+  display: grid; place-items: center;
+  color: #fff;
+  box-shadow: 0 8px 20px oklch(0.5 0.2 320 / .25), inset 0 1px 0 oklch(1 0 0 / .25);
+}
+.pc-page-icon svg { width: 22px; height: 22px; }
+.pc-page-name { font-weight: 800; font-size: 17px; letter-spacing: -0.01em; color: var(--d-fg); }
+.pc-page-sub { font-size: 11.5px; color: var(--d-fg-mut); margin-top: 2px; }
+
+.pc-segment {
+  display: inline-flex;
+  background: var(--d-surf);
+  border: .5px solid var(--d-line);
+  border-radius: 10px;
+  padding: 3px;
+}
+.pc-segment-btn {
+  background: transparent;
+  border: 0;
+  color: var(--d-fg-mut);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.pc-segment-btn.active {
+  background: var(--d-surf-2);
+  color: var(--d-fg);
+}
+
+.pc-search {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--d-surf);
+  border: .5px solid var(--d-line);
+  border-radius: 10px;
+  padding: 0 10px;
+  height: 36px;
+  width: 260px;
+}
+.pc-search svg { width: 15px; height: 15px; color: var(--d-fg-dim); flex-shrink: 0; }
+.pc-search input {
+  flex: 1; background: transparent; border: 0; outline: none;
+  color: var(--d-fg); font: inherit; min-width: 0;
+}
+.pc-search input::placeholder { color: var(--d-fg-dim); }
+
+.pc-group-select {
+  background: var(--d-surf);
+  border: .5px solid var(--d-line);
+  border-radius: 10px;
+  height: 36px;
+  padding: 0 12px;
+  color: var(--d-fg);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+.pc-group-select:hover { background: var(--d-surf-2); }
+
+/* sub-headers (per-type within a section) */
+.pc-subsection { margin-top: 60px; }
+.pc-subsection:first-child { margin-top: 0; }
+.pc-subsection-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 0 4px;
+  flex-wrap: wrap;
+}
+.pc-subsection-icon {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.pc-subsection-icon svg { width: 13px; height: 13px; }
+.pc-subsection-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--d-fg);
+  letter-spacing: -0.005em;
+}
+.pc-subsection-count {
+  font-size: 11.5px;
+  color: var(--d-fg-dim);
+}
+.pc-subsection-sep {
+  color: var(--d-fg-dim);
+  opacity: .5;
+  margin: 0 2px;
+}
+.pc-subsection-stat {
+  font-size: 12px;
+  color: var(--d-fg-mut);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.pc-subsection-stat .pc-money .num { font-size: 13px; color: var(--d-fg); font-weight: 700; }
+.pc-subsection-stat .pc-money .sym { font-size: 10px; }
+
+/* company section header (when grouped by company) */
+.pc-company-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 0 4px;
+  flex-wrap: wrap;
+}
+.pc-company-logo {
+  width: 32px; height: 32px;
+  background: #fff;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.pc-company-logo img { width: 24px; height: 24px; object-fit: contain; }
+.pc-company-logo-fallback {
+  width: 32px; height: 32px;
+  background: var(--d-surf-2);
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--d-fg-mut);
+}
+.pc-company-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--d-fg);
+  letter-spacing: -0.01em;
+}
+.pc-company-meta { font-size: 12px; color: var(--d-fg-dim); }
+
+/* section */
+.pc-section { margin-top: 22px; }
+.pc-section + .pc-section { margin-top: 72px; }
+.pc-section-h {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 0 4px;
+  flex-wrap: wrap;
+}
+.pc-section-pip { width: 6px; height: 18px; border-radius: 2px; align-self: center; }
+.pc-section-h h2 {
+  margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: var(--d-fg);
+}
+.pc-section-meta { font-size: 12px; color: var(--d-fg-dim); }
+.pc-section-h-sep { color: var(--d-fg-dim); opacity: .5; }
+.pc-section-h-stat {
+  font-size: 12px;
+  color: var(--d-fg-dim);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+.pc-section-h-stat .pc-money .num { font-size: 14px; color: var(--d-fg); font-weight: 700; }
+.pc-section-h-stat .pc-money .sym { font-size: 10px; }
+
+/* card grid */
+.pc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (max-width: 1100px) { .pc-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 700px)  { .pc-grid { grid-template-columns: 1fr; } }
+
+/* card */
+.pc-card {
+  --hue: 320;
+  background:
+    linear-gradient(155deg,
+      oklch(0.36 0.16 var(--hue)) 0%,
+      oklch(0.26 0.09 var(--hue)) 60%,
+      oklch(0.22 0.05 var(--hue)) 100%
+    );
+  border: .5px solid oklch(0.55 0.18 var(--hue) / .5);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+  position: relative;
+  min-height: 180px;
+}
+.pc-card:hover {
+  background:
+    linear-gradient(155deg,
+      oklch(0.42 0.18 var(--hue)) 0%,
+      oklch(0.3 0.11 var(--hue)) 60%,
+      oklch(0.26 0.06 var(--hue)) 100%
+    );
+  border-color: oklch(0.65 0.2 var(--hue) / .7);
+  transform: translateY(-1px);
+}
+.pc-card-h {
+  display: grid;
+  grid-template-columns: 38px 1fr 28px;
+  gap: 10px;
+  align-items: center;
+}
+.pc-cat-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  background: oklch(0.28 0.08 var(--hue) / .55);
+  color: oklch(0.92 0.06 var(--hue));
+  box-shadow: inset 0 0 0 .5px oklch(0.42 0.13 var(--hue) / .5), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.pc-cat-icon svg { width: 20px; height: 20px; }
+.pc-titles { min-width: 0; }
+.pc-tag {
+  font-size: 14px; font-weight: 700; color: var(--d-fg);
+  letter-spacing: -0.005em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pc-co {
+  font-size: 11.5px; color: var(--d-fg-mut);
+  margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-family: ui-monospace, 'JetBrains Mono', monospace;
+}
+.pc-clip {
+  width: 28px; height: 28px;
+  background: transparent;
+  border: 1px dashed var(--d-line);
+  border-radius: 8px;
+  color: var(--d-fg-dim);
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: all .12s;
+}
+.pc-clip svg { width: 13px; height: 13px; }
+.pc-clip:hover {
+  border-color: var(--d-accent);
+  color: var(--d-accent);
+  background: oklch(0.5 0.2 350 / .08);
+}
+.pc-clip.attached {
+  border-style: solid;
+  border-color: oklch(0.5 0.18 150 / .5);
+  color: var(--d-green);
+  background: oklch(0.5 0.18 150 / .1);
+}
+
+.pc-stat {
+  padding: 10px 0 8px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pc-stat-l { font-size: 11px; color: var(--d-fg-dim); letter-spacing: 0.04em; }
+
+.pc-money {
+  display: inline-flex; align-items: baseline;
+  font-variant-numeric: tabular-nums lining-nums;
+  direction: ltr;
+  color: var(--d-fg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.pc-money .num { font-size: 26px; font-weight: 800; letter-spacing: -0.025em; line-height: 1; }
+.pc-money .sym { font-size: 16px; font-weight: 600; opacity: 0.7; transform: translateY(-1px); margin-inline-start: 4px; }
+.pc-money.muted .num, .pc-money.muted .sym { color: var(--d-fg-mut); }
+.pc-money.small .num { font-size: 14px; font-weight: 700; }
+.pc-money.small .sym { font-size: 10px; margin-inline-start: 2px; }
+
+.pc-stat-sub {
+  font-size: 12px; color: var(--d-fg-mut);
+  display: inline-flex; align-items: baseline; gap: 4px;
+}
+.pc-stat-sub em { font-style: normal; color: var(--d-green); font-weight: 600; }
+
+.pc-people {
+  font-size: 12px; color: var(--d-fg-mut);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pc-people-l { color: var(--d-fg-dim); }
+
+.pc-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; }
+.pc-chip {
+  font-size: 11px;
+  color: var(--d-fg-mut);
+  background: rgba(0,0,0,.25);
+  border: .5px solid rgba(255,255,255,.12);
+  border-radius: 999px;
+  padding: 3px 10px;
+  display: inline-flex; align-items: center; gap: 4px;
+  white-space: nowrap;
+}
+.pc-chip.active { color: var(--d-green); border-color: oklch(0.5 0.18 150 / .35); background: oklch(0.5 0.18 150 / .12); }
+.pc-chip.expiring { color: oklch(0.82 0.16 80); border-color: oklch(0.5 0.18 80 / .35); background: oklch(0.5 0.18 80 / .12); }
+.pc-chip.warn { color: oklch(0.72 0.2 25); border-color: oklch(0.5 0.18 25 / .35); background: oklch(0.5 0.18 25 / .12); }
+.pc-chip.liquid { color: var(--d-green); }
+.pc-chip.due { color: var(--d-accent); border-color: oklch(0.5 0.2 350 / .35); background: oklch(0.5 0.2 350 / .12); }
 
 /* ── Policy detail header ───────────────────────────────────────── */
 .detail-header {
@@ -1398,154 +2828,104 @@ tr:hover td { background: var(--bg3); }
 
     <!-- ── DASHBOARD ─────────────────────────────────────────── -->
     <div id="page-dashboard" class="page active">
-
-      <!-- Alerts -->
-      <div id="dash-alerts"></div>
-
-
-      <div class="dash-grid">
-
-        <!-- עמודה ימנית: Checklist -->
-        <div class="monthly-checklist-wrap">
-          <!-- Header -->
-          <div class="monthly-checklist-header">
-            <div>
-              <h3 id="monthly-checklist-title">💳 תשלומים</h3>
-              <p id="monthly-checklist-sub" style="font-size:12px;color:var(--text-dim);margin-top:2px;"></p>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <div class="dash-month-sel">
-                <select id="donut-sel-month" onchange="donutSelChange()">
-                  <option value="0">ינואר</option><option value="1">פברואר</option><option value="2">מרץ</option>
-                  <option value="3">אפריל</option><option value="4">מאי</option><option value="5">יוני</option>
-                  <option value="6">יולי</option><option value="7">אוגוסט</option><option value="8">ספטמבר</option>
-                  <option value="9">אוקטובר</option><option value="10">נובמבר</option><option value="11">דצמבר</option>
-                </select>
-                <select id="donut-sel-year" onchange="donutSelChange()" style="background:transparent;border:none;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;"></select>
+      <div class="dash3-app">
+        <!-- Topbar -->
+        <header class="dash3-topbar">
+          <div class="dash3-topbar-l">
+            <div class="dash3-page-title">
+              <div class="dash3-page-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3 4 6v6c0 4.5 3.2 8.5 8 9.5 4.8-1 8-5 8-9.5V6l-8-3z"/>
+                  <path d="M8 11h8M8 14h5"/>
+                </svg>
               </div>
-              <button class="btn btn-ghost btn-sm" onclick="navigate('import',null)" title="ייבא CSV" style="font-size:11px;padding:4px 10px;white-space:nowrap;">📥 ייבוא</button>
-            </div>
-          </div>
-
-          <!-- Split progress bar -->
-          <div class="dash-split-wrap">
-            <div class="split-tracks">
-              <div class="split-ins-track"><div class="split-ins-fill" id="dash-split-ins-fill" style="width:0%"></div></div>
-              <div class="split-divider"></div>
-              <div class="split-sav-track"><div class="split-sav-fill" id="dash-split-sav-fill" style="width:0%"></div></div>
-            </div>
-            <div class="split-labels">
-              <span class="split-label" id="dash-split-ins-label"><span class="split-dot" style="background:var(--accent);"></span>ביטוחים</span>
-              <span class="split-label" id="dash-split-sav-label"><span class="split-dot" style="background:var(--accent2);"></span>חסכון</span>
-            </div>
-          </div>
-
-          <!-- 3 stat chips -->
-          <div class="dash-chips">
-            <div class="dash-chip">
-              <div class="dash-chip-lbl">הערכה חודשית</div>
-              <div class="dash-chip-val" id="dash-chip-est" style="color:var(--text-dim)">₪0</div>
-            </div>
-            <div class="dash-chip" style="border-color:rgba(46,204,113,.3);background:rgba(46,204,113,.05);">
-              <div class="dash-chip-lbl">שולם בפועל</div>
-              <div class="dash-chip-val" id="dash-chip-paid" style="color:#2ecc71">₪0</div>
-              <div class="dash-chip-count" id="dash-chip-paid-count"></div>
-            </div>
-            <div class="dash-chip" style="border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.05);">
-              <div class="dash-chip-lbl">נותר לתשלום</div>
-              <div class="dash-chip-val" id="dash-chip-remain" style="color:var(--orange)">₪0</div>
-              <div class="dash-chip-count" id="dash-chip-remain-count"></div>
-            </div>
-          </div>
-
-          <!-- Checklist rows -->
-          <div id="monthly-checklist"></div>
-        </div>
-
-        <!-- עמודה שמאלית: Sidebar -->
-        <div class="dash-sidebar">
-
-          <!-- תשלומים שנתיים עם progress -->
-          <div class="dash-side-card">
-            <div class="dash-side-title">📊 תשלומים שנתיים <span id="dash-annual-year" style="color:var(--text-dim);font-size:12px;font-weight:400;"></span></div>
-
-            <div class="annual-block">
-              <div class="annual-block-header">
-                <span class="annual-block-name">🛡 ביטוחים</span>
-                <strong id="dash-annual-ins-paid" style="color:var(--accent);font-size:13px;">₪0</strong>
-              </div>
-              <div class="annual-track">
-                <div class="annual-fill" id="dash-annual-ins-fill" style="background:var(--accent);width:0%"></div>
+              <div>
+                <div class="dash3-page-name">לוח בקרה</div>
+                <div class="dash3-page-sub">מעקב פוליסות וחיסכונות</div>
               </div>
             </div>
 
-            <div class="annual-block">
-              <div class="annual-block-header">
-                <span class="annual-block-name">💰 חסכון</span>
-                <strong id="dash-annual-sav-paid" style="color:var(--accent2);font-size:13px;">₪0</strong>
+            <div class="dash3-month-switch">
+              <button class="dash3-ms-btn" onclick="dash3PrevMonth()" aria-label="חודש קודם">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+              <div class="dash3-ms-val">
+                <span class="dash3-ms-label">חודש פעיל</span>
+                <strong id="dash3-month-label">—</strong>
               </div>
-              <div class="annual-track">
-                <div class="annual-fill" id="dash-annual-sav-fill" style="background:var(--accent2);width:0%"></div>
-              </div>
-            </div>
-
-            <div class="annual-divider"></div>
-            <div class="annual-total-row">
-              <span class="annual-total-lbl">סה״כ השנה</span>
-              <span class="annual-total-val" id="dash-annual-total">₪0</span>
+              <button class="dash3-ms-btn" onclick="dash3NextMonth()" aria-label="חודש הבא">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(180deg);"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
             </div>
           </div>
 
-          <!-- צבירה מצטברת -->
-          <div class="dash-side-card" style="border-color:rgba(155,89,182,.25);">
-            <div class="dash-side-title">🏦 צבירה מצטברת</div>
-            <div id="dash-savings-list"></div>
-            <div class="savings-total-row">
-              <span class="annual-total-lbl">סה״כ צבירה</span>
-              <span class="annual-total-val" id="dash-savings-total" style="color:var(--accent2)">₪0</span>
+          <div class="dash3-topbar-r">
+            <div class="dash3-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input type="text" id="dash3-search" placeholder="חיפוש פוליסה, חברה או מספר…" oninput="renderDashboard()">
+            </div>
+            <div class="dash3-status">
+              <span class="dash3-pulse"></span>
+              <span id="dash3-status-text">— מתוך — שולמו</span>
             </div>
           </div>
+        </header>
 
-          <!-- פוגות תוקף -->
-          <div id="dash-expiring-section" style="display:none;">
-            <div class="section-label">⏳ פוגות תוקף בקרוב</div>
-            <div id="dash-expiring"></div>
-          </div>
+        <!-- Summary cards -->
+        <div class="dash3-summary" id="dash3-summary"></div>
 
-        </div>
+        <!-- Sections (insurance / savings) -->
+        <div id="dash3-sections"></div>
 
+        <footer class="dash3-footer" id="dash3-footer"></footer>
       </div>
     </div>
 
     <!-- ── POLICIES ──────────────────────────────────────────── -->
-    <div id="page-policies" class="page" style="padding: 36px 44px; background: var(--bg2);">
+    <div id="page-policies" class="page">
+     <div class="pc-app">
 
-      <!-- Row 1: Title (no button here — moved to controls row) -->
-      <!-- Row 1+2 merged: Title + tabs + search + add button -->
-      <div class="policies-controls-row" style="margin-bottom:14px;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <h2 id="policies-count-title" class="policies-page-title">פוליסות</h2>
-          <div class="segment compact" id="policy-status-seg">
-            <button class="segment-btn active" onclick="setSegment('policy-status-seg', this, renderPolicies)" data-val="active">פעילות</button>
-            <button class="segment-btn" onclick="setSegment('policy-status-seg', this, renderPolicies)" data-val="expired">פגות תוקף</button>
+      <!-- Topbar -->
+      <header class="pc-topbar">
+        <div class="pc-topbar-l">
+          <div class="pc-page-title">
+            <div class="pc-page-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="3" width="16" height="18" rx="2"/>
+                <path d="M8 7h8M8 11h8M8 15h5"/>
+              </svg>
+            </div>
+            <div>
+              <div class="pc-page-name">פוליסות</div>
+              <div class="pc-page-sub" id="pc-page-sub">—</div>
+            </div>
+          </div>
+
+          <div class="pc-segment" id="policy-status-seg">
+            <button class="pc-segment-btn active" onclick="setSegment('policy-status-seg', this, renderPolicies)" data-val="active">פעילות</button>
+            <button class="pc-segment-btn" onclick="setSegment('policy-status-seg', this, renderPolicies)" data-val="expired">פגות תוקף</button>
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div class="policies-search-wrap">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="policy-search" placeholder="חיפוש…" oninput="renderPolicies()">
-            <button class="search-clear" onclick="document.getElementById('policy-search').value='';renderPolicies()" title="נקה">✕</button>
+
+        <div class="pc-topbar-r">
+          <div class="pc-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="text" id="policy-search" placeholder="חיפוש פוליסה, חברה או מספר…" oninput="renderPolicies()">
           </div>
-          <select class="group-select" onchange="setGroupTabFromSelect(this.value)">
+          <select class="group-select pc-group-select" onchange="setGroupTabFromSelect(this.value)">
             <option value="type">לפי סוג</option>
             <option value="company">לפי חברה</option>
           </select>
-          <button class="btn btn-accent btn-sm" onclick="openAddPolicy()">+ הוסף פוליסה</button>
+          <button class="dash3-btn-primary" onclick="openAddPolicy()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            <span>הוסף פוליסה</span>
+          </button>
         </div>
-      </div>
+      </header>
 
+      <div id="pc-sections"></div>
 
-      <div id="policies-list" class="policies-grid"></div>
+     </div>
     </div>
 
     <!-- ── PAYMENT HISTORY ────────────────────────────────────── -->
@@ -1831,6 +3211,7 @@ tr:hover td { background: var(--bg3); }
               <option value="פנסיה">פנסיה</option>
               <option value="קרן השתלמות">קרן השתלמות</option>
               <option value="קופת גמל">קופת גמל</option>
+              <option value="קופת גמל להשקעה">קופת גמל להשקעה</option>
               <option value="חסכון">חסכון</option>
             </select>
           </div>
@@ -1860,21 +3241,26 @@ tr:hover td { background: var(--bg3); }
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-sub);margin-bottom:10px;">תשלום</div>
           </div>
           <div class="form-group">
-            <label>סכום תשלום (₪)</label>
-            <input id="f-amount" type="number" step="0.01" min="0" placeholder="0.00" value="0">
+            <label id="f-amount-label">סכום תשלום (₪)</label>
+            <input id="f-amount" type="number" step="0.01" min="0" placeholder="0.00" value="0" oninput="updatePerInstallmentNote()">
           </div>
-          <div class="form-group">
-            <label>תדירות תשלום</label>
-            <select id="f-frequency" onchange="toggleInstallments()">
+          <div class="form-group full">
+            <label>איך משלמים?</label>
+            <select id="f-frequency" onchange="toggleInstallments()" style="display:none;">
               <option value="monthly">חודשי</option>
               <option value="quarterly">רבעוני</option>
               <option value="semi-annual">חצי שנתי</option>
               <option value="annual">שנתי</option>
             </select>
+            <div id="f-paymode-radio" style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" id="paymode-monthly"      class="paymode-btn" onclick="setPayMode('monthly')">חודשי קבוע</button>
+              <button type="button" id="paymode-installments" class="paymode-btn" onclick="setPayMode('installments')">פריסת תשלומים</button>
+              <button type="button" id="paymode-one-time"     class="paymode-btn" onclick="setPayMode('one-time')">חד-פעמי</button>
+            </div>
           </div>
           <div id="f-installments-group" style="display:none;">
             <div class="form-group">
-              <label>כמה תשלומים בשנה?</label>
+              <label>מספר תשלומים</label>
               <select id="f-installments" onchange="toggleInstallments()">
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -1884,8 +3270,13 @@ tr:hover td { background: var(--bg3); }
                 <option value="12">12</option>
               </select>
             </div>
+            <div class="form-group">
+              <label>חודש ראשון</label>
+              <select id="f-first-month" onchange="toggleInstallments()"></select>
+            </div>
+            <div class="form-group full" id="f-per-installment-note" style="font-size:12px;color:var(--accent2);font-weight:700;margin-top:-2px;"></div>
             <div class="form-group full" id="f-payment-months-group" style="display:none;">
-              <label>באילו חודשים?</label>
+              <label>חודשי החיוב <span style="color:var(--text-dim);font-weight:400;font-size:11px;">(אוטומטי לפי חודש ראשון — ניתן לשנות כל אחד)</span></label>
               <div id="f-payment-months-rows" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
             </div>
           </div>
@@ -2022,8 +3413,8 @@ tr:hover td { background: var(--bg3); }
 <div class="modal-overlay hidden" id="view-modal">
   <div class="modal" style="position:relative;">
     <div class="modal-handle"></div>
-    <button onclick="closeModal('view-modal')" style="position:absolute;top:10px;left:14px;z-index:10;background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
-    <div class="modal-body" id="view-modal-body" style="padding-top:0;"></div>
+    <button class="modal-close-x" onclick="closeModal('view-modal')">✕</button>
+    <div class="modal-body" id="view-modal-body"></div>
   </div>
 </div>
 
@@ -2113,6 +3504,27 @@ tr:hover td { background: var(--bg3); }
     <div class="modal-footer">
       <button class="btn btn-ghost" style="flex:1;" onclick="closeModal('quick-update-modal')">ביטול</button>
       <button class="btn btn-accent" style="flex:2;" onclick="saveQuickUpdate()">⚡ עדכן פוליסה</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MISSING TAGS MODAL ──────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="missing-tags-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title">✏️ מלא תיאור קצר לפוליסות</span>
+      <button class="btn-close" onclick="closeModal('missing-tags-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">
+        תיאור קצר עוזר לזהות במהירות פוליסה ברשימה. דוגמאות: "בריאות משפחה", "רכב — סקודה", "פנסיה ראשית".
+      </p>
+      <div id="missing-tags-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" style="flex:1;" onclick="closeModal('missing-tags-modal')">ביטול</button>
+      <button class="btn btn-accent" style="flex:2;" onclick="saveMissingTags()">💾 שמור הכל</button>
     </div>
   </div>
 </div>
@@ -2260,9 +3672,19 @@ async function _loadFromFirestore() {
       if(confirm(`נמצאו ${local.length} פוליסות מקומיות — להעביר לענן?`)) {
         policies = local;
         payments = JSON.parse(localStorage.getItem(KEYS.payments) || '[]');
-        pp(); py();
-        localStorage.removeItem(KEYS.policies);
-        localStorage.removeItem(KEYS.payments);
+        // Await the real writes BEFORE deleting local — never remove the only copy
+        // until Firestore confirms it has the data. (B3: migration data-loss race)
+        try {
+          await Promise.all([
+            _userDoc('policies').set({ items: policies }),
+            _userDoc('payments').set({ items: payments })
+          ]);
+          localStorage.removeItem(KEYS.policies);
+          localStorage.removeItem(KEYS.payments);
+        } catch(e) {
+          console.error('מיגרציה נכשלה — הנתונים המקומיים נשמרו',e);
+          toast('⚠️ ההעברה לענן נכשלה — הנתונים המקומיים נשמרו, ננסה שוב בכניסה הבאה','error');
+        }
       }
     }
   }
@@ -2415,12 +3837,12 @@ function closeSidebar() {
 }
 
 function setSegment(segId, btn, cb) {
-  document.querySelectorAll('#'+segId+' .segment-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#'+segId+' button').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   cb();
 }
 function getSegment(segId) {
-  const active = document.querySelector('#'+segId+' .segment-btn.active');
+  const active = document.querySelector('#'+segId+' button.active');
   return active ? active.dataset.val : '';
 }
 function setGroupTab(btn, val) {
@@ -2805,61 +4227,579 @@ function drawDonut(data, total, isFuture=false, svgId='donut-svg-ins', legendId=
 // ══════════════════════════════════════════════════════════════════
 //  DASHBOARD
 // ══════════════════════════════════════════════════════════════════
-function renderDashboard() {
-  const active = policies.filter(isActive);
-  // Monthly cost: only policies with actual payments (not pure-balance accounts)
-  const totalMonthly = active.reduce((s,p)=> s + (p.amount>0 ? toMonthly(p.amount,p.frequency) : 0), 0);
-  // Total balance across all savings accounts
-  const totalBalance = policies.reduce((s,p)=> s + (p.balance||0), 0);
-  const expiring = active.filter(p=>{ const d=daysUntil(p.expiry); return d>=0&&d<=60; });
+// ══════════════════════════════════════════════════════════════════
+//  DASHBOARD v3 — claude.ai design port
+// ══════════════════════════════════════════════════════════════════
 
-  // Duplicate detection
-  const typeMap = {};
-  active.forEach(p=>{ (typeMap[p.type]=typeMap[p.type]||[]).push(p); });
-  const dups = Object.entries(typeMap).filter(([,arr])=>arr.length>1);
+// State: currently viewed month on the dashboard
+let dash3Year  = new Date().getFullYear();
+let dash3Month = new Date().getMonth(); // 0-based
 
-  // Stats — updated by renderDonut()
+const DASH3_CATS = {
+  'בריאות':       { he: 'בריאות',        hue: 12,  icon: 'heart'    },
+  'חיים':         { he: 'חיים',          hue: 230, icon: 'shield'   },
+  'סיעודי':       { he: 'סיעודי',        hue: 280, icon: 'helix'    },
+  'רכב':          { he: 'רכב',           hue: 55,  icon: 'car'      },
+  'דירה':         { he: 'דירה',          hue: 152, icon: 'home'     },
+  'נסיעות':       { he: 'נסיעות',        hue: 60,  icon: 'shield'   },
+  'אחר':          { he: 'אחר',           hue: 200, icon: 'shield'   },
+  'פנסיה':        { he: 'פנסיה',         hue: 312, icon: 'pension'  },
+  'קרן השתלמות':  { he: 'קרן השתלמות',   hue: 88,  icon: 'study'    },
+  'קופת גמל':     { he: 'גמל',            hue: 195, icon: 'gem'      },
+  'קופת גמל להשקעה': { he: 'גמל להשקעה',  hue: 172, icon: 'gem'      },
+  'חסכון':         { he: 'חסכון',         hue: 0,   icon: 'piggy'    },
+};
 
-  // Sidebar warning badge
-  const warnCount = expiring.filter(p=>daysUntil(p.expiry)<=14).length;
-  const badge = document.getElementById('badge-warnings');
-  if(badge) { badge.style.display = warnCount ? 'inline' : 'none'; badge.textContent = warnCount; }
+const DASH3_ICONS = {
+  heart:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/></svg>',
+  shield:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.2 8.5 8 9.5 4.8-1 8-5 8-9.5V6l-8-3z"/><path d="M9 12l2 2 4-4"/></svg>',
+  helix:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M6 21c0-4 2.7-6 6-6s6 2 6 6"/></svg>',
+  car:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l2-6h14l2 6"/><rect x="3" y="13" width="18" height="6" rx="1.5"/><circle cx="7.5" cy="19" r="1.4" fill="currentColor"/><circle cx="16.5" cy="19" r="1.4" fill="currentColor"/></svg>',
+  home:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1v-9z"/></svg>',
+  pension: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M9 9V7a3 3 0 1 1 6 0v2"/><path d="M12 13v4"/><path d="M10 15h4"/></svg>',
+  study:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-5 9 5-9 5-9-5z"/><path d="M7 12v4c1.5 1.2 3.2 1.8 5 1.8s3.5-.6 5-1.8v-4"/><path d="M21 10v6"/></svg>',
+  gem:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18"/><path d="M9 4 6 9l6 11"/><path d="M15 4l3 5-6 11"/></svg>',
+  piggy:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13c0-3.5 3.6-6 8-6s8 2.5 8 6c0 1.6-.8 3-2 4v3h-3v-2H9v2H6v-3c-1.2-1-2-2.4-2-4z"/><circle cx="15" cy="11.5" r=".8" fill="currentColor"/></svg>',
+  bolt:    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 2 4 14h6l-1.5 8L20 10h-6l-.5-8z"/></svg>',
+  check:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>',
+};
 
-  // Alerts
-  let alertsHtml = '';
-  expiring.filter(p=>daysUntil(p.expiry)<=14).forEach(p=>{
-    alertsHtml += `<div class="alert alert-danger"><span class="alert-icon">🔴</span><div><strong>${p.company}</strong> פוגת תוקף בעוד <strong>${daysUntil(p.expiry)} ימים</strong>.</div></div>`;
+const DASH3_MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+function dash3CategoryOf(p) { return DASH3_CATS[p.type] || DASH3_CATS['אחר']; }
+
+function dash3MoneyHtml(amount, size = 'md', sign = '', extraClass = '') {
+  const num = Math.round(amount || 0).toLocaleString('he-IL');
+  const cls = `dash3-money dash3-money--${size}${extraClass ? ' ' + extraClass : ''}`;
+  return `<span class="${cls}">${sign ? `<span class="sign">${sign}</span>` : ''}<span class="num">${num}</span><span class="sym">₪</span></span>`;
+}
+
+// Return 12 values, one per calendar month (Jan..Dec) of viewYear.
+// arr[0] = January, arr[11] = December. 1 if a payment exists, 0 if not.
+// Per-month state for the trail: 0 = none, 1 = cleared (real), 2 = committed (forecast placeholder)
+function dash3PolicyHistory(policy, viewYear) {
+  const arr = new Array(12).fill(0);
+  payments.forEach(pay => {
+    if(pay.policyId !== policy.id) return;
+    const pd = new Date(pay.date + 'T12:00:00');
+    if(pd.getFullYear() !== viewYear) return;
+    const m = pd.getMonth();
+    if(pay.status === 'committed') { if(arr[m] === 0) arr[m] = 2; } // never override a real payment
+    else arr[m] = 1;
   });
-  document.getElementById('dash-alerts').innerHTML = alertsHtml;
+  return arr;
+}
 
-  // Donut: rendered via renderDonut() with month navigation
-  initDonutSelects();
-  renderDonut();
-
-  // Expiring soon
-  const expSection = document.getElementById('dash-expiring-section');
-  if(expiring.length===0) { expSection.style.display='none'; }
-  else {
-    expSection.style.display='block';
-    const sorted = [...expiring].sort((a,b)=>daysUntil(a.expiry)-daysUntil(b.expiry));
-    document.getElementById('dash-expiring').innerHTML = sorted.map(p=>{
-      const d = daysUntil(p.expiry);
-      const pct = Math.max(4, Math.min(100, 100-(d/60*100)));
-      const col = d<=14 ? '#e74c3c' : '#f5c518';
-      return `<div class="exp-row">
-        <div style="min-width:0;flex:1;">
-          <div style="font-weight:600;font-size:13px;">${typeIcon(p.type)} ${p.company}</div>
-          <div style="font-size:11px;color:var(--text-dim);">פוגת תוקף ${fmtDate(p.expiry)}</div>
-        </div>
-        <div class="exp-bar-wrap">
-          <div class="exp-bar"><div class="exp-bar-fill" style="width:${pct}%;background:${col};"></div></div>
-        </div>
-        <div style="font-size:13px;font-weight:700;color:${col};min-width:50px;text-align:left;">${d} ימים</div>
-      </div>`;
-    }).join('');
+// Is this policy supposed to be paid in the given month? (insurance logic, mirrors checklist)
+function dash3IsDueInMonth(p, year, month) {
+  if(!p.amount || p.amount <= 0) return false;
+  const SAVING = ['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון'];
+  if(SAVING.includes(p.type)) {
+    // For savings: "due" = there's actually a payment, since deposits often come via state
+    return false;
   }
+  const mStart = new Date(year, month, 1);
+  const mEnd   = new Date(year, month + 1, 0);
+  const s = p.start ? new Date(p.start + 'T12:00:00') : null;
+  const e = p.expiry ? new Date(p.expiry + 'T12:00:00') : null;
+  if(s && s > mEnd) return false;
+  if(e && e < mStart) return false;
+  const freq = p.frequency;
+  if(freq === 'monthly') return true;
+  if(!s) return false;
+  const monthsSinceStart = (year - s.getFullYear()) * 12 + (month - s.getMonth());
+  if(freq === 'quarterly')   return monthsSinceStart % 3 === 0;
+  if(freq === 'semi-annual') return monthsSinceStart % 6 === 0;
+  if(freq === 'annual') {
+    const months = p.paymentMonths;
+    if(months && months.length > 0) return months.includes(month + 1);
+    return (monthsSinceStart % 12) === 0;
+  }
+  return false;
+}
 
-  renderMonthlyChecklistForMonth(donutYear, donutMonth);
+function dash3CycleLabel(p) {
+  const SAVING = ['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון'];
+  if(!p.amount || p.amount <= 0) {
+    // Savings without a monthly amount are still active — no cycle label
+    return SAVING.includes(p.type) ? '' : 'לא פעיל';
+  }
+  if(p.frequency === 'monthly') return 'חודשי';
+  if(p.frequency === 'quarterly') return 'רבעוני';
+  if(p.frequency === 'semi-annual') return 'חצי שנתי';
+  if(p.frequency === 'annual') {
+    const n = p.installments || 1;
+    return n > 1 ? `שנתי (${n}×)` : 'שנתי';
+  }
+  return p.frequency || '';
+}
+
+function dash3NextDueLabel(p, viewYear, viewMonth) {
+  if(!p.amount || p.amount <= 0) return null;
+  const SAVING = ['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון'];
+  if(SAVING.includes(p.type)) return null;
+  // Try to find the next month where this policy is due
+  for(let i = 0; i < 12; i++) {
+    let y = viewYear, m = viewMonth + i;
+    while(m > 11) { m -= 12; y++; }
+    if(dash3IsDueInMonth(p, y, m)) {
+      if(i === 0) return `יום ${p.paymentMonths?.[0] || 15}`;
+      return `${DASH3_MONTHS[m].slice(0,3)}׳ ${y === viewYear ? '' : y}`.trim();
+    }
+  }
+  return null;
+}
+
+function dash3PrevMonth() {
+  dash3Month--;
+  if(dash3Month < 0) { dash3Month = 11; dash3Year--; }
+  renderDashboard();
+}
+function dash3NextMonth() {
+  dash3Month++;
+  if(dash3Month > 11) { dash3Month = 0; dash3Year++; }
+  renderDashboard();
+}
+
+function dash3TogglePaid(policyId) {
+  const p = policyById(policyId);
+  if(!p) return;
+  // Find existing payment for this policy in dash3Year/dash3Month
+  const existing = payments.find(pay => {
+    if(pay.policyId !== policyId) return false;
+    const d = new Date(pay.date + 'T12:00:00');
+    return d.getFullYear() === dash3Year && d.getMonth() === dash3Month;
+  });
+  if(existing && existing.status === 'committed') {
+    // Promote the forecast placeholder to a real, cleared payment
+    existing.status = 'cleared';
+    existing.source = 'manual';
+    existing.note   = '';
+    py();
+    toast(`✓ ${p.company} — התשלום אושר`, 'success');
+  } else if(existing) {
+    payments = payments.filter(pay => pay.id !== existing.id);
+    py();
+    toast(`בוטל תשלום ${p.company} לחודש זה`, 'warning');
+  } else {
+    // F3: record the REAL installment amount (dueAmount), not the averaged toMonthly.
+    // For a 4-installment car policy this writes amount/4, matching the dashboard's due math.
+    const paidAmt = p.amount > 0 ? dueAmount(p) : 0;
+    const dateStr = `${dash3Year}-${String(dash3Month+1).padStart(2,'0')}-15`;
+    payments.push({ id:uid(), policyId, date:dateStr, amount:paidAmt, note:'', source:'manual', status:'cleared', createdAt:new Date().toISOString() });
+    py();
+    toast(`✓ ${p.company} סומן כשולם`, 'success');
+  }
+  renderDashboard();
+}
+
+// How many installments could still be marked committed (not already paid/committed) for this policy.
+function dash3UncommittedCount(p) {
+  if(!p || p.frequency !== 'annual' || (p.installments || 1) < 2) return 0;
+  const months = (p.paymentMonths && p.paymentMonths.length) ? p.paymentMonths : [];
+  if(!months.length) return 0;
+  const startD = new Date((p.start || '') + 'T12:00:00');
+  const startY = startD.getFullYear(), startM0 = startD.getMonth();
+  let count = 0;
+  months.forEach(mv => {
+    const m0 = mv - 1;
+    const y = m0 < startM0 ? startY + 1 : startY; // wrap year if month precedes start month
+    const has = payments.some(pay => {
+      if(pay.policyId !== p.id) return false;
+      const d = new Date(pay.date + 'T12:00:00');
+      return d.getFullYear() === y && d.getMonth() === m0;
+    });
+    if(!has) count++;
+  });
+  return count;
+}
+
+// "Mark all N committed" — register the whole installment plan in advance. Creates a committed
+// placeholder for each plan month that has no payment yet. Real CSV charges later auto-replace them.
+function dash3CommitAllInstallments(policyId) {
+  const p = policyById(policyId);
+  if(!p) return;
+  if(p.frequency !== 'annual' || (p.installments || 1) < 2) { toast('הפוליסה אינה בפריסת תשלומים', 'warning'); return; }
+  const months = (p.paymentMonths && p.paymentMonths.length) ? p.paymentMonths : [];
+  if(!months.length) { toast('לא הוגדרו חודשי תשלום לפוליסה', 'warning'); return; }
+  const per = dueAmount(p);
+  const startD = new Date((p.start || '') + 'T12:00:00');
+  const startY = startD.getFullYear(), startM0 = startD.getMonth();
+  let created = 0;
+  months.forEach(mv => {
+    const m0 = mv - 1;
+    const y = m0 < startM0 ? startY + 1 : startY;
+    const exists = payments.some(pay => {
+      if(pay.policyId !== p.id) return false;
+      const d = new Date(pay.date + 'T12:00:00');
+      return d.getFullYear() === y && d.getMonth() === m0;
+    });
+    if(exists) return; // already paid or already committed — don't duplicate
+    payments.push({ id:uid(), policyId, date:`${y}-${String(mv).padStart(2,'0')}-15`, amount:per,
+                    note:'מחויב מראש', source:'manual', status:'committed', createdAt:new Date().toISOString() });
+    created++;
+  });
+  if(created === 0) { toast('כל התשלומים כבר רשומים', 'success'); return; }
+  py();
+  renderDashboard();
+  if(typeof renderHistory === 'function') renderHistory();
+  if(document.getElementById('view-modal') && !document.getElementById('view-modal').classList.contains('hidden')) viewPolicy(policyId); // refresh popup if open
+  toast(`✓ נרשמו ${created} תשלומים מחויבים — ${fmt$(per)} כל אחד`, 'success');
+}
+
+// One-line description of a policy's payment plan (for the renewal banner)
+function _renewPlanLabel(p) {
+  if(p.frequency === 'monthly') return `חודשי · ${fmt$(p.amount)}`;
+  if((p.installments || 1) >= 2 && p.paymentMonths && p.paymentMonths.length) {
+    const ms = p.paymentMonths.map(m => MONTHS_HE_FULL[m-1]);
+    return `${p.installments} תשלומים · ${fmt$(dueAmount(p))} · ${ms[0]}–${ms[ms.length-1]}`;
+  }
+  return `${fmt$(p.amount)} · חד-פעמי`;
+}
+
+// Renew a policy for the next term: pre-fill the form from the existing policy (so the plan is
+// "remembered"), shift dates +1 year, and clear the id so saving creates a NEW policy. Fully editable
+// — David can change the amount / installment count before saving (the "remember but let me change it").
+function renewPolicy(id) {
+  const p = policyById(id);
+  if(!p) { toast('שגיאה: הפוליסה לא נמצאה (id=' + id + ')', 'error'); return; }
+  try {
+    // In-place renewal: SAME policy (keep f-id), just roll the expiry forward one year and let
+    // David adjust the plan. The payment months repeat yearly, so they carry over as the default.
+    openEditPolicy(id);                     // fills every field from p, keeps f-id = p.id
+    document.getElementById('policy-modal-title').textContent = 'חידוש פוליסה';
+    const cur = p.expiry ? new Date(p.expiry + 'T12:00:00') : new Date();
+    const ne = new Date(cur); ne.setFullYear(ne.getFullYear() + 1);
+    document.getElementById('f-expiry').value = ne.toISOString().split('T')[0];
+    toast('חידוש — תאריך הסיום גולגל שנה קדימה. בדוק סכום/תשלומים ושמור', 'success');
+  } catch(e) {
+    console.error('renewPolicy error:', e);
+    toast('שגיאת חידוש: ' + (e && e.message ? e.message : e), 'error');
+  }
+}
+
+function renderDashboard() {
+  // Guards: only run if dashboard structure exists
+  const summaryEl = document.getElementById('dash3-summary');
+  const sectionsEl = document.getElementById('dash3-sections');
+  if(!summaryEl || !sectionsEl) return;
+
+  const SAVING_TYPES_LOCAL = ['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון'];
+
+  // Search filter
+  const q = (document.getElementById('dash3-search')?.value || '').trim().toLowerCase();
+  const matches = (p) => !q || [p.tag, p.company, p.policyNumber, p.type, p.agent].filter(Boolean).some(s => String(s).toLowerCase().includes(q));
+
+  const active = policies.filter(isActive);
+  const insurance = active.filter(p => !SAVING_TYPES_LOCAL.includes(p.type)).filter(matches);
+  const savings   = active.filter(p =>  SAVING_TYPES_LOCAL.includes(p.type)).filter(matches);
+
+  // Sort savings: monthly-contribution types first, then קרן השתלמות (annual/none) at bottom.
+  // Within קרן השתלמות: by start date ascending (oldest = #1 at top).
+  // Within other savings types: by balance desc.
+  const SAVINGS_ORDER = ['פנסיה','קופת גמל','קופת גמל להשקעה','חסכון','קרן השתלמות'];
+  savings.sort((a, b) => {
+    const ia = SAVINGS_ORDER.indexOf(a.type);
+    const ib = SAVINGS_ORDER.indexOf(b.type);
+    const ra = ia === -1 ? 999 : ia;
+    const rb = ib === -1 ? 999 : ib;
+    if(ra !== rb) return ra - rb;
+    if(a.type === 'קרן השתלמות') {
+      // Sort by liquidity date ascending — already-liquid (past dates) first,
+      // then soonest future liquidity, then funds without a liquidity date.
+      const al = a.liquidityDate || '9999-12-31';
+      const bl = b.liquidityDate || '9999-12-31';
+      return al.localeCompare(bl);
+    }
+    return (b.balance || 0) - (a.balance || 0);
+  });
+
+  // Sidebar badge: expiring
+  const expiring = active.filter(p => { const d = daysUntil(p.expiry); return d >= 0 && d <= 14; });
+  const badge = document.getElementById('badge-warnings');
+  if(badge) { badge.style.display = expiring.length ? 'inline' : 'none'; badge.textContent = expiring.length; }
+
+  // Topbar: month label + status
+  const monthLabelEl = document.getElementById('dash3-month-label');
+  if(monthLabelEl) monthLabelEl.textContent = `${DASH3_MONTHS[dash3Month]} ${dash3Year}`;
+
+  // Compute paid/due for viewing month
+  const dueInsurance = insurance.filter(p => dash3IsDueInMonth(p, dash3Year, dash3Month));
+  const paidInsurance = dueInsurance.filter(p => {
+    return payments.some(pay => {
+      if(pay.policyId !== p.id || pay.status === 'committed') return false; // committed = forecast, not paid
+      const d = new Date(pay.date + 'T12:00:00');
+      return d.getFullYear() === dash3Year && d.getMonth() === dash3Month;
+    });
+  });
+  const unpaidInsurance = dueInsurance.filter(p => !paidInsurance.includes(p));
+  // Expected for this month — uses dueAmount (per-installment) not toMonthly (averaged).
+  const insMonthlyTotal = dueInsurance.reduce((s,p) => s + dueAmount(p), 0);
+  // Actually-paid total this month — sums ALL insurance payments dated in this month,
+  // including any extras or out-of-cycle payments. Committed forecasts are excluded. Default 0.
+  const paidAmountTotal = payments
+    .filter(pay => {
+      if(pay.status === 'committed') return false;
+      const d = new Date(pay.date + 'T12:00:00');
+      if(d.getFullYear() !== dash3Year || d.getMonth() !== dash3Month) return false;
+      const pol = policyById(pay.policyId);
+      return pol && !SAVING_TYPES_LOCAL.includes(pol.type);
+    })
+    .reduce((s, pay) => s + (pay.actualAmount ?? pay.amount), 0);
+  // Overage (paid more than expected for this month) — surface as a small note
+  const overage = paidAmountTotal - insMonthlyTotal;
+
+  const statusEl = document.getElementById('dash3-status-text');
+  if(statusEl) statusEl.textContent = `${paidInsurance.length} מתוך ${dueInsurance.length} שולמו`;
+
+  // ── Card 1: This Month ─────────────────────────────────────
+  const ringSize = 92;
+  const ringR = (ringSize - 12) / 2;
+  const ringC = 2 * Math.PI * ringR;
+  const ringPct = dueInsurance.length > 0 ? paidInsurance.length / dueInsurance.length : 0;
+  const ringDash = ringC * ringPct;
+
+  const chipsHtml = unpaidInsurance.slice(0, 3).map(p => {
+    const cat = dash3CategoryOf(p);
+    return `<span class="dash3-due-chip" title="${p.company}"><i style="background:oklch(0.7 0.18 ${cat.hue});"></i>${p.tag || p.type}</span>`;
+  }).join('') + (unpaidInsurance.length > 3 ? `<span class="dash3-due-chip dash3-due-chip--more">+${unpaidInsurance.length - 3}</span>` : '');
+
+  const card1 = `
+    <article class="dash3-card dash3-card--month">
+      <header class="dash3-card-h">
+        <div>
+          <div class="dash3-eyebrow">תשלום החודש</div>
+          <div class="dash3-card-title">${DASH3_MONTHS[dash3Month]} ${dash3Year}</div>
+        </div>
+        <div class="dash3-card-corner">
+          ${dash3MoneyHtml(insMonthlyTotal, 'sm', '', 'muted')}
+          <span class="dash3-card-corner-l">סך לביטוחים החודש</span>
+        </div>
+      </header>
+      <div class="dash3-card-body dash3-month-body">
+        <div class="dash3-month-amount">
+          <span class="dash3-month-amount-eyebrow">שולם בחודש זה</span>
+          ${dash3MoneyHtml(paidAmountTotal, 'xxl')}
+          <span class="dash3-month-amount-l">${(() => {
+            if(overage > 50) {
+              const pct = insMonthlyTotal > 0 ? overage / insMonthlyTotal : 1;
+              const isHigh = pct > 0.10; // >10% over → red; otherwise neutral (index variance is normal)
+              const color = isHigh ? 'oklch(0.72 0.2 25)' : 'var(--d-fg-mut)';
+              const weight = isHigh ? '600' : '500';
+              return `<span style="color:${color};font-weight:${weight};">שולם ₪${Math.round(overage).toLocaleString('he-IL')} יותר מההערכה</span>`;
+            }
+            if(dueInsurance.length === 0) return paidAmountTotal > 0 ? 'תשלומים מחוץ למחזור' : 'אין תשלומים מתוכננים החודש';
+            if(paidInsurance.length === dueInsurance.length) return 'הכל שולם החודש 🎉';
+            return `${paidInsurance.length} מתוך ${dueInsurance.length} פוליסות שולמו`;
+          })()}</span>
+        </div>
+        <div class="dash3-month-ring-wrap">
+          <svg width="${ringSize}" height="${ringSize}" viewBox="0 0 ${ringSize} ${ringSize}" style="flex-shrink:0;">
+            <circle cx="${ringSize/2}" cy="${ringSize/2}" r="${ringR}" fill="none" stroke="oklch(0.32 0.012 320)" stroke-width="6"/>
+            <circle cx="${ringSize/2}" cy="${ringSize/2}" r="${ringR}" fill="none" stroke="var(--d-accent)" stroke-width="6" stroke-linecap="round"
+                    stroke-dasharray="${ringDash} ${ringC}" transform="rotate(-90 ${ringSize/2} ${ringSize/2})"/>
+            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" fill="var(--d-fg)" font-size="22" font-weight="800" style="letter-spacing:-0.02em;">
+              ${paidInsurance.length}<tspan fill="var(--d-fg-mut)" font-weight="500" font-size="13"> / ${dueInsurance.length}</tspan>
+            </text>
+          </svg>
+          <span class="dash3-month-ring-l">פוליסות שולמו</span>
+        </div>
+      </div>
+      <footer class="dash3-card-f">${chipsHtml}</footer>
+    </article>
+  `;
+
+  // ── Card 2: Total Balance — mirrors Card 1 body structure ──
+  const totalBalance = savings.reduce((s,p) => s + (p.balance || 0), 0);
+  const savMonthly = savings.reduce((s,p) => s + (p.amount > 0 ? toMonthly(p.amount, p.frequency) : 0), 0);
+  const byCatBalance = {};
+  savings.forEach(p => {
+    byCatBalance[p.type] = (byCatBalance[p.type] || 0) + (p.balance || 0);
+  });
+  const breakdownChips = Object.entries(byCatBalance)
+    .sort((a,b) => b[1] - a[1])
+    .map(([type, total]) => {
+      const cat = dash3CategoryOf({ type });
+      return `<span class="dash3-bd-chip"><i style="background:oklch(0.7 0.18 ${cat.hue});"></i><span>${cat.he}</span><em>${Math.round(total/1000).toLocaleString('he-IL')}K</em></span>`;
+    }).join('');
+
+  // Number of active savings policies for the "ring-equivalent" stat
+  const savingsActiveCount = savings.length;
+  const savingsCountText = savings.length === 1 ? 'פוליסה פעילה' : 'פוליסות פעילות';
+
+  const card2 = `
+    <article class="dash3-card">
+      <header class="dash3-card-h">
+        <div>
+          <div class="dash3-eyebrow">צבירה כוללת</div>
+          <div class="dash3-card-title">חיסכון וצבירה</div>
+        </div>
+        <div class="dash3-card-corner">
+          ${dash3MoneyHtml(savMonthly, 'sm', '+', 'muted')}
+          <span class="dash3-card-corner-l">הפקדה חודשית</span>
+        </div>
+      </header>
+      <div class="dash3-card-body dash3-month-body">
+        <div class="dash3-month-amount">
+          <span class="dash3-month-amount-eyebrow">סך צבירה</span>
+          ${dash3MoneyHtml(totalBalance, 'xxl')}
+          <span class="dash3-month-amount-l">${savings.length} ${savingsCountText}</span>
+        </div>
+        <div class="dash3-month-ring-wrap">
+          <div style="width:92px;height:92px;display:grid;place-items:center;font-size:28px;font-weight:800;color:var(--d-fg);background:radial-gradient(circle, oklch(0.28 0.08 312 / .35) 0%, transparent 70%);border-radius:50%;letter-spacing:-0.02em;">${savings.length}</div>
+          <span class="dash3-month-ring-l">חסכונות פעילים</span>
+        </div>
+      </div>
+      <footer class="dash3-card-f">${breakdownChips}</footer>
+    </article>
+  `;
+
+  summaryEl.innerHTML = card1 + card2;
+
+  // ── Sections ──────────────────────────────────────────────
+  const renderRow = (p) => {
+    const cat = dash3CategoryOf(p);
+    const hist = dash3PolicyHistory(p, dash3Year);
+    const isSav = SAVING_TYPES_LOCAL.includes(p.type);
+    const hasMonthly = p.amount > 0;
+    const monthly = hasMonthly ? toMonthly(p.amount, p.frequency) : 0;
+    const paid = hist[dash3Month] === 1;
+    const committed = hist[dash3Month] === 2; // forecast placeholder for this month
+    // Only insurance with no amount is "inactive". Savings without monthly are still active.
+    const inactive = !isSav && !hasMonthly;
+    // Savings without monthly have no paid toggle (no monthly cycle to track)
+    const noToggle = isSav && !hasMonthly;
+
+    const insuredLine = (p.insured && p.insured.length > 0)
+      ? p.insured.map(r => r.name).filter(Boolean).join(' · ')
+      : (p.agent || '');
+
+    // 12 dots — Jan..Dec of dash3Year. Mark current viewing month as "now".
+    // Months after today (in current year) get a "future" class — empty + dim.
+    const todayMonth = new Date().getMonth();
+    const todayYear  = new Date().getFullYear();
+    const dotsHtml = hist.map((v, i) => {
+      const isNow    = i === dash3Month;
+      const isFuture = dash3Year > todayYear || (dash3Year === todayYear && i > todayMonth);
+      const cls = [
+        v === 1 ? 'on' : (v === 2 ? 'committed' : ''),
+        isNow ? 'now' : '',
+        isFuture ? 'future' : ''
+      ].filter(Boolean).join(' ');
+      const stt = v === 2 ? ' · מחויב' : (v === 1 ? ' · שולם' : '');
+      return `<span class="${cls}" title="${DASH3_MONTHS[i]} ${dash3Year}${stt}"></span>`;
+    }).join('');
+
+    // Right-end cell: liquidity status for savings, "next due" for insurance
+    let endInfoHtml = '';
+    if(isSav && p.liquidityDate) {
+      const isLiquid = new Date(p.liquidityDate + 'T00:00:00') <= new Date();
+      const yr = p.liquidityDate.slice(0, 4);
+      endInfoHtml = `<span class="dash3-row-due-l">נזילות</span>
+                     <span class="dash3-row-due-v${isLiquid ? ' ok' : ''}">${isLiquid ? '🔓 נזיל' : 'נזיל ' + yr}</span>`;
+    } else if(!isSav) {
+      const nextDue = dash3NextDueLabel(p, dash3Year, dash3Month);
+      if(nextDue) {
+        endInfoHtml = `<span class="dash3-row-due-l">תשלום הבא</span>
+                       <span class="dash3-row-due-v${paid ? ' ok' : ''}">${nextDue}</span>`;
+      }
+    }
+
+    // Paid toggle: only when policy has monthly cycle
+    let toggleHtml;
+    if(noToggle) {
+      // Invisible placeholder to preserve grid column width
+      toggleHtml = `<div class="dash3-paid-tog" style="visibility:hidden;"></div>`;
+    } else if(inactive) {
+      toggleHtml = `<div class="dash3-paid-tog off"><span style="font-size:18px;line-height:1;">—</span></div>`;
+    } else {
+      let togCls, togIcon, togTitle;
+      if(paid)            { togCls = 'on';        togIcon = DASH3_ICONS.check; togTitle = 'שולם — לחץ לביטול'; }
+      else if(committed)  { togCls = 'committed'; togIcon = DASH3_ICONS.check; togTitle = 'מחויב (טרם נגבה) — לחץ לאישור התשלום'; }
+      else                { togCls = 'pending';   togIcon = DASH3_ICONS.bolt;  togTitle = 'לחץ לסימון כשולם'; }
+      toggleHtml = `<button class="dash3-paid-tog ${togCls}" title="${togTitle}" onclick="event.stopPropagation();dash3TogglePaid('${p.id}')" aria-pressed="${paid}">${togIcon}</button>`;
+    }
+
+    // Monthly column display: dash for savings without monthly, otherwise show amount
+    const monthlyHtml = (isSav && !hasMonthly)
+      ? `<span class="dash3-money dash3-money--md muted"><span class="num">—</span></span>`
+      : dash3MoneyHtml(monthly, 'md', '', inactive ? 'muted' : '');
+
+    return `<div class="dash3-row${inactive ? ' dash3-row-off' : ''}" onclick="viewPolicy('${p.id}')">
+      <div class="dash3-row-id">
+        <div class="dash3-cat-icon" style="background:oklch(0.28 0.08 ${cat.hue} / .55);color:oklch(0.82 0.16 ${cat.hue});box-shadow:inset 0 0 0 .5px oklch(0.42 0.13 ${cat.hue} / .5), inset 0 1px 0 oklch(1 0 0 / .08);">
+          ${DASH3_ICONS[cat.icon] || DASH3_ICONS.shield}
+        </div>
+        <div class="dash3-row-meta">
+          <span class="dash3-row-name">${p.tag || p.type}</span>
+          <span class="dash3-row-sub">${insuredLine}</span>
+        </div>
+      </div>
+      <div class="dash3-row-co">
+        <span class="dash3-row-co-name">${p.company || ''}</span>
+        <span class="dash3-row-co-num">${p.policyNumber ? '#' + p.policyNumber : ''}</span>
+      </div>
+      <div class="dash3-row-trail">
+        <div class="dash3-row-trail-dots">${dotsHtml}</div>
+        <span class="dash3-row-trail-l">${dash3Year}</span>
+      </div>
+      <div class="dash3-row-amounts">
+        <div class="dash3-row-monthly">
+          ${monthlyHtml}
+          <span class="dash3-row-monthly-l">${dash3CycleLabel(p)}</span>
+        </div>
+        ${isSav
+          ? `<div class="dash3-row-balance">${dash3MoneyHtml(p.balance || 0, 'md', '', 'muted')}</div>`
+          : '<div></div>'}
+      </div>
+      <div class="dash3-row-end">
+        <div class="dash3-row-due">${endInfoHtml}</div>
+        ${toggleHtml}
+      </div>
+    </div>`;
+  };
+
+  const savTotalMonthly = savings.reduce((s,p) => s + (p.amount > 0 ? toMonthly(p.amount, p.frequency) : 0), 0);
+  const savTotalBalance = savings.reduce((s,p) => s + (p.balance || 0), 0);
+
+  const insSectionHtml = `
+    <section class="dash3-section">
+      <header class="dash3-section-h">
+        <div class="dash3-section-h-l">
+          <span class="dash3-section-pip" style="background:oklch(0.7 0.18 12);"></span>
+          <h2>ביטוחים</h2>
+          <span class="dash3-section-meta">${insurance.length} פעילות</span>
+        </div>
+        <div class="dash3-section-h-r">
+          <span class="dash3-section-stat"><span>החודש</span>${dash3MoneyHtml(insMonthlyTotal, 'sm')}</span>
+          <span></span>
+        </div>
+      </header>
+      <div class="dash3-section-body">${insurance.map(renderRow).join('') || '<div style="padding:24px;text-align:center;color:var(--d-fg-dim);font-size:13px;">אין פוליסות תואמות</div>'}</div>
+    </section>
+  `;
+
+  const savSectionHtml = `
+    <section class="dash3-section">
+      <header class="dash3-section-h">
+        <div class="dash3-section-h-l">
+          <span class="dash3-section-pip" style="background:oklch(0.7 0.18 312);"></span>
+          <h2>חיסכון וצבירה</h2>
+          <span class="dash3-section-meta">${savings.length} פעילות</span>
+        </div>
+        <div class="dash3-section-h-r">
+          <span class="dash3-section-stat"><span>תשלום חודשי</span>${dash3MoneyHtml(savTotalMonthly, 'sm')}</span>
+          <span class="dash3-section-stat"><span>צבירה</span>${dash3MoneyHtml(savTotalBalance, 'sm', '', 'muted')}</span>
+        </div>
+      </header>
+      <div class="dash3-section-body">${savings.map(renderRow).join('') || '<div style="padding:24px;text-align:center;color:var(--d-fg-dim);font-size:13px;">אין פוליסות תואמות</div>'}</div>
+    </section>
+  `;
+
+  sectionsEl.innerHTML = insSectionHtml + savSectionHtml;
+
+  const footEl = document.getElementById('dash3-footer');
+  if(footEl) footEl.textContent = `${active.length} פוליסות פעילות · עדכון אחרון: היום`;
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -3061,190 +5001,348 @@ function renderPolicies() {
   const search = (document.getElementById('policy-search')?.value||'').toLowerCase();
   const status = getSegment('policy-status-seg') || 'active';
 
-  // Duplicate map
-  const active = policies.filter(isActive);
-  const typeMap = {};
-  active.forEach(p=>{ (typeMap[p.type]=typeMap[p.type]||[]).push(p.id); });
-
   let filtered = policies;
   if(status==='active')  filtered = filtered.filter(isActive);
   if(status==='expired') filtered = filtered.filter(p=>!isActive(p));
   if(search) filtered = filtered.filter(p=>
-    p.company.toLowerCase().includes(search)||
+    (p.company||'').toLowerCase().includes(search)||
     (p.agent||'').toLowerCase().includes(search)||
-    p.type.toLowerCase().includes(search)
+    (p.type||'').toLowerCase().includes(search)||
+    (p.tag||'').toLowerCase().includes(search)||
+    (p.policyNumber||'').toLowerCase().includes(search)
   );
 
-  // Update page title
-  const titleEl = document.getElementById('policies-count-title');
-  if(titleEl) {
-    const label = status === 'expired' ? 'פוליסות פגות תוקף' : 'פוליסות פעילות';
-    titleEl.textContent = `${filtered.length} ${label}`;
+  const sectionsEl = document.getElementById('pc-sections');
+  if(!sectionsEl) return;
+
+  const SAVING_TYPES_LOCAL = ['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון'];
+  const insurance = filtered.filter(p => !SAVING_TYPES_LOCAL.includes(p.type));
+  const savings   = filtered.filter(p =>  SAVING_TYPES_LOCAL.includes(p.type));
+
+  // Sort savings: monthly-contribution types first, then קרן השתלמות by liquidity ascending
+  const SAVINGS_ORDER = ['פנסיה','קופת גמל','קופת גמל להשקעה','חסכון','קרן השתלמות'];
+  savings.sort((a, b) => {
+    const ia = SAVINGS_ORDER.indexOf(a.type);
+    const ib = SAVINGS_ORDER.indexOf(b.type);
+    const ra = ia === -1 ? 999 : ia;
+    const rb = ib === -1 ? 999 : ib;
+    if(ra !== rb) return ra - rb;
+    if(a.type === 'קרן השתלמות') {
+      const al = a.liquidityDate || '9999-12-31';
+      const bl = b.liquidityDate || '9999-12-31';
+      return al.localeCompare(bl);
+    }
+    return (b.balance || 0) - (a.balance || 0);
+  });
+
+  // Sort insurance by type then by name
+  const INS_ORDER = ['בריאות','חיים','סיעודי','רכב','דירה','נסיעות','אחר'];
+  insurance.sort((a, b) => {
+    const ia = INS_ORDER.indexOf(a.type);
+    const ib = INS_ORDER.indexOf(b.type);
+    const ra = ia === -1 ? 999 : ia;
+    const rb = ib === -1 ? 999 : ib;
+    if(ra !== rb) return ra - rb;
+    return (a.tag || a.company || '').localeCompare(b.tag || b.company || '', 'he');
+  });
+
+  // Update page sub
+  const expiredCount = policies.filter(p => !isActive(p)).length;
+  const activeCount  = policies.filter(isActive).length;
+  const subEl = document.getElementById('pc-page-sub');
+  if(subEl) subEl.textContent = `${activeCount} פעילות${expiredCount > 0 ? ` · ${expiredCount} פגות תוקף` : ''}`;
+
+  if(!insurance.length && !savings.length) {
+    sectionsEl.innerHTML = `<div style="padding:48px 24px;text-align:center;color:var(--d-fg-dim);font-size:14px;">
+      <div style="font-size:28px;margin-bottom:8px;opacity:.5;">📋</div>
+      לא נמצאו פוליסות
+    </div>`;
+    return;
   }
 
-  filtered.sort((a,b)=>{ if(isActive(a)&&!isActive(b)) return-1; if(!isActive(a)&&isActive(b)) return 1; return a.expiry.localeCompare(b.expiry); });
+  // Sums
+  // Annual amount per policy — accurate, doesn't average across months
+  const annualAmount = (p) => {
+    if(!p.amount || p.amount <= 0) return 0;
+    const f = p.frequency;
+    if(f === 'monthly') return p.amount * 12;
+    if(f === 'quarterly') return p.amount * 4;
+    if(f === 'semi-annual') return p.amount * 2;
+    if(f === 'annual') return p.amount; // total annual (regardless of installments)
+    return p.amount * 12; // fallback
+  };
+  const insAnnualTotal = insurance.reduce((s,p) => s + annualAmount(p), 0);
+  const savAnnualTotal = savings.reduce((s,p) => s + annualAmount(p), 0);
+  const savBalanceTotal = savings.reduce((s,p) => s + (p.balance || 0), 0);
 
-  const el = document.getElementById('policies-list');
-  if(!filtered.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><h3>לא נמצאו פוליסות</h3><p>הוסף פוליסה בעזרת כפתור +</p></div>`;
-    return;
+  const moneyHtml = (n, size = '', cls = '') => {
+    const num = Math.round(n || 0).toLocaleString('he-IL');
+    const sizeCls = size ? ` ${size}` : '';
+    const extra = cls ? ` ${cls}` : '';
+    return `<span class="pc-money${sizeCls}${extra}"><span class="num">${num}</span><span class="sym">₪</span></span>`;
+  };
+
+  // PDF attachment status — placeholder for future (no real data yet)
+  const hasPdf = (p) => false;
+
+  function pFreqLabel(p) {
+    if(!p.amount || p.amount <= 0) return '';
+    if(p.frequency === 'monthly') return 'חודשי';
+    if(p.frequency === 'quarterly') return 'רבעוני';
+    if(p.frequency === 'semi-annual') return 'חצי שנתי';
+    if(p.frequency === 'annual') {
+      const n = p.installments || 1;
+      return n > 1 ? `שנתי (${n}×)` : 'שנתי';
+    }
+    return '';
+  }
+
+  function buildChips(p, isSav) {
+    const chips = [];
+    if(isActive(p)) chips.push(`<span class="pc-chip active">פעיל</span>`);
+    else chips.push(`<span class="pc-chip warn">פג תוקף</span>`);
+
+    if(isSav) {
+      if(p.liquidityDate) {
+        const isLiquid = new Date(p.liquidityDate+'T00:00:00') <= new Date();
+        const yr = p.liquidityDate.slice(0,4);
+        chips.push(`<span class="pc-chip${isLiquid ? ' liquid' : ''}">🔓 ${isLiquid ? 'נזיל' : 'נזיל ' + yr}</span>`);
+      }
+    } else if(p.expiry) {
+      const d = daysUntil(p.expiry);
+      if(d < 0) {
+        chips.push(`<span class="pc-chip warn">פג לפני ${-d} ימים</span>`);
+      } else if(d <= 30) {
+        chips.push(`<span class="pc-chip expiring">פוגת בעוד ${d} ימים</span>`);
+      } else if(d <= 365) {
+        chips.push(`<span class="pc-chip">פוגת ${fmtDate(p.expiry)}</span>`);
+      }
+    }
+    return chips.join('');
+  }
+
+  function cardHtml(p) {
+    const cat = dash3CategoryOf(p);
+    const isSav = SAVING_TYPES_LOCAL.includes(p.type);
+    const companyLine = [p.company, p.policyNumber ? '#' + p.policyNumber : ''].filter(Boolean).join(' · ');
+    const insuredNames = (p.insured && p.insured.length)
+      ? p.insured.map(r => r.name).filter(Boolean).join(' · ')
+      : '';
+    const peopleLine = insuredNames
+      ? `<span class="pc-people-l">מבוטחים:</span> ${insuredNames}`
+      : (p.agent ? `<span class="pc-people-l">סוכן:</span> ${p.agent}` : '');
+
+    // Hero stat
+    let statHtml;
+    if(isSav) {
+      const monthly = p.amount > 0 ? toMonthly(p.amount, p.frequency) : 0;
+      const balanceVal = p.balance || 0;
+      statHtml = `
+        ${moneyHtml(balanceVal)}
+        ${monthly > 0
+          ? `<span class="pc-stat-sub">צבירה <em>+ ${moneyHtml(monthly, 'small')} חודשי</em></span>`
+          : `<span class="pc-stat-l">צבירה${p.balanceDate ? ' · נכון ל-' + fmtBalanceDate(p.balanceDate).replace('נכון ל-', '') : ''}</span>`}
+      `;
+    } else {
+      if(p.amount > 0) {
+        statHtml = `${moneyHtml(p.amount)}<span class="pc-stat-l">${pFreqLabel(p)}</span>`;
+      } else {
+        statHtml = `${moneyHtml(0, '', 'muted')}<span class="pc-stat-l">לא פעיל</span>`;
+      }
+    }
+
+    const pdfAttached = hasPdf(p);
+    const clipSvg = pdfAttached
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13l2 2 4-4"/></svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5l-9 9a5.5 5.5 0 0 1-7.78-7.78l9-9a3.5 3.5 0 0 1 4.95 4.95l-9 9a1.5 1.5 0 0 1-2.12-2.12l8.5-8.5"/></svg>`;
+
+    return `<article class="pc-card" style="--hue: ${cat.hue};" onclick="viewPolicy('${p.id}')">
+      <div class="pc-card-h">
+        <div class="pc-cat-icon">${DASH3_ICONS[cat.icon] || DASH3_ICONS.shield}</div>
+        <div class="pc-titles">
+          <div class="pc-tag">${p.tag || p.type}</div>
+          <div class="pc-co">${companyLine}</div>
+        </div>
+        <button class="pc-clip${pdfAttached ? ' attached' : ''}" title="${pdfAttached ? 'PDF מצורף' : 'העלה PDF'}" onclick="event.stopPropagation();uploadPolicyDoc('${p.id}')">
+          ${clipSvg}
+        </button>
+      </div>
+      <div class="pc-stat">${statHtml}</div>
+      ${peopleLine ? `<div class="pc-people">${peopleLine}</div>` : ''}
+      <div class="pc-chips">${buildChips(p, isSav)}</div>
+    </article>`;
   }
 
   const groupBy = getGroupTab(); // 'type' | 'company'
 
-  // Build groups
-  const groups = {};
-  filtered.forEach(p=>{
-    const key = groupBy==='company' ? normalizeCompany(p.company) : p.type;
-    (groups[key]=groups[key]||[]).push(p);
-  });
-
-  // Fixed type order for sorting within company groups
-  const TYPE_ORDER = ['בריאות','חיים','סיעודי','פנסיה','קופת גמל','קרן השתלמות','חסכון'];
-
-  // Sort policies within each group
-  Object.keys(groups).forEach(key => {
-    if(groupBy === 'company') {
-      // Sort by fixed type order, then by startDate within same type
-      groups[key].sort((a,b) => {
-        const ra = TYPE_ORDER.indexOf(a.type); const rankA = ra === -1 ? 999 : ra;
-        const rb = TYPE_ORDER.indexOf(b.type); const rankB = rb === -1 ? 999 : rb;
-        if(rankA !== rankB) return rankA - rankB;
-        return (a.startDate||'').localeCompare(b.startDate||'');
-      });
-    } else if(key === 'קרן השתלמות') {
-      // מיון לפי תאריך נזילות — הכי קרוב ראשון. ללא תאריך — בסוף
-      groups[key].sort((a,b) => {
-        if(!a.liquidityDate && !b.liquidityDate) return 0;
-        if(!a.liquidityDate) return 1;
-        if(!b.liquidityDate) return -1;
-        return a.liquidityDate.localeCompare(b.liquidityDate);
-      });
+  function subsectionHtml(type, pols) {
+    const cat = dash3CategoryOf({ type });
+    const annualSum = pols.reduce((s,p) => s + annualAmount(p), 0);
+    const balanceSum = pols.reduce((s,p)=> s + (p.balance || 0), 0);
+    const isSavType = SAVING_TYPES_LOCAL.includes(type);
+    let statHtml = '';
+    if(isSavType) {
+      const parts = [];
+      if(annualSum > 0) parts.push(`${moneyHtml(annualSum, 'small')}/שנה`);
+      if(balanceSum > 0) parts.push(`צבירה ${moneyHtml(balanceSum, 'small')}`);
+      if(parts.length) statHtml = `<span class="pc-subsection-sep">·</span><span class="pc-subsection-stat">${parts.join(' · ')}</span>`;
+    } else if(annualSum > 0) {
+      statHtml = `<span class="pc-subsection-sep">·</span><span class="pc-subsection-stat">${moneyHtml(annualSum, 'small')}/שנה</span>`;
     }
-  });
+    return `<div class="pc-subsection">
+      <div class="pc-subsection-h">
+        <div class="pc-subsection-icon" style="background:oklch(0.28 0.08 ${cat.hue} / .55);color:oklch(0.92 0.06 ${cat.hue});">
+          ${DASH3_ICONS[cat.icon] || DASH3_ICONS.shield}
+        </div>
+        <span class="pc-subsection-name">${type}</span>
+        <span class="pc-subsection-count">(${pols.length})</span>
+        ${statHtml}
+      </div>
+      <div class="pc-grid">${pols.map(cardHtml).join('')}</div>
+    </div>`;
+  }
 
-  // Sort group keys
-  const sortedKeys = Object.keys(groups).sort((a,b)=>a.localeCompare(b,'he'));
+  if(groupBy === 'company') {
+    // ── BY COMPANY ─────────────────────────────────────────────
+    const all = [...insurance, ...savings];
+    const byCompany = {};
+    all.forEach(p => {
+      const key = normalizeCompany(p.company) || 'אחר';
+      (byCompany[key] = byCompany[key] || []).push(p);
+    });
 
-  const freqLabel = {monthly:'חודשי',quarterly:'רבעוני','semi-annual':'חצי שנתי',annual:'שנתי'};
-  const pFreqLabel = p => {
-    if(p.frequency === 'annual' && (p.installments||1) > 1) return `שנתי (${p.installments}×)`;
-    return freqLabel[p.frequency] || p.frequency;
+    // Sort companies: those with logos first (well-known), then by count desc
+    const TYPE_RANK = (t) => {
+      const insIdx = INS_ORDER.indexOf(t);
+      const savIdx = SAVINGS_ORDER.indexOf(t);
+      if(insIdx >= 0) return insIdx;
+      if(savIdx >= 0) return INS_ORDER.length + savIdx;
+      return 999;
+    };
+    Object.keys(byCompany).forEach(c => {
+      byCompany[c].sort((a, b) => TYPE_RANK(a.type) - TYPE_RANK(b.type));
+    });
+
+    const companies = Object.keys(byCompany).sort((a, b) => {
+      // Companies with logos first, then by policy count desc
+      const aLogo = COMPANY_LOGOS[a] ? 0 : 1;
+      const bLogo = COMPANY_LOGOS[b] ? 0 : 1;
+      if(aLogo !== bLogo) return aLogo - bLogo;
+      return byCompany[b].length - byCompany[a].length;
+    });
+
+    sectionsEl.innerHTML = companies.map(co => {
+      const pols = byCompany[co];
+      const logoUrl = COMPANY_LOGOS[co];
+      const annualSum = pols.reduce((s,p) => s + annualAmount(p), 0);
+      const balanceSum = pols.reduce((s,p) => s + (p.balance || 0), 0);
+      const logoHtml = logoUrl
+        ? `<div class="pc-company-logo"><img src="${logoUrl}" alt="${co}" onerror="this.parentElement.outerHTML='<div class=&quot;pc-company-logo-fallback&quot;>'+'${co[0]}'+'</div>'"></div>`
+        : `<div class="pc-company-logo-fallback">${co[0] || '?'}</div>`;
+      return `<section class="pc-section">
+        <header class="pc-company-h">
+          ${logoHtml}
+          <span class="pc-company-name">${co}</span>
+          <span class="pc-section-h-sep">·</span>
+          <span class="pc-company-meta">${pols.length} ${pols.length === 1 ? 'פוליסה' : 'פוליסות'}</span>
+          ${annualSum > 0 ? `<span class="pc-section-h-sep">·</span><span class="pc-section-h-stat">עלות שנתית ${moneyHtml(annualSum, 'small')}</span>` : ''}
+          ${balanceSum > 0 ? `<span class="pc-section-h-sep">·</span><span class="pc-section-h-stat">צבירה ${moneyHtml(balanceSum, 'small')}</span>` : ''}
+        </header>
+        <div class="pc-grid">${pols.map(cardHtml).join('')}</div>
+      </section>`;
+    }).join('');
+    return;
+  }
+
+  // ── BY TYPE (default) ───────────────────────────────────────
+  const groupByType = (pols) => {
+    const map = {};
+    pols.forEach(p => { (map[p.type] = map[p.type] || []).push(p); });
+    return map;
   };
+  const insByType = groupByType(insurance);
+  const savByType = groupByType(savings);
+  const insTypeOrder = INS_ORDER.filter(t => insByType[t]);
+  const savTypeOrder = SAVINGS_ORDER.filter(t => savByType[t]);
 
-  // Build HTML per group
-  function groupHtml(key) {
-    const list = groups[key];
-    let h = '';
-    if(groupBy==='company') {
-      const monthlySum = list.reduce((s,p)=> s + (p.amount>0 ? toMonthly(p.amount,p.frequency) : 0), 0);
-      const balanceSum = list.reduce((s,p)=> s + (p.balance||0), 0);
-      h += `<div class="section-label" style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="display:flex;align-items:center;gap:6px;direction:rtl;">${key} ${companyLogo(key,18)}</span>
-        <span style="font-size:11px;font-weight:600;color:var(--text-dim);">
-          ${monthlySum>0?fmt$(monthlySum)+'/חודש':''}${monthlySum>0&&balanceSum>0?' · ':''}${balanceSum>0?'צבירה '+fmt$(balanceSum):''}
-        </span>
-      </div>`;
-    } else {
-      const monthlySum = list.reduce((s,p)=> s + (p.amount>0 ? toMonthly(p.amount,p.frequency) : 0), 0);
-      const balanceSum = list.reduce((s,p)=> s + (p.balance||0), 0);
-      const BALANCE_TYPES_LOCAL = ['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון'];
-      const showBalance = BALANCE_TYPES_LOCAL.includes(key) && balanceSum > 0;
-      h += `<div class="section-label" style="display:flex;justify-content:space-between;align-items:center;">
-        <span>${typeIcon(key)} ${key}</span>
-        <span style="font-size:11px;font-weight:600;color:var(--text-dim);">
-          ${showBalance ? 'צבירה ' + fmt$(balanceSum) : (monthlySum>0 ? fmt$(monthlySum)+'/חודש' : '')}
-        </span>
-      </div>`;
-    }
-    list.forEach(p=>{
-      const isDup = false;
-      const col  = typeColor(p.type);
-      const col2 = typeColor2(p.type);
-      const infoLine = [p.company, p.agent, p.policyNumber].filter(Boolean).join(' · ');
-      h += `<div class="policy-row ${isDup?'dup':''}"
-        style="background:linear-gradient(135deg,${col},${col2});"
-        onclick="viewPolicy('${p.id}')">
-        <div class="policy-row-left">
-          <div class="policy-row-type">${typeIcon(p.type)} ${p.type}</div>
-          ${p.tag ? `<span class="policy-tag">${p.tag}</span>` : ''}
-          <div class="policy-row-company">${infoLine}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
-          <div style="text-align:left;">
-            ${isBalanceType(p) && p.balance
-              ? `<div class="policy-row-amount">${fmt$(p.balance)}</div>
-                 <div class="policy-row-freq">${fmtBalanceDate(p.balanceDate)}</div>`
-              : `<div class="policy-row-amount">${fmt$(p.amount)}</div>
-                 <div class="policy-row-freq">${pFreqLabel(p)}</div>`
-            }
-            ${p.insured && p.insured.length > 1
-              ? `<div style="font-size:9px;color:rgba(255,255,255,.75);margin-top:2px;text-align:left;">${p.insured.map(r=>`${r.name}: ${fmt$(r.amount)}`).join(' · ')}</div>`
-              : ''
-            }
-            ${p.liquidityDate ? (() => {
-              const isLiquid = new Date(p.liquidityDate+'T00:00:00') <= new Date();
-              return `<div style="font-size:9px;margin-top:2px;text-align:left;color:${isLiquid?'#2ecc71':'var(--text-sub)'};">
-                🔓 ${isLiquid?'נזיל':'נזיל מ-'}${fmtDate(p.liquidityDate)}</div>`;
-            })() : ''}
-          </div>
-          <button class="quick-update-btn" title="עדכון מהיר"
-            onclick="event.stopPropagation();openQuickUpdate('${p.id}')">⚡</button>
-        </div>
-      </div>`;
-    });
-    return h;
-  }
+  const insSection = insurance.length ? `
+    <section class="pc-section">
+      <header class="pc-section-h">
+        <span class="pc-section-pip" style="background:oklch(0.7 0.18 12);"></span>
+        <h2>ביטוחים</h2>
+        <span class="pc-section-h-sep">·</span>
+        <span class="pc-section-meta">${insurance.length} ${insurance.length === 1 ? 'פעילה' : 'פעילות'}</span>
+        <span class="pc-section-h-sep">·</span>
+        <span class="pc-section-h-stat">עלות שנתית ${moneyHtml(insAnnualTotal, 'small')}</span>
+      </header>
+      ${insTypeOrder.map(t => subsectionHtml(t, insByType[t])).join('')}
+    </section>
+  ` : '';
 
-  // Build columns
-  let leftHtml, rightHtml;
+  const savSection = savings.length ? `
+    <section class="pc-section">
+      <header class="pc-section-h">
+        <span class="pc-section-pip" style="background:oklch(0.7 0.18 312);"></span>
+        <h2>חיסכון וצבירה</h2>
+        <span class="pc-section-h-sep">·</span>
+        <span class="pc-section-meta">${savings.length} ${savings.length === 1 ? 'פעילה' : 'פעילות'}</span>
+        ${savAnnualTotal > 0 ? `<span class="pc-section-h-sep">·</span><span class="pc-section-h-stat">הפקדה שנתית ${moneyHtml(savAnnualTotal, 'small')}</span>` : ''}
+        <span class="pc-section-h-sep">·</span>
+        <span class="pc-section-h-stat">צבירה ${moneyHtml(savBalanceTotal, 'small')}</span>
+      </header>
+      ${savTypeOrder.map(t => subsectionHtml(t, savByType[t])).join('')}
+    </section>
+  ` : '';
 
-  if(groupBy === 'type') {
-    // Fixed two-column layout by category
-    const INSURANCE_TYPES  = ['בריאות','חיים','סיעודי','רכב','דירה','נסיעות','אחר'];
-    const SAVINGS_TYPES    = ['פנסיה','קופת גמל','קרן השתלמות','חסכון'];
+  sectionsEl.innerHTML = insSection + savSection;
+}
 
-    // Left col: ביטוחים
-    const leftKeys  = INSURANCE_TYPES.filter(t => groups[t]);
-    // Also add any types not in either list (future-proof)
-    const knownTypes = new Set([...INSURANCE_TYPES, ...SAVINGS_TYPES]);
-    sortedKeys.filter(k => !knownTypes.has(k)).forEach(k => leftKeys.push(k));
-
-    // Right col: חסכונות לא נזילים
-    const rightKeys = SAVINGS_TYPES.filter(t => groups[t]);
-
-    const colSum = (keys) => keys.reduce((s, k) =>
-      s + (groups[k]||[]).reduce((s2, p) => s2 + (p.amount>0 ? toMonthly(p.amount, p.frequency) : 0), 0), 0);
-
-    const colCount = (keys) => keys.reduce((s, k) => s + (groups[k]||[]).length, 0);
-
-    const colHeader = (label, count, sum) =>
-      `<div style="font-size:14px;font-weight:800;color:var(--text);letter-spacing:.03em;
-        padding:6px 0 12px;border-bottom:2px solid var(--border);margin-bottom:16px;
-        display:flex;justify-content:space-between;align-items:center;">
-        <span>${label} <span style="font-size:12px;font-weight:600;color:var(--text-dim);">(${count})</span></span>
-        ${sum > 0 ? `<span style="font-size:13px;font-weight:700;color:var(--text);">${fmt$(sum)}<span style="font-size:11px;font-weight:500;color:var(--text-dim);">/חודש</span></span>` : ''}
-      </div>`;
-
-    leftHtml  = (leftKeys.length  ? colHeader('ביטוחים',             colCount(leftKeys),  colSum(leftKeys))  : '') + leftKeys.map(groupHtml).join('');
-    rightHtml = (rightKeys.length ? colHeader('חסכונות לא נזילים', colCount(rightKeys), colSum(rightKeys)) : '') + rightKeys.map(groupHtml).join('');
+// ══════════════════════════════════════════════════════════════════
+//  MISSING-TAGS MODAL — bulk-fill p.tag for policies without one
+// ══════════════════════════════════════════════════════════════════
+function openMissingTagsModal() {
+  const missing = policies.filter(p => isActive(p) && (!p.tag || !p.tag.trim()));
+  const listEl = document.getElementById('missing-tags-list');
+  if(!missing.length) {
+    listEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:13px;">אין פוליסות חסרות תיאור 🎉</div>`;
   } else {
-    // company grouping — auto-balance columns by item count
-    const colCounts = [0, 0];
-    const colKeys   = [[], []];
-    sortedKeys.forEach(key => {
-      const col = colCounts[0] <= colCounts[1] ? 0 : 1;
-      colKeys[col].push(key);
-      colCounts[col] += groups[key].length + 1;
-    });
-    leftHtml  = colKeys[0].map(groupHtml).join('');
-    rightHtml = colKeys[1].map(groupHtml).join('');
+    listEl.innerHTML = missing.map(p => {
+      const col = typeColor(p.type);
+      const companyLine = [p.company, p.policyNumber ? '#' + p.policyNumber : ''].filter(Boolean).join(' · ');
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1a1a1a;border-radius:10px;border-right:3px solid ${col};margin-bottom:8px;">
+        <div style="font-size:18px;">${typeIcon(p.type)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${p.type}</div>
+          <div style="font-size:11px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${companyLine}</div>
+        </div>
+        <input type="text" data-tag-id="${p.id}" placeholder="תיאור קצר…" maxlength="120"
+          style="flex:1.4;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:12px;">
+      </div>`;
+    }).join('');
   }
+  openModal('missing-tags-modal');
+}
 
-  el.innerHTML = `
-    <div class="policies-col">${leftHtml}</div>
-    <div class="policies-col">${rightHtml}</div>
-  `;
+async function saveMissingTags() {
+  const inputs = document.querySelectorAll('#missing-tags-list input[data-tag-id]');
+  let updated = 0;
+  inputs.forEach(inp => {
+    const id = inp.getAttribute('data-tag-id');
+    const val = inp.value.trim();
+    if(!val) return;
+    const p = policies.find(x => x.id === id);
+    if(!p) return;
+    p.tag = val;
+    updated++;
+  });
+  if(updated === 0) {
+    toast('לא הוזן תיאור לאף פוליסה');
+    return;
+  }
+  await pp();
+  closeModal('missing-tags-modal');
+  renderPolicies();
+  toast(`✅ עודכנו ${updated} פוליסות`);
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -3263,6 +5361,7 @@ function openAddPolicy() {
   buildInsuredRows([{name:'', amount:''}]); // ברירת מחדל: מבוטח אחד
   document.getElementById('f-start').value = new Date().toISOString().split('T')[0];
   document.getElementById('policy-delete-btn').style.display = 'none';
+  setPayMode('monthly'); // default payment mode + init radio styling
   openModal('policy-modal');
 }
 function openEditPolicy(id) {
@@ -3274,10 +5373,22 @@ function openEditPolicy(id) {
   document.getElementById('f-company').value  = p.company;
   document.getElementById('f-agent').value    = p.agent||'';
   document.getElementById('f-type').value     = p.type;
-  document.getElementById('f-frequency').value= p.frequency;
-  document.getElementById('f-installments').value = String(p.installments || 1);
-  toggleInstallments(p.paymentMonths || []);
-  document.getElementById('f-amount').value   = p.amount;
+  // Map the policy onto the "איך משלמים?" model. Legacy quarterly/semi-annual are converted
+  // to the installments representation (cash-flow preserving: dueAmount = total/N reproduces
+  // the original per-payment), so they display + save consistently.
+  let _freq = p.frequency, _inst = p.installments || 1, _months = p.paymentMonths || [], _amt = p.amount;
+  if(_freq === 'quarterly' || _freq === 'semi-annual') {
+    const n = _freq === 'quarterly' ? 4 : 2, step = _freq === 'quarterly' ? 3 : 6;
+    const startM = parseInt((p.start || '').slice(5,7)) || 1;
+    _months = Array.from({length:n}, (_, i) => ((startM - 1 + i*step) % 12) + 1);
+    _amt = (p.amount || 0) * n;
+    _freq = 'annual'; _inst = n;
+  }
+  document.getElementById('f-frequency').value     = _freq;
+  document.getElementById('f-installments').value  = String(_inst);
+  toggleInstallments(_months.length ? _months : undefined);
+  document.getElementById('f-amount').value   = _amt;
+  updatePerInstallmentNote();
   document.getElementById('f-start').value    = p.start;
   document.getElementById('f-expiry').value   = p.expiry;
   document.getElementById('f-policy-number').value = p.policyNumber||'';
@@ -3344,37 +5455,105 @@ function toggleBalanceField() {
   document.getElementById('f-expiry').required = !isbal;
   toggleInstallments();
 }
+const MONTHS_HE_FULL = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+let _activePayMode = 'monthly';
+
+// Map underlying (frequency, installments) → friendly payment mode
+function _payModeOf(freq, installments) {
+  if(freq === 'monthly') return 'monthly';
+  if((installments || 1) <= 1) return 'one-time';
+  return 'installments';
+}
+function _startMonthFromField() {
+  const v = document.getElementById('f-start')?.value || '';
+  return parseInt(v.slice(5,7)) || 0; // 1-12, or 0 if unset
+}
+// Radio sets the hidden frequency/installments fields, then re-renders
+function setPayMode(mode) {
+  const freqEl = document.getElementById('f-frequency');
+  const instEl = document.getElementById('f-installments');
+  if(mode === 'monthly')        { freqEl.value = 'monthly'; }
+  else if(mode === 'one-time')  { freqEl.value = 'annual'; instEl.value = '1'; }
+  else                          { freqEl.value = 'annual'; if((parseInt(instEl.value)||1) < 2) instEl.value = '4'; }
+  toggleInstallments();
+}
+function _syncPayModeButtons(mode) {
+  ['monthly','installments','one-time'].forEach(m => {
+    const btn = document.getElementById('paymode-' + m);
+    if(!btn) return;
+    const on = m === mode;
+    btn.style.cssText = `flex:1;min-width:90px;padding:9px 8px;border-radius:9px;font-size:13px;font-weight:${on?'800':'600'};cursor:pointer;`
+      + `border:1px solid ${on?'var(--accent2)':'var(--border)'};background:${on?'rgba(155,89,182,.22)':'var(--bg3)'};`
+      + `color:${on?'var(--accent2)':'var(--text)'};transition:all .12s;`;
+  });
+}
+function _updateAmountLabel(mode) {
+  const lab = document.getElementById('f-amount-label');
+  if(!lab) return;
+  lab.textContent = mode === 'installments' ? 'סכום כולל (₪)'
+                  : mode === 'monthly'      ? 'סכום חודשי (₪)'
+                  :                           'סכום התשלום (₪)';
+}
+function updatePerInstallmentNote() {
+  const note = document.getElementById('f-per-installment-note');
+  if(!note) return;
+  if(_activePayMode !== 'installments') { note.textContent = ''; return; }
+  const total = parseFloat(document.getElementById('f-amount').value) || 0;
+  const inst  = parseInt(document.getElementById('f-installments').value) || 1;
+  note.textContent = (total > 0 && inst > 0) ? `${fmt$(total / inst)} לתשלום · ${inst} תשלומים` : '';
+}
 function toggleInstallments(existingMonths) {
   const freq = document.getElementById('f-frequency').value;
-  const grp  = document.getElementById('f-installments-group');
-  grp.style.display = freq === 'annual' ? 'block' : 'none';
-  if(freq !== 'annual') return;
-
   const inst = parseInt(document.getElementById('f-installments').value) || 1;
-  const monthsGrp = document.getElementById('f-payment-months-group');
-  const monthsRow = document.getElementById('f-payment-months-rows');
-  const MONTHS_HE = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  const mode = _payModeOf(freq, inst);
+  _activePayMode = mode;
+  _syncPayModeButtons(mode);
+  _updateAmountLabel(mode);
 
-  if(inst <= 1) {
-    monthsGrp.style.display = 'none';
+  const grp = document.getElementById('f-installments-group');
+  grp.style.display = mode === 'installments' ? 'block' : 'none';
+  if(mode !== 'installments') {
+    const mr = document.getElementById('f-payment-months-rows');
+    if(mr) mr.innerHTML = ''; // clear stale month selects so savePolicy doesn't store them
+    updatePerInstallmentNote();
     return;
   }
+
+  // Populate the "first month" select once — default to the policy's START month, not January
+  const fmSel = document.getElementById('f-first-month');
+  if(fmSel && !fmSel.options.length) {
+    MONTHS_HE_FULL.forEach((name, idx) => { const o = document.createElement('option'); o.value = idx+1; o.textContent = name; fmSel.appendChild(o); });
+    fmSel.value = String(_startMonthFromField() || 1);
+  }
+
+  const monthsGrp = document.getElementById('f-payment-months-group');
+  const monthsRow = document.getElementById('f-payment-months-rows');
   monthsGrp.style.display = '';
-  // Collect current selected values (to preserve when rebuilding)
-  const prev = existingMonths || Array.from(monthsRow.querySelectorAll('select')).map(s => parseInt(s.value)||1);
+
+  // Decide which months to show: explicit (edit) > consecutive-from-first-month (the Israeli default)
+  let months;
+  if(existingMonths && existingMonths.length) {
+    months = existingMonths.slice(0, inst);
+    while(months.length < inst) months.push(((months[months.length-1] || 0) % 12) + 1);
+    fmSel.value = months[0];
+  } else {
+    const first = parseInt(fmSel.value) || _startMonthFromField() || 1;
+    fmSel.value = first;
+    months = [];
+    for(let i = 0; i < inst; i++) months.push(((first - 1 + i) % 12) + 1); // consecutive, wrapping Dec→Jan
+  }
+
+  // Build the editable per-month selects
   monthsRow.innerHTML = '';
-  for(let i = 0; i < inst; i++) {
+  months.forEach(mv => {
     const sel = document.createElement('select');
     sel.style.cssText = 'background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:13px;';
-    MONTHS_HE.forEach((name, idx) => {
-      const opt = document.createElement('option');
-      opt.value = idx + 1;
-      opt.textContent = name;
-      sel.appendChild(opt);
-    });
-    sel.value = prev[i] || (i + 1);
+    sel.onchange = updatePerInstallmentNote;
+    MONTHS_HE_FULL.forEach((name, idx) => { const o = document.createElement('option'); o.value = idx+1; o.textContent = name; sel.appendChild(o); });
+    sel.value = mv;
     monthsRow.appendChild(sel);
-  }
+  });
+  updatePerInstallmentNote();
 }
 function savePolicy(e) {
   e.preventDefault();
@@ -3542,129 +5721,318 @@ function viewPolicy(id) {
   if(!p) return;
   const polPayments = payments.filter(x=>x.policyId===id).sort((a,b)=>b.date.localeCompare(a.date));
   const totalPaid   = polPayments.reduce((s,x)=>s+x.amount,0);
-  const col  = typeColor(p.type);
-  const col2 = typeColor2(p.type);
-  const d    = daysUntil(p.expiry);
+  const isSaving    = isBalanceType(p);
+  const days        = daysUntil(p.expiry);
 
-  document.getElementById('view-modal-body').innerHTML = `
-    <div class="detail-header" style="background:linear-gradient(135deg,${col},${col2});">
-      <div>
-        <h2>${typeIcon(p.type)} ${p.company}</h2>
-        <p>${p.type}${p.policyNumber?' · #'+p.policyNumber:''}</p>
-        ${p.tag ? `<span style="display:inline-block;margin-top:6px;background:rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;">${p.tag}</span>` : ''}
-      </div>
-      <div style="text-align:right;display:flex;flex-direction:column;justify-content:space-between;align-self:stretch;padding-top:36px;">
-        ${isBalanceType(p) && p.balance
-          ? `<div style="font-size:22px;font-weight:800;color:#fff;">${fmt$(p.balance)}</div>
-             <div style="font-size:11px;color:rgba(255,255,255,.7);">צבירה${p.balanceDate?' · '+fmtBalanceDate(p.balanceDate):''}</div>`
-          : `<div style="font-size:22px;font-weight:800;color:#fff;">${fmt$(p.amount)}</div>
-             <div style="font-size:12px;color:rgba(255,255,255,.7);">${{monthly:'חודשי',quarterly:'רבעוני','semi-annual':'חצי שנתי',annual:'שנתי'}[p.frequency]||p.frequency}</div>`
-        }
-      </div>
-    </div>
+  // Header big number
+  const headerNum   = isSaving && p.balance ? fmt$(p.balance) : fmt$(p.amount);
+  const headerLabel = isSaving && p.balance
+    ? 'צבירה'
+    : ({monthly:'חודשי',quarterly:'רבעוני','semi-annual':'חצי שנתי',annual:'שנתי'}[p.frequency] || p.frequency || '');
 
-    <!-- Action bar: תשלום+עריכה לימין (סוכן), עדכון מהיר לשמאל (Better) -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:8px;">
-      <button class="btn btn-accent btn-sm" onclick="closeModal('view-modal');openQuickUpdate('${p.id}')">⚡ עדכון מהיר</button>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-ghost btn-sm" onclick="openLogPayment('${p.id}')">💳 תשלום</button>
-        <button class="btn btn-ghost btn-sm" onclick="openEditPolicy('${p.id}')">✏️ עריכה</button>
-      </div>
-    </div>
+  const headerTitle = p.tag || p.type;
+  const headerSub   = [p.company, p.policyNumber ? '#' + p.policyNumber : '', p.agent].filter(Boolean).join(' · ');
 
-    <div class="detail-row"><span class="detail-key">סוכן</span><span class="detail-val">${p.agent||'—'}</span></div>
-    <div class="detail-row"><span class="detail-key">תאריך התחלה</span><span class="detail-val">${fmtDate(p.start)}</span></div>
-    <div class="detail-row"><span class="detail-key">תאריך פקיעה</span><span class="detail-val" style="color:${d<30?'#ff7a7a':'inherit'}">${fmtDate(p.expiry)}</span></div>
-    <div class="detail-row"><span class="detail-key">סטטוס</span><span class="detail-val">${statusTag(p)}</span></div>
-    ${isBalanceType(p)
-      ? `${p.balance ? `<div class="detail-row"><span class="detail-key">צבירה</span><span class="detail-val" style="font-weight:700;color:#2ecc71;">${fmt$(p.balance)}</span></div>` : ''}
-         ${p.amount>0 ? `<div class="detail-row"><span class="detail-key">הפקדה חודשית</span><span class="detail-val">${fmt$(p.amount)}</span></div>` : ''}`
-      : `<div class="detail-row"><span class="detail-key">עלות חודשית</span><span class="detail-val">${fmt$(toMonthly(p.amount,p.frequency))}</span></div>`
+  // Build detail cards — order: [cost,status] / [start,expiry] / [optional extras]
+  const cards = [];
+
+  // Row 1, col 1 — monthly amount (cost for insurance, deposit for savings)
+  if(p.amount > 0) {
+    if(isSaving) {
+      cards.push({ label: 'הפקדה חודשית', value: fmt$(p.amount), sub: 'חודשי' });
+    } else {
+      const monthly = toMonthly(p.amount, p.frequency);
+      cards.push({
+        label: 'עלות חודשית',
+        value: fmt$(monthly),
+        sub: p.frequency === 'monthly' ? '' : `${fmt$(p.amount)} ${headerLabel}`
+      });
     }
-    ${p.feeDeposit?`<div class="detail-row"><span class="detail-key">ד"נ מהפקדה</span><span class="detail-val"><span class="fee-tag">📊 ${p.feeDeposit}%</span></span></div>`:''}
-    ${p.feeAccumulation?`<div class="detail-row"><span class="detail-key">ד"נ מצבירה</span><span class="detail-val"><span class="fee-tag">📊 ${p.feeAccumulation}%</span></span></div>`:''}
-    ${p.hasDiscount?`<div class="detail-row"><span class="detail-key">הנחה</span><span class="detail-val"><span class="discount-tag">🏷 -${discountLabel(p)}</span></span></div>`:''}
-    ${p.liquidityDate ? (() => {
-        const isLiquid = new Date(p.liquidityDate+'T00:00:00') <= new Date();
-        return `<div class="detail-row"><span class="detail-key">🔓 נזילות</span><span class="detail-val" style="color:${isLiquid?'#2ecc71':'var(--text-dim)'};">${isLiquid?'נזיל · ':'נזיל מ-'}${fmtDate(p.liquidityDate)}</span></div>`;
-      })() : ''}
-    ${p.insured && p.insured.length > 0
-      ? `<div class="detail-row" style="align-items:flex-start;">
-           <span class="detail-key">מבוטחים</span>
-           <span class="detail-val" style="direction:ltr;text-align:left;">
-             ${p.insured.map(r=>`<div style="display:flex;justify-content:space-between;gap:24px;">
-               <span style="font-weight:500;">${r.name||'—'}</span>
-               <span style="font-weight:700;">${r.amount?fmt$(r.amount):''}</span>
-             </div>`).join('')}
-           </span>
-         </div>`
-      : ''}
-    ${p.notes?`<div class="detail-row"><span class="detail-key">הערות</span><span class="detail-val" style="max-width:340px;white-space:normal;line-height:1.5;">${p.notes}</span></div>`:''}
+  }
 
-    <!-- תשלומים -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:8px;">
-      <div class="section-label" style="margin:0;">💳 תשלומים${polPayments.length>0?' ('+polPayments.length+')':''}</div>
-      <span style="font-size:11px;color:var(--text-dim);">${polPayments.length>0?'סה"כ: '+fmt$(totalPaid):''}</span>
+  // Row 1, col 2 — status
+  cards.push({
+    label: 'סטטוס',
+    value: isActive(p) ? 'פעילה' : 'פגת תוקף',
+    cls: isActive(p) ? 'green' : 'warn'
+  });
+
+  // Row 2, col 1 — start date
+  if(p.start) {
+    cards.push({ label: 'תחילת תוקף', value: fmtDate(p.start) });
+  }
+
+  // Row 2, col 2 — expiry date
+  if(p.expiry) {
+    cards.push({
+      label: 'תאריך פקיעה',
+      value: fmtDate(p.expiry),
+      sub: days < 0 ? `פג לפני ${-days} ימים` : (days < 366 ? `בעוד ${days} ימים` : ''),
+      cls: days < 30 ? 'warn' : ''
+    });
+  }
+
+  // Extras (row 3+) — liquidity, balance-as-of date for savings
+  if(p.liquidityDate) {
+    const isLiquid = new Date(p.liquidityDate+'T00:00:00') <= new Date();
+    const yr = p.liquidityDate.slice(0,4);
+    cards.push({
+      label: 'נזילות',
+      value: isLiquid ? '🔓 נזיל' : yr,
+      sub: isLiquid ? fmtDate(p.liquidityDate) : `🔓 נזיל מ-${fmtDate(p.liquidityDate)}`,
+      cls: isLiquid ? 'green' : ''
+    });
+  }
+  if(isSaving && p.balanceDate) {
+    cards.push({ label: 'צבירה עדכנית ל', value: fmtBalanceDate(p.balanceDate) });
+  }
+
+  const cardsHtml = cards.map(c => `
+    <div class="detail-card">
+      <div class="detail-card-label">${c.label}</div>
+      <div class="detail-card-value${c.cls ? ' ' + c.cls : ''}">${c.value}</div>
+      ${c.sub ? `<div class="detail-card-sub">${c.sub}</div>` : ''}
     </div>
+  `).join('');
 
-    <!-- הוספת תשלום — כפתור + טופס מתקפל -->
-    <div style="margin-bottom:10px;">
-      <button onclick="toggleVpForm()" id="vp-toggle-btn"
-        style="width:100%;padding:8px;background:var(--bg3);border:1px dashed var(--border);border-radius:8px;color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer;text-align:center;">
-        + הוסף תשלום
-      </button>
-      <div id="vp-pay-form" style="display:none;background:var(--bg3);border-radius:0 0 10px 10px;padding:12px;border:1px solid var(--border);border-top:none;margin-top:-1px;">
-        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
-          <div style="flex:1;min-width:110px;">
-            <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px;">תאריך</div>
-            <input type="date" id="vp-pay-date" value="${new Date().toISOString().split('T')[0]}"
-              style="width:100%;padding:7px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+  // Pills: ד"נ + הנחה
+  const pills = [];
+  if(p.feeDeposit)      pills.push(`<span class="popup-pill">📊 ד"נ מהפקדה ${p.feeDeposit}%</span>`);
+  if(p.feeAccumulation) pills.push(`<span class="popup-pill">📊 ד"נ מצבירה ${p.feeAccumulation}%</span>`);
+  if(p.hasDiscount)     pills.push(`<span class="popup-pill discount">🏷 הנחה -${discountLabel(p)}</span>`);
+  const pillsHtml = pills.length ? `<div class="pills-row">${pills.join('')}</div>` : '';
+
+  // Insured
+  const insuredHtml = (p.insured && p.insured.length > 0) ? `
+    <div class="popup-section">
+      <div class="popup-section-title">מבוטחים (${p.insured.length})</div>
+      <div class="insured-list">
+        ${p.insured.map(r => `
+          <div class="insured-row">
+            <span class="insured-row-name">${r.name || '—'}</span>
+            <span class="insured-row-amount">${r.amount ? fmt$(r.amount) : ''}</span>
           </div>
-          <div style="flex:1;min-width:90px;">
-            <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px;">סכום (₪)</div>
-            <input type="number" id="vp-pay-amount" placeholder="${p.amount||0}" min="0" step="0.01"
-              style="width:100%;padding:7px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  // Notes
+  const notesHtml = p.notes ? `
+    <div class="popup-section">
+      <div class="popup-section-title">הערות</div>
+      <div class="notes-box">${p.notes}</div>
+    </div>
+  ` : '';
+
+  // Payments summary — current year + last payment date
+  const currentYear = new Date().getFullYear();
+  const paymentsThisYear  = polPayments.filter(pay => pay.date.startsWith(currentYear + '-'));
+  const clearedThisYear   = paymentsThisYear.filter(x => x.status !== 'committed');
+  const committedThisYear = paymentsThisYear.filter(x => x.status === 'committed');
+  const totalPaidThisYear = clearedThisYear.reduce((s,x) => s + (x.actualAmount ?? x.amount), 0);
+  const lastClearedDate   = clearedThisYear[0]?.date ? fmtDate(clearedThisYear[0].date) : null;
+  const committedSuffix   = committedThisYear.length ? ` · ⏳ ${committedThisYear.length} מחויבים` : '';
+  const paymentsSummary = (clearedThisYear.length + committedThisYear.length) > 0
+    ? `<strong>${clearedThisYear.length} שולמו</strong> ב-${currentYear} · סה"כ <strong>${fmt$(totalPaidThisYear)}</strong>${committedSuffix}${lastClearedDate ? ` · אחרון ${lastClearedDate}` : ''}`
+    : (polPayments.length > 0
+        ? `אין תשלומים ב-${currentYear} · ${polPayments.length} בעבר`
+        : 'אין תשלומים רשומים עדיין');
+
+  // Group payments by year (for the tabs shown when expanded)
+  const paymentsByYear = {};
+  polPayments.forEach(pay => {
+    const y = pay.date.slice(0, 4);
+    (paymentsByYear[y] = paymentsByYear[y] || []).push(pay);
+  });
+  const paymentYears = Object.keys(paymentsByYear).sort().reverse();
+
+  const tabsHtml = paymentYears.length > 1 ? `
+    <div class="payments-tabs" id="vp-payments-tabs">
+      ${paymentYears.map((y, i) => `<button class="payments-tab${i === 0 ? ' active' : ''}" data-year="${y}" onclick="filterPaymentsByYear('${y}')">${y}<span class="count">(${paymentsByYear[y].length})</span></button>`).join('')}
+    </div>
+  ` : '';
+
+  const paymentsListHtml = polPayments.length === 0
+    ? ''
+    : `${tabsHtml}<div class="payments-list" id="vp-payments-list">
+        ${polPayments.map(pay => {
+          const isCommitted = pay.status === 'committed';
+          const source = isCommitted ? '⏳ מחויב (טרם נגבה)'
+                       : pay.paidBy === 'state' ? '🏛️ הפקדת מדינה'
+                       : (pay.source === 'csv' ? '📄 ייבוא CSV' : '📝 ידני');
+          const sourceLine = source + (pay.note && !isCommitted ? ' · ' + pay.note : '');
+          return `<div class="pay-row-v2" data-year="${pay.date.slice(0,4)}"${isCommitted ? ' style="opacity:.7;"' : ''}>
+            <div class="pay-row-v2-date">${fmtDate(pay.date)}</div>
+            <div class="pay-row-v2-source">${sourceLine}</div>
+            <div class="pay-row-v2-amount">${isCommitted ? '~' : ''}${fmt$(pay.actualAmount ?? pay.amount)}</div>
+            <button class="pay-row-v2-del" onclick="event.stopPropagation();deletePaymentFromView('${pay.id}','${p.id}')" title="מחק">🗑️</button>
+          </div>`;
+        }).join('')}
+      </div>`;
+
+  const seeAllBtn = polPayments.length > 0
+    ? `<button class="payments-see-all" onclick="togglePolicyPayments(this)">ראה הכל (${polPayments.length})</button>`
+    : '';
+
+  // "Mark all N committed" — only for installment policies with plan-months not yet registered
+  const uncommitted = dash3UncommittedCount(p);
+  const commitAllBtn = uncommitted > 0
+    ? `<button class="payments-see-all" style="border-color:var(--accent2);color:var(--accent2);font-weight:700;" onclick="dash3CommitAllInstallments('${p.id}')" title="רישום מראש של כל התשלומים שטרם נרשמו">⚡ סמן ${uncommitted} כמחויב</button>`
+    : '';
+
+  // Renewal banner — shown when an insurance policy is expired or expiring within 60 days
+  const renewBanner = (!isSaving && p.expiry && days < 60) ? `
+      <div class="popup-section" style="margin-bottom:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(155,89,182,.10);border:1px solid var(--accent2);border-radius:10px;padding:12px 14px;">
+          <div style="min-width:0;">
+            <div style="font-weight:700;font-size:13px;color:var(--accent2);">${days < 0 ? `הפוליסה פגה לפני ${-days} ימים` : `פגה בעוד ${days} ימים`}</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">חידוש עם אותה פריסה: ${_renewPlanLabel(p)}</div>
           </div>
-          <div style="flex:2;min-width:120px;">
-            <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px;">הערה</div>
-            <input type="text" id="vp-pay-note" placeholder="אופציונלי"
-              style="width:100%;padding:7px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
-          </div>
-          <button onclick="addPaymentFromView('${p.id}')"
-            style="padding:7px 14px;background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">שמור</button>
+          <button onclick="renewPolicy('${p.id}')" style="padding:8px 16px;background:var(--accent2);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">🔄 חדש</button>
         </div>
       </div>
+      <div class="popup-divider"></div>
+  ` : '';
+
+  // Compose
+  document.getElementById('view-modal-body').innerHTML = `
+    <div class="popup-header" style="background:linear-gradient(135deg, oklch(0.34 0.13 ${dash3CategoryOf(p).hue}), oklch(0.22 0.05 ${dash3CategoryOf(p).hue}));">
+      <div class="popup-header-cat-icon" style="background:oklch(0.42 0.16 ${dash3CategoryOf(p).hue} / .85); color:oklch(0.95 0.04 ${dash3CategoryOf(p).hue}); box-shadow:inset 0 0 0 .5px oklch(0.6 0.18 ${dash3CategoryOf(p).hue} / .5), inset 0 1px 0 rgba(255,255,255,.12);">
+        ${DASH3_ICONS[dash3CategoryOf(p).icon] || DASH3_ICONS.shield}
+      </div>
+      <div class="popup-header-text">
+        <div class="popup-header-title">${headerTitle}</div>
+        <div class="popup-header-sub">${headerSub}</div>
+      </div>
+      <div class="popup-header-value">
+        <div class="popup-header-value-num">${headerNum}</div>
+        <div class="popup-header-value-label">${headerLabel}</div>
+      </div>
     </div>
 
-    <!-- רשימת תשלומים -->
-    ${polPayments.length===0
-      ? '<p style="font-size:13px;color:var(--text-dim);padding:4px 0 8px;">אין תשלומים רשומים עדיין.</p>'
-      : polPayments.map(pay=>`
-          <div class="pay-item">
-            <div class="pay-item-left">
-              <h4>${fmtDate(pay.date)}</h4>
-              <p>${pay.source==='csv'?'📄 ייבוא CSV':'📝 ידני'}${pay.note?' · '+pay.note:''}</p>
+    <div class="popup-content">
+
+      ${renewBanner}
+
+      <div class="popup-section">
+        <div class="popup-section-title-row">
+          <div class="popup-section-title">פרטי הפוליסה</div>
+          <button class="popup-edit-btn" onclick="editFromView()" title="עריכת פוליסה" aria-label="עריכת פוליסה">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="detail-grid">${cardsHtml}</div>
+        ${pillsHtml}
+      </div>
+
+      ${insuredHtml}
+      ${notesHtml}
+
+      <div class="popup-divider"></div>
+
+      <div class="popup-section">
+        <div class="popup-section-title">📎 מסמכי פוליסה</div>
+        <div class="docs-dropzone" onclick="uploadPolicyDoc('${p.id}')">
+          <div class="docs-dropzone-icon">📄</div>
+          <div class="docs-dropzone-text">+ העלה PDF של הפוליסה</div>
+          <div class="docs-dropzone-sub">PDF בלבד · אחסון בקרוב</div>
+        </div>
+      </div>
+
+      <div class="popup-divider"></div>
+
+      <div class="popup-section" style="margin-bottom:0;">
+        <div class="popup-section-title">💳 תשלומים</div>
+        <div class="payments-summary">
+          <div class="payments-summary-info">${paymentsSummary}</div>
+          <div class="payments-actions">
+            <button class="payments-see-all" onclick="toggleVpFormV2()" id="vp-toggle-btn">+ הוסף תשלום</button>
+            ${commitAllBtn}
+            ${seeAllBtn}
+          </div>
+        </div>
+
+        <div class="vp-pay-form-v2" id="vp-pay-form" style="margin-top:0;margin-bottom:10px;">
+          <div class="row">
+            <div style="flex:1;min-width:110px;">
+              <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px;">תאריך</div>
+              <input type="date" id="vp-pay-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%;">
             </div>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <div style="text-align:left;">
-                <div class="pay-item-amount">${fmt$(pay.actualAmount ?? pay.amount)}</div>
-              </div>
-              <button class="btn btn-ghost btn-sm btn-icon" onclick="deletePaymentFromView('${pay.id}','${p.id}')" title="מחק">🗑️</button>
+            <div style="flex:1;min-width:90px;">
+              <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px;">סכום (₪)</div>
+              <input type="number" id="vp-pay-amount" placeholder="${p.amount||0}" min="0" step="0.01" style="width:100%;">
             </div>
-          </div>`).join('')}
+            <div style="flex:2;min-width:120px;">
+              <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px;">הערה</div>
+              <input type="text" id="vp-pay-note" placeholder="אופציונלי" style="width:100%;">
+            </div>
+            <button onclick="addPaymentFromView('${p.id}')" style="padding:7px 14px;background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">שמור</button>
+          </div>
+        </div>
+
+        ${paymentsListHtml}
+      </div>
+
+    </div>
   `;
 
   document.getElementById('view-modal').dataset.policyId = p.id;
   openModal('view-modal');
 }
 
-function toggleVpForm() {
+function editFromView() {
+  const id = document.getElementById('view-modal').dataset.policyId;
+  if(!id) return;
+  openEditPolicy(id);
+}
+
+function togglePolicyPayments(btn) {
+  const list = document.getElementById('vp-payments-list');
+  const tabs = document.getElementById('vp-payments-tabs');
+  if(!list) return;
+  const expanded = list.classList.toggle('expanded');
+  const total = list.querySelectorAll('.pay-row-v2').length;
+  btn.textContent = expanded ? `כווץ` : `ראה הכל (${total})`;
+
+  if(tabs) tabs.style.display = expanded ? 'flex' : 'none';
+
+  if(expanded) {
+    // Default active year = first tab (most recent year with payments)
+    const firstTab = tabs?.querySelector('.payments-tab.active') || tabs?.querySelector('.payments-tab');
+    const activeYear = firstTab?.dataset.year;
+    if(activeYear) filterPaymentsByYear(activeYear);
+  } else {
+    // Reset year filter — let nth-child rule control visibility
+    list.querySelectorAll('.pay-row-v2').forEach(r => r.classList.remove('hidden-by-year'));
+  }
+}
+
+function filterPaymentsByYear(year) {
+  const list = document.getElementById('vp-payments-list');
+  const tabs = document.getElementById('vp-payments-tabs');
+  if(!list) return;
+  list.querySelectorAll('.pay-row-v2').forEach(r => {
+    r.classList.toggle('hidden-by-year', r.dataset.year !== year);
+  });
+  if(tabs) tabs.querySelectorAll('.payments-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.year === year);
+  });
+}
+
+function toggleVpFormV2() {
   const form = document.getElementById('vp-pay-form');
   const btn  = document.getElementById('vp-toggle-btn');
-  const isOpen = form.style.display !== 'none';
-  form.style.display = isOpen ? 'none' : 'block';
-  btn.textContent = isOpen ? '+ הוסף תשלום' : '✕ סגור';
-  btn.style.borderRadius = isOpen ? '8px' : '8px 8px 0 0';
+  if(!form || !btn) return;
+  const isOpen = form.classList.toggle('open');
+  btn.textContent = isOpen ? '✕ סגור' : '+ הוסף תשלום';
+}
+
+function uploadPolicyDoc(policyId) {
+  toast('📎 אחסון מסמכי פוליסה — בפיתוח','warning');
 }
 
 function addPaymentFromView(policyId) {
@@ -4445,6 +6813,10 @@ function csvRowPolicyChange(i,sel) {
 function csvSelectAll(master) {
   csvMapped.forEach((_,i)=>{ const cb=document.getElementById('csv-check-'+i); if(cb&&!cb.disabled) cb.checked=master.checked; });
 }
+// Month distance helpers — used to reconcile committed installments against real charges.
+function _monthIndex(dateStr) { const [y,m] = (dateStr||'').slice(0,7).split('-').map(Number); return (y||0)*12 + ((m||1)-1); }
+function _monthsApart(d1, d2) { return Math.abs(_monthIndex(d1) - _monthIndex(d2)); }
+
 function importSelectedCSV() {
   const overrideCb  = document.getElementById('csv-date-override-toggle');
   const overrideVal = document.getElementById('csv-date-override-val');
@@ -4463,10 +6835,24 @@ function importSelectedCSV() {
     const useDate = dateOverride || r.date;
     let mainAmount = r.split?.policyId && r.split?.amount > 0 ? r.amount - r.split.amount : r.amount;
 
-    // Conflict = same policy + same calendar month
-    const existing = pid ? payments.find(pay =>
-      pay.policyId === pid && pay.date?.slice(0,7) === useDate?.slice(0,7)
-    ) : null;
+    if (!pid) { toImport.push({ i, r, pid, useDate, mainAmount }); return; }
+
+    // F1: a real charge auto-replaces a COMMITTED placeholder for this policy.
+    // Prefer the exact month; fall back to ±1 month for billing-day drift (committed for July,
+    // card actually charges Aug 2). The placeholder is deleted in _executeImport — never double-counted.
+    const committedMatch =
+      payments.find(pay => pay.policyId === pid && pay.status === 'committed' && pay.date?.slice(0,7) === useDate?.slice(0,7))
+      || payments.find(pay => pay.policyId === pid && pay.status === 'committed' && _monthsApart(pay.date, useDate) === 1);
+    if (committedMatch) {
+      toImport.push({ i, r, pid, useDate, mainAmount, replacesId: committedMatch.id });
+      return;
+    }
+
+    // Genuine conflict = same policy + same calendar month among CLEARED payments → ask the user.
+    const existing = payments.find(pay =>
+      pay.policyId === pid && (pay.status || 'cleared') !== 'committed' &&
+      pay.date?.slice(0,7) === useDate?.slice(0,7)
+    );
 
     if (existing) conflicts.push({ i, r, pid, useDate, mainAmount, existingPay: existing, decision: 'skip' });
     else          toImport.push({ i, r, pid, useDate, mainAmount });
@@ -4543,12 +6929,14 @@ function executeConflictImport() {
 function _executeImport(toImport, conflicts, isStatePay) {
   let n = 0;
   const push = (pid, useDate, amount, desc, unknown) => {
-    const obj = { id:uid(), policyId:pid||null, date:useDate, amount, actualAmount:amount, note:desc, source:'csv', unknown:!!unknown, createdAt:new Date().toISOString() };
+    const obj = { id:uid(), policyId:pid||null, date:useDate, amount, actualAmount:amount, note:desc, source:'csv', status:'cleared', unknown:!!unknown, createdAt:new Date().toISOString() };
     if (isStatePay && pid) obj.paidBy = 'state';
     payments.push(obj); n++;
   };
 
-  toImport.forEach(({ r, pid, useDate, mainAmount }) => {
+  toImport.forEach(({ r, pid, useDate, mainAmount, replacesId }) => {
+    // F1: drop the committed placeholder this real charge fulfills (no double-count).
+    if (replacesId) payments = payments.filter(p => p.id !== replacesId);
     if (r.split?.policyId && r.split?.amount > 0) {
       const splitDup = payments.some(p => p.policyId===r.split.policyId && p.date===useDate && Math.abs(p.amount-r.split.amount)<0.5);
       if (!splitDup) push(r.split.policyId, useDate, r.split.amount, r.desc+' (פיצול)', false);
@@ -4845,6 +7233,7 @@ function renderMonthlySummary() {
   Object.keys(_cellStore).forEach(k => { if(k.includes(`|${year}|`)) delete _cellStore[k]; });
 
   const isCar = p => p.type === 'רכב';
+  const SAVING_TYPES_MS = new Set(['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון']);
 
   // Build header — months as columns
   const head = document.getElementById('monthly-summary-head');
@@ -4872,8 +7261,9 @@ function renderMonthlySummary() {
       const mStart = new Date(year, mIdx, 1);
       const mEnd   = new Date(year, mIdx + 1, 0);
 
-      // Find actual payment(s) this month
+      // Find actual payment(s) this month — committed placeholders are forecasts, not actuals
       const payRecs = payments.filter(pay => {
+        if(pay.status === 'committed') return false;
         const d = new Date(pay.date + 'T12:00:00');
         return pay.policyId === pol.id && d.getFullYear() === year && d.getMonth() === mIdx;
       });
@@ -4883,47 +7273,36 @@ function renderMonthlySummary() {
       // Policy not active this month
       const notActive = s > mEnd || e < mStart;
 
+      // Per-cell EXPECTED amount (B5): insurance shows dueAmount only on its due months — matching the
+      // dashboard — instead of dumping the full annual premium into the renew month. Savings have no
+      // fixed schedule → averaged monthly (Rule #5).
+      const isSavingPol = SAVING_TYPES_MS.has(pol.type);
+      const dueThisMonth = isSavingPol || isDueInMonth(pol, year, mIdx);
+      const cellExpected = !dueThisMonth ? 0 : (isSavingPol ? toMonthly(pol.amount, pol.frequency) : dueAmount(pol));
+
       // Store cell
       const cellKey = `${pol.id}|${year}|${mIdx}`;
-      _cellStore[cellKey] = { policyId: pol.id, year, month: mIdx, estimate };
+      _cellStore[cellKey] = { policyId: pol.id, year, month: mIdx, estimate: cellExpected };
 
-      let displayAmt, cellClass, prefix;
+      let displayAmt;
 
       if(hasPayment) {
         displayAmt = actualSum;
-        cellClass  = 'actual';
-        prefix     = '✓ ';
         rowTotal  += displayAmt;
         rowActual += displayAmt;
-        monthTotals[mIdx] += displayAmt;
-        return `<td class="${cellClass} clickable-cell" style="text-align:center;font-size:12px;" title="${pol.company} · ${mName} — לחץ לעדכון" onclick="openCellEditor(this,'${cellKey}')">${prefix}${fmt$(displayAmt)}</td>`;
+        return `<td class="actual clickable-cell" style="text-align:center;font-size:12px;" title="${pol.company} · ${mName} — לחץ לעדכון" onclick="openCellEditor(this,'${cellKey}')">✓ ${fmt$(displayAmt)}</td>`;
       } else if(notActive) {
         return `<td style="text-align:center;color:var(--text-dim);opacity:.2;">—</td>`;
-      } else if(isCar(pol)) {
-        // רכב — בחודש חידוש הפוליסה מציג הערכה שנתית, שאר החודשים ריקים
-        const renewMonth = new Date(pol.start + 'T12:00:00').getMonth();
-        const isRenewMonth = mIdx === renewMonth;
-        if(isRenewMonth && !isFuture) {
-          rowTotal += pol.amount;
-          monthTotals[mIdx] += pol.amount;
-          return `<td class="estimate clickable-cell" style="text-align:center;font-size:12px;color:var(--text-dim);" title="${pol.company} · ${mName} — הערכה שנתית" onclick="openCellEditor(this,'${cellKey}')">~${fmt$(pol.amount)}</td>`;
-        } else if(isRenewMonth && isFuture) {
-          rowTotal += pol.amount;
-          monthTotals[mIdx] += pol.amount;
-          return `<td class="estimate future clickable-cell" style="text-align:center;font-size:12px;opacity:.55;" title="${pol.company} · ${mName} — הערכה שנתית" onclick="openCellEditor(this,'${cellKey}')">${fmt$(pol.amount)}</td>`;
-        }
+      } else if(!dueThisMonth) {
+        // Active but no installment due this month
         return `<td style="text-align:center;color:var(--text-dim);opacity:.2;">·</td>`;
-      } else if(isFuture) {
-        displayAmt = estimate;
-        rowTotal  += displayAmt;
-        monthTotals[mIdx] += displayAmt;
-        return `<td class="estimate future clickable-cell" style="text-align:center;font-size:12px;opacity:.55;" title="${pol.company} · ${mName}" onclick="openCellEditor(this,'${cellKey}')">${fmt$(displayAmt)}</td>`;
-      } else {
-        displayAmt = estimate;
-        rowTotal  += displayAmt;
-        monthTotals[mIdx] += displayAmt;
-        return `<td class="estimate clickable-cell" style="text-align:center;font-size:12px;" title="${pol.company} · ${mName} — לחץ לעדכון" onclick="openCellEditor(this,'${cellKey}')">~${fmt$(displayAmt)}</td>`;
       }
+      displayAmt = cellExpected;
+      rowTotal += displayAmt;
+      if(isFuture) {
+        return `<td class="estimate future clickable-cell" style="text-align:center;font-size:12px;opacity:.55;" title="${pol.company} · ${mName}" onclick="openCellEditor(this,'${cellKey}')">${fmt$(displayAmt)}</td>`;
+      }
+      return `<td class="estimate clickable-cell" style="text-align:center;font-size:12px;" title="${pol.company} · ${mName} — לחץ לעדכון" onclick="openCellEditor(this,'${cellKey}')">~${fmt$(displayAmt)}</td>`;
     });
 
     grandTotal += rowTotal;
@@ -4985,6 +7364,7 @@ function renderMonthlySummary() {
   activePols.forEach(pol => {
     for(let mIdx = 0; mIdx < 12; mIdx++) {
       const payRecs = payments.filter(pay => {
+        if(pay.status === 'committed') return false; // forecasts aren't actuals
         const d = new Date(pay.date + 'T12:00:00');
         return pay.policyId === pol.id && d.getFullYear() === year && d.getMonth() === mIdx;
       });
@@ -4994,23 +7374,18 @@ function renderMonthlySummary() {
   // Add unknown payments to actual totals
   unknownByMonth.forEach((amt, mIdx) => { actualMonthTotals[mIdx] += amt; });
 
-  // חשב הערכה חודשית טהורה (ללא תשלומים בפועל) לכל חודש
+  // הערכה חודשית טהורה (ללא תשלומים בפועל) — תואם לגוף הטבלה: dueAmount בחודשי החיוב לביטוח, ממוצע לחסכון
   const estimateMonthTotals = new Array(12).fill(0);
   activePols.forEach(pol => {
     const s = new Date(pol.start  + 'T12:00:00');
     const e = new Date(pol.expiry + 'T12:00:00');
-    const estimate = toMonthly(pol.amount, pol.frequency);
+    const isSavingPol = SAVING_TYPES_MS.has(pol.type);
     for(let mIdx = 0; mIdx < 12; mIdx++) {
       const mStart = new Date(year, mIdx, 1);
       const mEnd   = new Date(year, mIdx + 1, 0);
-      const notActive = s > mEnd || e < mStart;
-      if(notActive) continue;
-      if(isCar(pol)) {
-        const renewMonth = new Date(pol.start + 'T12:00:00').getMonth();
-        if(mIdx === renewMonth) estimateMonthTotals[mIdx] += pol.amount;
-      } else {
-        estimateMonthTotals[mIdx] += estimate;
-      }
+      if(s > mEnd || e < mStart) continue;
+      if(isSavingPol) estimateMonthTotals[mIdx] += toMonthly(pol.amount, pol.frequency);
+      else if(isDueInMonth(pol, year, mIdx)) estimateMonthTotals[mIdx] += dueAmount(pol);
     }
   });
 
@@ -5092,6 +7467,7 @@ function deduplicatePayments() {
   const seen = new Set();
   const before = payments.length;
   payments = payments.filter(pay => {
+    if(pay.status === 'committed') return true; // forecasts are not duplicates — never dedup them away
     const key = `${pay.policyId}|${pay.date}|${Math.round(pay.amount)}`;
     if(seen.has(key)) return false;
     seen.add(key);

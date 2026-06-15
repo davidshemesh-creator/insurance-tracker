@@ -848,6 +848,36 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 }
 .detail-card.full { grid-column: 1 / -1; }
 
+/* ── Policy edit modal — aligned to the new popup language ───────── */
+#policy-modal .modal { max-width: 780px; overflow: hidden; }
+#policy-modal .modal-body { padding: 22px 22px 8px; }
+#policy-modal label {
+  font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0;
+  color: var(--text-dim);
+}
+#policy-modal input,
+#policy-modal select,
+#policy-modal textarea {
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 10px;
+  padding: 11px 13px;
+}
+#policy-modal input:focus,
+#policy-modal select:focus,
+#policy-modal textarea:focus {
+  border-color: var(--accent);
+  background: rgba(255,255,255,.06);
+  box-shadow: 0 0 0 3px rgba(230,0,126,.16);
+}
+#policy-modal input::placeholder,
+#policy-modal textarea::placeholder { color: rgba(255,255,255,.28); }
+#policy-modal .modal-footer {
+  padding: 16px 22px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+#policy-modal .modal-footer .btn { border-radius: 10px; padding: 11px 16px; font-weight: 700; }
+
 /* pills row (ד"נ, הנחה) */
 .pills-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .popup-pill {
@@ -1092,6 +1122,9 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 }
 #page-dashboard.page { display: none; }
 #page-dashboard.page.active { display: block; }
+
+/* Monthly summary: wider horizontal padding so the edge columns don't hug the page edge */
+#page-monthly-summary { padding: 24px 40px 60px; }
 
 .dash3-app {
   max-width: 1440px;
@@ -1444,7 +1477,7 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
   opacity: 0.7;
 }
 .dash3-row-trail-dots span.on {
-  background: oklch(0.78 0.13 350 / .55);
+  background: var(--d-green);
   opacity: 1;
 }
 .dash3-row-trail-dots span.future {
@@ -1458,7 +1491,7 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
   background: oklch(0.36 0.01 320);
   box-shadow: 0 0 0 2px var(--d-surf), 0 0 0 3px var(--d-accent);
 }
-.dash3-row-trail-dots span.now.on { background: var(--d-accent); }
+.dash3-row-trail-dots span.now.on { background: var(--d-green); }
 .dash3-row-trail-dots span.now.future {
   background: var(--d-surf);
   border: 1px solid var(--d-accent);
@@ -1472,6 +1505,26 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 .dash3-row-trail-dots span.now.committed {
   background: var(--d-surf);
   box-shadow: 0 0 0 2px var(--d-surf), 0 0 0 3px var(--d-accent), inset 0 0 0 1.6px oklch(0.72 0.16 312);
+}
+/* due = scheduled payment month, not yet paid → solid pink marker ("אמור להשתלם").
+   Placed after .future so it wins on equal specificity for due-future months. */
+.dash3-row-trail-dots span.due {
+  background: var(--d-accent);
+  border: none;
+  opacity: 1;
+  width: 6px; height: 6px;
+}
+.dash3-row-trail-dots span.now.due {
+  width: 7px; height: 7px;
+  background: var(--d-accent);
+  box-shadow: 0 0 0 2px var(--d-surf), 0 0 0 3px var(--d-accent);
+}
+/* due-past = was a scheduled payment month in the past, never logged → faint pink ("פספוס") */
+.dash3-row-trail-dots span.due-past {
+  background: oklch(0.72 0.22 350 / .3);
+  border: none;
+  opacity: 1;
+  width: 6px; height: 6px;
 }
 
 .dash3-row-amounts {
@@ -1942,26 +1995,26 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 .monthly-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
-  min-width: 600px;
+  font-size: 11px;
+  min-width: 0;
   table-layout: fixed;
 }
 .monthly-table th {
   background: var(--bg2);
   color: var(--text-dim);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .05em;
-  padding: 8px 10px;
+  letter-spacing: .02em;
+  padding: 6px 3px;
   text-align: center;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
-.monthly-table th:first-child { text-align: right; width: 140px; }
-.monthly-table th:last-child { width: 70px; }
+.monthly-table th:first-child { text-align: right; width: 112px; padding-right: 8px; }
+.monthly-table th:last-child { width: 58px; }
 .monthly-table td {
-  padding: 9px 10px;
+  padding: 6px 2px;
   text-align: center;
   border-bottom: 1px solid rgba(255,255,255,.05);
   vertical-align: middle;
@@ -1994,11 +2047,11 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 }
 .monthly-table tfoot td {
   font-weight: 800;
-  font-size: 14px;
+  font-size: 11px;
   border-top: 2px solid var(--accent);
   background: rgba(230,0,126,.08);
   color: var(--text);
-  padding: 12px 10px;
+  padding: 10px 2px;
 }
 
 /* Clickable cells in monthly summary */
@@ -2046,6 +2099,31 @@ input[type="checkbox"] { width: auto; accent-color: var(--accent); }
   color: var(--accent);
   border-bottom: 2px solid var(--accent);
 }
+
+/* ── Monthly summary v2 — aligned to the dashboard color language ── */
+.monthly-table { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; }
+.ms-row { border-bottom: 1px solid var(--border); }
+.ms-row:hover td { background: rgba(255,255,255,.025); }
+.ms-name-cell { padding: 6px 8px 6px 4px; cursor: pointer; }
+.ms-name-wrap { display: flex; align-items: center; gap: 7px; }
+.ms-cat-icon {
+  width: 26px; height: 26px; border-radius: 7px;
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.ms-cat-icon svg { width: 14px; height: 14px; }
+.ms-name-text { min-width: 0; }
+.ms-name-type { font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ms-name-co   { font-size: 10px; color: var(--text-dim); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ms-cell { text-align: center; font-size: 11px; padding: 6px 2px; white-space: nowrap; }
+.ms-paid { color: oklch(0.82 0.17 150); font-weight: 700; }
+.ms-est  { color: var(--text-dim); font-weight: 500; }
+.ms-idle     { color: rgba(255,255,255,.16); }
+.ms-off      { color: rgba(255,255,255,.09); }
+.clickable-cell { cursor: pointer; transition: filter .12s; }
+.clickable-cell:hover { filter: brightness(1.3); }
+.ms-total { text-align: center; font-size: 12px; }
+.ms-total-real { font-weight: 700; color: #fff; }
+.ms-total-est  { font-weight: 600; color: var(--text-dim); }
 
 /* ── History table-like list ────────────────────────────────────── */
 .hist-item {
@@ -2786,7 +2864,7 @@ tr:hover td { background: var(--bg3); }
           <span class="nav-icon">📅</span> סיכום חודשי
         </button>
         <button class="nav-item" onclick="navigate('history', this)">
-          <span class="nav-icon">🧾</span> היסטוריית תשלומים
+          <span class="nav-icon">💳</span> היסטוריית תשלומים
         </button>
       </div>
       <div class="nav-section">
@@ -3082,6 +3160,13 @@ tr:hover td { background: var(--bg3); }
         </div>
         <div class="settings-row">
           <div class="settings-row-info">
+            <h4>נקה פוליסות כפולות</h4>
+            <p id="dup-policies-info">בודק…</p>
+          </div>
+          <button class="btn btn-sm" style="background:var(--accent2);color:#fff;" onclick="deduplicatePolicies()">🧹 נקה כפילויות</button>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info">
             <h4>נקה כל התשלומים</h4>
             <p>מחיקת כל היסטוריית התשלומים — הפוליסות נשמרות</p>
           </div>
@@ -3179,11 +3264,15 @@ tr:hover td { background: var(--bg3); }
 
 <!-- ── ADD / EDIT POLICY MODAL ──────────────────────────────────── -->
 <div class="modal-overlay hidden" id="policy-modal">
-  <div class="modal">
+  <div class="modal" style="position:relative;">
     <div class="modal-handle"></div>
-    <div class="modal-header">
-      <span class="modal-title" id="policy-modal-title">הוספת פוליסה</span>
-      <button class="btn-close" onclick="closeModal('policy-modal')">✕</button>
+    <button class="modal-close-x" onclick="closePolicyEdit()">✕</button>
+    <div class="popup-header" id="pe-header" style="background:linear-gradient(135deg, oklch(0.34 0.06 320), oklch(0.22 0.03 320));">
+      <div class="popup-header-cat-icon" id="pe-header-icon"></div>
+      <div class="popup-header-text">
+        <div class="popup-header-title" id="policy-modal-title">הוספת פוליסה</div>
+        <div class="popup-header-sub" id="pe-header-sub">פרטי הפוליסה</div>
+      </div>
     </div>
     <div class="modal-body">
       <form id="policy-form" onsubmit="savePolicy(event)">
@@ -3191,7 +3280,7 @@ tr:hover td { background: var(--bg3); }
 
           <!-- ── 1. זיהוי ──────────────────────────────────────── -->
           <div class="form-group full" style="margin-bottom:0;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-sub);margin-bottom:10px;">זיהוי</div>
+            <div class="popup-section-title" style="margin-bottom:8px;">זיהוי</div>
           </div>
           <div class="form-group full">
             <label>שם החברה *</label>
@@ -3199,7 +3288,7 @@ tr:hover td { background: var(--bg3); }
           </div>
           <div class="form-group full">
             <label>סוג הביטוח *</label>
-            <select id="f-type" required onchange="toggleBalanceField()">
+            <select id="f-type" required onchange="toggleBalanceField();updatePolicyModalTheme()">
               <option value="">בחר…</option>
               <option value="בריאות">בריאות</option>
               <option value="חיים">חיים</option>
@@ -3226,7 +3315,7 @@ tr:hover td { background: var(--bg3); }
 
           <!-- ── 2. מבוטחים ─────────────────────────────────────── -->
           <div class="form-group full" style="margin-bottom:0;margin-top:4px;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-sub);margin-bottom:10px;">מבוטחים</div>
+            <div class="popup-section-title" style="margin-bottom:8px;">מבוטחים</div>
           </div>
           <div class="form-group full" id="f-insured-group">
             <label style="display:flex;justify-content:space-between;align-items:center;">
@@ -3238,7 +3327,7 @@ tr:hover td { background: var(--bg3); }
 
           <!-- ── 3. תשלום ──────────────────────────────────────── -->
           <div class="form-group full" style="margin-bottom:0;margin-top:4px;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-sub);margin-bottom:10px;">תשלום</div>
+            <div class="popup-section-title" style="margin-bottom:8px;">תשלום</div>
           </div>
           <div class="form-group">
             <label id="f-amount-label">סכום תשלום (₪)</label>
@@ -3307,7 +3396,7 @@ tr:hover td { background: var(--bg3); }
             <label>יתרה/צבירה (₪)</label>
             <input id="f-balance" type="number" step="0.01" min="0" placeholder="0.00">
             <label style="margin-top:10px;display:block;font-size:12px;color:var(--text-dim);">נכון לתאריך</label>
-            <input id="f-balance-date" type="month" style="margin-top:4px;width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;">
+            <input id="f-balance-date" type="month" style="margin-top:4px;">
           </div>
           <div id="f-fees-row-group" class="form-group full" style="display:none;grid-column:1/-1;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -3329,7 +3418,7 @@ tr:hover td { background: var(--bg3); }
 
           <!-- ── 5. תאריכים ─────────────────────────────────────── -->
           <div class="form-group full" style="margin-bottom:0;margin-top:4px;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-sub);margin-bottom:10px;">תאריכים</div>
+            <div class="popup-section-title" style="margin-bottom:8px;">תאריכים</div>
           </div>
           <div class="form-group">
             <label>תאריך התחלה *</label>
@@ -3342,7 +3431,7 @@ tr:hover td { background: var(--bg3); }
 
           <!-- ── 6. נוספות ──────────────────────────────────────── -->
           <div class="form-group full" style="margin-bottom:0;margin-top:4px;">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-sub);margin-bottom:10px;">נוספות</div>
+            <div class="popup-section-title" style="margin-bottom:8px;">נוספות</div>
           </div>
           <div class="form-group full">
             <label>תיאור / תגית</label>
@@ -3361,7 +3450,7 @@ tr:hover td { background: var(--bg3); }
     <div class="modal-footer" style="flex-wrap:wrap;gap:8px;">
       <button id="policy-delete-btn" class="btn btn-danger btn-sm" style="display:none;" onclick="confirmDeleteFromEdit()">🗑️ מחק פוליסה</button>
       <div style="display:flex;gap:8px;flex:1;justify-content:flex-end;">
-        <button class="btn btn-ghost" style="flex:1;min-width:80px;" onclick="closeModal('policy-modal')">ביטול</button>
+        <button class="btn btn-ghost" style="flex:1;min-width:80px;" onclick="closePolicyEdit()">ביטול</button>
         <button class="btn btn-accent" style="flex:2;" onclick="document.getElementById('policy-form').requestSubmit()">שמור פוליסה</button>
       </div>
     </div>
@@ -3418,92 +3507,47 @@ tr:hover td { background: var(--bg3); }
   </div>
 </div>
 
-<!-- ── QUICK UPDATE MODAL ────────────────────────────────────────── -->
-<div class="modal-overlay hidden" id="quick-update-modal">
+<!-- ── TRANSFER (ניוד) MODAL ─────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="transfer-modal">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-header">
-      <span class="modal-title" id="qu-title">⚡ עדכון מהיר</span>
-      <button class="btn-close" onclick="closeModal('quick-update-modal')">✕</button>
+      <span class="modal-title" id="transfer-title">🔄 ניוד קרן לחברה אחרת</span>
+      <button class="btn-close" onclick="closeModal('transfer-modal')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="qu-header-band" id="qu-header-band"></div>
-      <input type="hidden" id="qu-id">
-
-      <!-- PDF AI Upload strip -->
-      <div class="pdf-ai-strip" id="pdf-ai-strip">
-        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
-          <span style="font-size:20px;">🤖</span>
-          <div style="min-width:0;">
-            <div style="font-size:13px;font-weight:700;">קריאת PDF אוטומטית</div>
-            <div style="font-size:11px;color:var(--text-dim);" id="pdf-ai-sub">העלה מסמך PDF מחברת הביטוח — Claude יקרא ויעדכן</div>
+      <input type="hidden" id="tr-source-id">
+      <div id="tr-context" style="font-size:12px;color:var(--text-dim);background:rgba(155,89,182,.08);border:1px solid var(--accent2);border-radius:10px;padding:11px 14px;margin-bottom:16px;line-height:1.6;"></div>
+      <div style="display:flex;flex-direction:column;gap:13px;">
+        <div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">חברה חדשה *</div>
+          <input type="text" id="tr-company" placeholder="לאן הקרן עוברת" style="width:100%;">
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;">
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">תאריך ניוד *</div>
+            <input type="date" id="tr-date" style="width:100%;">
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">יתרה שעוברת (₪)</div>
+            <input type="number" id="tr-balance" min="0" step="0.01" style="width:100%;">
           </div>
         </div>
-        <label class="btn btn-accent btn-sm" style="cursor:pointer;white-space:nowrap;">
-          📄 בחר PDF
-          <input type="file" id="pdf-ai-input" accept=".pdf" style="display:none;" onchange="handlePdfUpload(this)">
-        </label>
-      </div>
-
-      <!-- AI reading state -->
-      <div id="pdf-ai-loading" style="display:none;text-align:center;padding:20px 0;">
-        <div class="pdf-ai-spinner"></div>
-        <div style="font-size:13px;color:var(--text-dim);margin-top:10px;" id="pdf-ai-status">Claude קורא את המסמך...</div>
-      </div>
-
-      <!-- AI result preview -->
-      <div id="pdf-ai-result" style="display:none;">
-        <div class="pdf-ai-result-header">
-          <span>✅ Claude קרא את המסמך — בדוק ואשר:</span>
-          <button class="btn btn-ghost btn-sm" onclick="clearPdfResult()">נקה</button>
-        </div>
-        <div id="pdf-ai-fields"></div>
-      </div>
-
-      <div id="qu-manual-fields">
-        <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px;" id="qu-manual-hint">או עדכן ידנית:</p>
-
-        <div class="form-group" id="qu-amount-group">
-          <label id="qu-amount-label">פרמיה חודשית (₪)</label>
-          <input type="number" id="qu-amount" min="0" step="0.01" placeholder="0">
-          <span class="form-hint" id="qu-amount-hint">הסכום שמשולם כרגע</span>
-        </div>
-
-        <div class="form-group" id="qu-balance-group" style="display:none;">
-          <label>יתרה / צבירה (₪)</label>
-          <input type="number" id="qu-balance" min="0" step="1" placeholder="0">
-          <span class="form-hint">עדכן מהדוח השנתי / רבעוני</span>
-          <label style="margin-top:10px;display:block;font-size:12px;color:var(--text-dim);">נכון לתאריך</label>
-          <input type="month" id="qu-balance-date" style="margin-top:4px;width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;">
-        </div>
-
-        <div class="qu-fees-row">
-          <div class="form-group" style="flex:1;">
-            <label>ד"נ מהפקדה (%)</label>
-            <input type="number" id="qu-fee-deposit" min="0" max="10" step="0.01" placeholder="0">
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;">
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">סוכן</div>
+            <input type="text" id="tr-agent" style="width:100%;">
           </div>
-          <div class="form-group" style="flex:1;">
-            <label>ד"נ מצבירה (%)</label>
-            <input type="number" id="qu-fee-accumulation" min="0" max="10" step="0.01" placeholder="0">
+          <div style="flex:1;">
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px;">מספר פוליסה חדש</div>
+            <input type="text" id="tr-policy-number" style="width:100%;">
           </div>
         </div>
-
-        <div class="form-group">
-          <label>הערה לעדכון זה (אופציונלי)</label>
-          <input type="text" id="qu-note" placeholder='למשל: "עדכון מדד ינואר 2025"'>
-        </div>
-
-        <div class="qu-log-toggle">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
-            <input type="checkbox" id="qu-log-payment" checked style="accent-color:var(--accent);width:16px;height:16px;">
-            <span>רשום גם תשלום לחודש הנוכחי בסכום המעודכן</span>
-          </label>
-        </div>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" style="flex:1;" onclick="closeModal('quick-update-modal')">ביטול</button>
-      <button class="btn btn-accent" style="flex:2;" onclick="saveQuickUpdate()">⚡ עדכן פוליסה</button>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button onclick="closeModal('transfer-modal')" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-size:14px;cursor:pointer;">ביטול</button>
+        <button onclick="confirmTransfer()" style="flex:2;padding:11px;background:var(--accent2);border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">בצע ניוד</button>
+      </div>
     </div>
   </div>
 </div>
@@ -3748,6 +3792,9 @@ function fmt$(n)     {
 function fmtDate(d)  { if(!d) return '—'; return new Date(d+'T12:00:00').toLocaleDateString('he-IL',{day:'numeric',month:'short',year:'numeric'}); }
 function daysUntil(d){ const now=new Date();now.setHours(0,0,0,0); return Math.round((new Date(d+'T12:00:00')-now)/86400000); }
 function isActive(p) {
+  // Transferred-out policies (ניוד) are archived: their balance moved to the successor
+  // fund, so they must be excluded from all active totals to avoid double-counting.
+  if(p.status === 'transferred') return false;
   const now=new Date();now.setHours(0,0,0,0);
   const started = new Date(p.start+'T00:00:00') <= now;
   const notExpired = !p.expiry || new Date(p.expiry+'T23:59:59') >= now;
@@ -4478,6 +4525,71 @@ function renewPolicy(id) {
   }
 }
 
+// ── ניוד (transfer fund to another company) ───────────────────────
+// Archive-and-link model: the source policy (A) is marked status='transferred' and keeps its
+// full payment history (frozen balance, excluded from active totals); a successor policy (B) is
+// created at the new company with the carried balance. Chain-safe (A→B→C) via the
+// transferredFrom / transferredTo links. See isActive() for the double-count guard.
+function openTransferPolicy(id) {
+  const p = policyById(id);
+  if(!p) { toast('שגיאה: הפוליסה לא נמצאה', 'error'); return; }
+  document.getElementById('tr-source-id').value = id;
+  document.getElementById('transfer-title').textContent = '🔄 ניוד — ' + (p.tag || p.type);
+  document.getElementById('tr-context').innerHTML =
+    `מ-<strong>${p.company || '—'}</strong> · ${p.type}<br>` +
+    `היתרה הנוכחית (${fmt$(p.balance || 0)}) תעבור לקרן החדשה. הקרן הזו תיסגר ותישאר לצפייה עם כל ההיסטוריה.`;
+  document.getElementById('tr-company').value = '';
+  document.getElementById('tr-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('tr-balance').value = p.balance || '';
+  document.getElementById('tr-agent').value = p.agent || '';
+  document.getElementById('tr-policy-number').value = '';
+  closeModal('view-modal');
+  openModal('transfer-modal');
+}
+
+function confirmTransfer() {
+  const src = policyById(document.getElementById('tr-source-id').value);
+  if(!src) { toast('שגיאה: מקור הניוד לא נמצא', 'error'); return; }
+  const newCompany = document.getElementById('tr-company').value.trim();
+  const trDate     = document.getElementById('tr-date').value;
+  if(!newCompany) { toast('הזן חברה חדשה', 'error'); return; }
+  if(!trDate)     { toast('הזן תאריך ניוד', 'error'); return; }
+  const carried = parseFloat(document.getElementById('tr-balance').value) || 0;
+
+  // Successor (B): continues the fund at the new company. Inherits type/insured/fees from A;
+  // explicit fields below override the inherited ones. transferredFrom is set fresh so chains work.
+  const newId = uid();
+  const successor = {
+    ...src,
+    id: newId,
+    company: newCompany,
+    agent: document.getElementById('tr-agent').value.trim(),
+    policyNumber: document.getElementById('tr-policy-number').value.trim(),
+    start: trDate,
+    balance: carried,
+    balanceDate: trDate,
+    status: 'active',
+    transferredFrom: src.id,
+    transferDate: trDate,
+    createdAt: new Date().toISOString(),
+  };
+  delete successor.transferredTo; // B is the new tail of the chain
+
+  // Predecessor (A): archive, keep history + frozen balance, link forward.
+  src.status = 'transferred';
+  src.transferredTo = newId;
+  src.transferDate = trDate;
+  const i = policies.findIndex(p => p.id === src.id);
+  if(i !== -1) policies[i] = src;
+
+  policies.push(successor);
+  pp();
+  closeModal('transfer-modal');
+  toast(`ניוד בוצע — הקרן עברה ל-${newCompany}`, 'success');
+  renderPolicies(); renderDashboard();
+  viewPolicy(newId); // jump to the new fund
+}
+
 function renderDashboard() {
   // Guards: only run if dashboard structure exists
   const summaryEl = document.getElementById('dash3-summary');
@@ -4569,7 +4681,7 @@ function renderDashboard() {
       <header class="dash3-card-h">
         <div>
           <div class="dash3-eyebrow">תשלום החודש</div>
-          <div class="dash3-card-title">${DASH3_MONTHS[dash3Month]} ${dash3Year}</div>
+          <div class="dash3-card-title">ביטוחים</div>
         </div>
         <div class="dash3-card-corner">
           ${dash3MoneyHtml(insMonthlyTotal, 'sm', '', 'muted')}
@@ -4635,14 +4747,14 @@ function renderDashboard() {
           <div class="dash3-card-title">חיסכון וצבירה</div>
         </div>
         <div class="dash3-card-corner">
-          ${dash3MoneyHtml(savMonthly, 'sm', '+', 'muted')}
-          <span class="dash3-card-corner-l">הפקדה חודשית</span>
+          ${dash3MoneyHtml(totalBalance, 'sm', '', 'muted')}
+          <span class="dash3-card-corner-l">סך צבירה</span>
         </div>
       </header>
       <div class="dash3-card-body dash3-month-body">
         <div class="dash3-month-amount">
-          <span class="dash3-month-amount-eyebrow">סך צבירה</span>
-          ${dash3MoneyHtml(totalBalance, 'xxl')}
+          <span class="dash3-month-amount-eyebrow">הפקדה חודשית</span>
+          ${dash3MoneyHtml(savMonthly, 'xxl', '+')}
           <span class="dash3-month-amount-l">${savings.length} ${savingsCountText}</span>
         </div>
         <div class="dash3-month-ring-wrap">
@@ -4681,12 +4793,21 @@ function renderDashboard() {
     const dotsHtml = hist.map((v, i) => {
       const isNow    = i === dash3Month;
       const isFuture = dash3Year > todayYear || (dash3Year === todayYear && i > todayMonth);
+      // due = this month is a scheduled payment month for the policy and nothing's been
+      // logged yet (v===0). Two shades: full pink for now/future ("צפוי"), faint pink for a
+      // past month that was due but never updated ("אמור היה להשתלם, לא עודכן").
+      const isDue    = v === 0 && dash3IsDueInMonth(p, dash3Year, i);
+      const isPast   = !isFuture && !isNow;
       const cls = [
         v === 1 ? 'on' : (v === 2 ? 'committed' : ''),
+        isDue ? (isPast ? 'due-past' : 'due') : '',
         isNow ? 'now' : '',
-        isFuture ? 'future' : ''
+        (isFuture && !isDue) ? 'future' : ''
       ].filter(Boolean).join(' ');
-      const stt = v === 2 ? ' · מחויב' : (v === 1 ? ' · שולם' : '');
+      const stt = v === 2 ? ' · מחויב'
+                : v === 1 ? ' · שולם'
+                : isDue ? (isPast ? ' · אמור היה להשתלם, לא עודכן' : ' · אמור להשתלם')
+                : '';
       return `<span class="${cls}" title="${DASH3_MONTHS[i]} ${dash3Year}${stt}"></span>`;
     }).join('');
 
@@ -5348,7 +5469,34 @@ async function saveMissingTags() {
 // ══════════════════════════════════════════════════════════════════
 //  POLICY MODAL
 // ══════════════════════════════════════════════════════════════════
+// When edit is opened from a policy popup, remember which policy so closing/saving the edit
+// returns to that popup instead of dropping to a blank screen (openEditPolicy closes view-modal).
+let editReturnId = null;
+function closePolicyEdit() {
+  closeModal('policy-modal');
+  if(editReturnId) { const id = editReturnId; editReturnId = null; viewPolicy(id); }
+}
+
+// Theme the edit modal's gradient header by the selected category — mirrors the read-only popup
+// so entering edit doesn't drop back to the old flat header. Called on open + on f-type change.
+function updatePolicyModalTheme() {
+  const cat = dash3CategoryOf({ type: document.getElementById('f-type').value || 'אחר' });
+  const h = cat.hue;
+  const header = document.getElementById('pe-header');
+  const icon   = document.getElementById('pe-header-icon');
+  const sub    = document.getElementById('pe-header-sub');
+  if(header) header.style.background = `linear-gradient(135deg, oklch(0.34 0.13 ${h}), oklch(0.22 0.05 ${h}))`;
+  if(icon) {
+    icon.style.background = `oklch(0.42 0.16 ${h} / .85)`;
+    icon.style.color = `oklch(0.95 0.04 ${h})`;
+    icon.style.boxShadow = `inset 0 0 0 .5px oklch(0.6 0.18 ${h} / .5), inset 0 1px 0 rgba(255,255,255,.12)`;
+    icon.innerHTML = DASH3_ICONS[cat.icon] || DASH3_ICONS.shield;
+  }
+  if(sub) sub.textContent = document.getElementById('f-type').value || 'פוליסה חדשה';
+}
+
 function openAddPolicy() {
+  editReturnId = null; // brand-new policy → no popup to return to
   document.getElementById('policy-modal-title').textContent = 'הוספת פוליסה';
   document.getElementById('policy-form').reset();
   document.getElementById('f-id').value = '';
@@ -5362,11 +5510,13 @@ function openAddPolicy() {
   document.getElementById('f-start').value = new Date().toISOString().split('T')[0];
   document.getElementById('policy-delete-btn').style.display = 'none';
   setPayMode('monthly'); // default payment mode + init radio styling
+  updatePolicyModalTheme();
   openModal('policy-modal');
 }
 function openEditPolicy(id) {
   const p = policyById(id);
   if(!p) return;
+  editReturnId = id; // editing an existing policy → ✕/save returns to its popup
   closeModal('view-modal');
   document.getElementById('policy-modal-title').textContent = 'עריכת פוליסה';
   document.getElementById('f-id').value       = p.id;
@@ -5408,10 +5558,12 @@ function openEditPolicy(id) {
   // Show delete button only when editing existing policy
   document.getElementById('policy-delete-btn').style.display = 'inline-flex';
   document.getElementById('policy-delete-btn').dataset.policyId = p.id;
+  updatePolicyModalTheme();
   openModal('policy-modal');
 }
 function confirmDeleteFromEdit() {
   const id = document.getElementById('policy-delete-btn').dataset.policyId;
+  editReturnId = null; // policy is being deleted — don't try to reopen its popup
   closeModal('policy-modal');
   confirmDeletePolicy(id);
 }
@@ -5593,109 +5745,8 @@ function savePolicy(e) {
   closeModal('policy-modal');
   toast('הפוליסה נשמרה!','success');
   renderPolicies(); renderDashboard();
+  if(editReturnId) { const rid = editReturnId; editReturnId = null; viewPolicy(rid); }
 }
-// ══════════════════════════════════════════════════════════════════
-//  QUICK UPDATE
-// ══════════════════════════════════════════════════════════════════
-function openQuickUpdate(id) {
-  const p = policyById(id);
-  if(!p) return;
-  const isBal = isBalanceType(p);
-  const col  = typeColor(p.type);
-  const col2 = typeColor2(p.type);
-
-  document.getElementById('qu-id').value = id;
-  document.getElementById('qu-title').textContent = `⚡ עדכון מהיר — ${p.company}`;
-
-  // Header band with gradient
-  const band = document.getElementById('qu-header-band');
-  band.style.background = `linear-gradient(135deg,${col},${col2})`;
-  band.innerHTML = `${typeIcon(p.type)} ${p.company} · ${p.type}`;
-
-  // Amount / label
-  const amtGroup = document.getElementById('qu-amount-group');
-  const amtLabel = document.getElementById('qu-amount-label');
-  const amtHint  = document.getElementById('qu-amount-hint');
-  if(isBal && !p.amount) {
-    // Pure savings — hide amount, show only balance
-    amtGroup.style.display = 'none';
-  } else {
-    amtGroup.style.display = 'block';
-    amtLabel.textContent = isBal ? 'הפקדה חודשית (₪)' : `פרמיה ${({monthly:'חודשית',quarterly:'רבעונית','semi-annual':'חצי שנתית',annual:'שנתית'}[p.frequency]||'')} (₪)`;
-    amtHint.textContent  = `נוכחי: ${fmt$(p.amount)}`;
-    document.getElementById('qu-amount').value = p.amount || '';
-  }
-
-  // Balance group
-  const balGroup = document.getElementById('qu-balance-group');
-  balGroup.style.display = isBal ? 'block' : 'none';
-  document.getElementById('qu-balance').value     = p.balance || '';
-  document.getElementById('qu-balance-date').value = p.balanceDate || '';
-
-  // Fees
-  document.getElementById('qu-fee-deposit').value      = p.feeDeposit || '';
-  document.getElementById('qu-fee-accumulation').value = p.feeAccumulation || '';
-
-  // Note + log-payment checkbox
-  document.getElementById('qu-note').value = '';
-  document.getElementById('qu-log-payment').checked = (p.amount > 0);
-
-  openModal('quick-update-modal');
-}
-
-function saveQuickUpdate() {
-  const id = document.getElementById('qu-id').value;
-  const p  = policyById(id);
-  if(!p) return;
-
-  const newAmount  = parseFloat(document.getElementById('qu-amount').value) || p.amount || 0;
-  const newBalance = parseFloat(document.getElementById('qu-balance').value) || 0;
-  const newFeeDeposit      = parseFloat(document.getElementById('qu-fee-deposit').value) || 0;
-  const newFeeAccumulation = parseFloat(document.getElementById('qu-fee-accumulation').value) || 0;
-  const note = document.getElementById('qu-note').value.trim();
-  const logPayment = document.getElementById('qu-log-payment').checked;
-
-  // Track what changed for toast message
-  const changes = [];
-  if(newAmount !== p.amount)              changes.push(`פרמיה: ${fmt$(newAmount)}`);
-  if(isBalanceType(p) && newBalance !== (p.balance||0)) changes.push(`צבירה: ${fmt$(newBalance)}`);
-  if(newFeeDeposit !== (p.feeDeposit||0)) changes.push(`ד"נ הפקדה: ${newFeeDeposit}%`);
-  if(newFeeAccumulation !== (p.feeAccumulation||0)) changes.push(`ד"נ צבירה: ${newFeeAccumulation}%`);
-
-  // Apply updates to policy
-  const idx = policies.findIndex(x=>x.id===id);
-  if(idx===-1) return;
-
-  const amtGroup = document.getElementById('qu-amount-group');
-  if(amtGroup.style.display !== 'none') policies[idx].amount = newAmount;
-  if(isBalanceType(p)) {
-    policies[idx].balance     = newBalance;
-    policies[idx].balanceDate = document.getElementById('qu-balance-date').value || '';
-  }
-  policies[idx].feeDeposit      = newFeeDeposit;
-  policies[idx].feeAccumulation = newFeeAccumulation;
-
-  // Log payment for current month if checked
-  if(logPayment && newAmount > 0) {
-    const today = new Date().toISOString().split('T')[0];
-    const noteText = note || `עדכון מהיר${changes.length?' · '+changes.join(', '):''}`;
-    payments.push({
-      id: uid(), policyId: id,
-      date: today, amount: newAmount,
-      note: noteText, source: 'manual',
-      createdAt: new Date().toISOString()
-    });
-    py();
-  }
-
-  pp();
-  closeModal('quick-update-modal');
-
-  const changeStr = changes.length ? changes.join(', ') : 'הפוליסה עודכנה';
-  toast(`✓ ${changeStr}`, 'success');
-  renderPolicies(); renderDashboard();
-}
-
 function confirmDeletePolicy(id) {
   const p = policyById(id);
   if(!p) return;
@@ -5753,8 +5804,8 @@ function viewPolicy(id) {
   // Row 1, col 2 — status
   cards.push({
     label: 'סטטוס',
-    value: isActive(p) ? 'פעילה' : 'פגת תוקף',
-    cls: isActive(p) ? 'green' : 'warn'
+    value: p.status === 'transferred' ? 'הועברה (ניוד)' : (isActive(p) ? 'פעילה' : 'פגת תוקף'),
+    cls: p.status === 'transferred' ? 'warn' : (isActive(p) ? 'green' : 'warn')
   });
 
   // Row 2, col 1 — start date
@@ -5895,6 +5946,40 @@ function viewPolicy(id) {
       <div class="popup-divider"></div>
   ` : '';
 
+  // Lineage badge — links a transferred fund to its successor/predecessor (clickable).
+  let lineageBadge = '';
+  if(p.transferredTo) {
+    const tgt = policyById(p.transferredTo);
+    lineageBadge = `
+      <div class="popup-section" style="margin-bottom:0;">
+        <div onclick="viewPolicy('${p.transferredTo}')" style="cursor:pointer;display:flex;align-items:center;gap:10px;background:rgba(155,89,182,.10);border:1px solid var(--accent2);border-radius:10px;padding:11px 14px;">
+          <span style="font-size:16px;flex-shrink:0;">🔁</span>
+          <div style="font-size:12px;color:var(--text);flex:1;min-width:0;">הקרן <strong>הועברה</strong> ל-<strong>${tgt ? (tgt.company || 'חברה אחרת') : 'חברה אחרת'}</strong>${p.transferDate ? ' · ' + fmtDate(p.transferDate) : ''}</div>
+          <span style="color:var(--accent2);font-size:18px;flex-shrink:0;">←</span>
+        </div>
+      </div>
+      <div class="popup-divider"></div>
+    `;
+  } else if(p.transferredFrom) {
+    const srcP = policyById(p.transferredFrom);
+    lineageBadge = `
+      <div class="popup-section" style="margin-bottom:0;">
+        <div onclick="viewPolicy('${p.transferredFrom}')" style="cursor:pointer;display:flex;align-items:center;gap:10px;background:rgba(155,89,182,.08);border:1px solid var(--accent2);border-radius:10px;padding:11px 14px;">
+          <span style="font-size:16px;flex-shrink:0;">↩️</span>
+          <div style="font-size:12px;color:var(--text);flex:1;min-width:0;"><strong>נוצרה מניוד</strong> מ-<strong>${srcP ? (srcP.company || 'חברה קודמת') : 'חברה קודמת'}</strong>${p.transferDate ? ' · ' + fmtDate(p.transferDate) : (p.start ? ' · ' + fmtDate(p.start) : '')}</div>
+          <span style="color:var(--accent2);font-size:18px;flex-shrink:0;">→</span>
+        </div>
+      </div>
+      <div class="popup-divider"></div>
+    `;
+  }
+
+  // Transfer (ניוד) action — subtle text link, not a primary action. Lives at the bottom of
+  // the details section. Only for active savings funds not already transferred.
+  const transferAction = (isSaving && isActive(p) && !p.transferredTo) ? `
+        <button onclick="openTransferPolicy('${p.id}')" title="היתרה תעבור לקרן החדשה · ההיסטוריה כאן תישמר" style="margin-top:12px;background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer;padding:2px 0;display:inline-flex;align-items:center;gap:5px;text-decoration:underline;text-underline-offset:3px;">🔄 ניוד קרן לחברה אחרת</button>
+  ` : '';
+
   // Compose
   document.getElementById('view-modal-body').innerHTML = `
     <div class="popup-header" style="background:linear-gradient(135deg, oklch(0.34 0.13 ${dash3CategoryOf(p).hue}), oklch(0.22 0.05 ${dash3CategoryOf(p).hue}));">
@@ -5913,6 +5998,7 @@ function viewPolicy(id) {
 
     <div class="popup-content">
 
+      ${lineageBadge}
       ${renewBanner}
 
       <div class="popup-section">
@@ -5927,6 +6013,7 @@ function viewPolicy(id) {
         </div>
         <div class="detail-grid">${cardsHtml}</div>
         ${pillsHtml}
+        ${transferAction}
       </div>
 
       ${insuredHtml}
@@ -6388,10 +6475,14 @@ function updateColPreview(selectId) {
 }
 
 function autoDetect(headers, candidates) {
+  // Normalize whitespace: Visa/bank xlsx headers carry embedded newlines ("סכום\nחיוב"),
+  // which broke exact matching and let the generic "סכום" partial grab the wrong column.
+  const norm = s => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
+  const H = headers.map(norm);
   // exact match first
-  for(const c of candidates){ const i=headers.findIndex(h=>h.toLowerCase()===c.toLowerCase()); if(i!==-1) return i; }
+  for(const c of candidates){ const cc=norm(c); const i=H.findIndex(h=>h===cc); if(i!==-1) return i; }
   // then partial
-  for(const c of candidates){ const i=headers.findIndex(h=>h.toLowerCase().includes(c.toLowerCase())); if(i!==-1) return i; }
+  for(const c of candidates){ const cc=norm(c); const i=H.findIndex(h=>h.includes(cc)); if(i!==-1) return i; }
   return -1;
 }
 function showCSVMapping() {
@@ -6405,9 +6496,10 @@ function showCSVMapping() {
     'description','merchant','payee','name','details','desc','narrative','reference'
   ]);
   const amtI  = autoDetect(csvHeaders,[
-    'סכום עסקה','סכום חיוב','סכום','חיוב','סכום ₪','סכום בש"ח',
+    'סכום חיוב','סכום עסקה','סכום','חיוב','סכום ₪','סכום בש"ח',
     'amount','debit','charge','payment','sum','total','transaction amount'
-  ]); // הערה: 'זכות' הוסר מהעדיפות — בבנק הבינלאומי חיוב=הוצאה, זכות=הכנסה
+  ]); // באג #1: 'סכום חיוב' (מה שירד בפועל, כולל פריסות/מט"ח) לפני 'סכום עסקה'.
+      // הערה: 'זכות' הוסר מהעדיפות — בבנק הבינלאומי חיוב=הוצאה, זכות=הכנסה
   // sample = first non-empty data value in a column
   const sample = (colIdx) => {
     if(colIdx < 0) return '';
@@ -6478,14 +6570,19 @@ function processCSVMapping() {
     // If format is 1.234,56 (European) convert to 1234.56
     if(/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(amtStr)) amtStr = amtStr.replace(/\./g,'').replace(',','.');
     else amtStr = amtStr.replace(/,/g,''); // strip thousands separator commas
-    const amount = Math.abs(parseFloat(amtStr) || 0);
+    // באג #2: שמר את הסימן. סכום שלילי = זיכוי (החזר). amount תמיד חיובי (לצורך התאמה/תצוגה),
+    // isCredit מסמן שהתשלום יישמר שלילי וייספר −1 במאזן.
+    const signedAmt = parseFloat(amtStr) || 0;
+    const isCredit  = signedAmt < 0;
+    const amount    = Math.abs(signedAmt);
     let parsedDate='';
     if(dateC>=0&&row[dateC]){ parsedDate=parseIsraeliDate(row[dateC]); }
     // If date column is set but parsing failed → skip row (catches "סה"כ" totals etc.)
     if(!parsedDate && dateC>=0) return null;
     if(!parsedDate) parsedDate=new Date().toISOString().split('T')[0];
-    const match=matchPolicy(desc, amount, parsedDate);
-    return {idx:i,date:parsedDate,desc,amount,match,selected:!!match};
+    // זיכוי מותר להתאים גם לפוליסה שבוטלה — ההחזר מגיע חודשים אחרי הביטול
+    const match=matchPolicy(desc, amount, parsedDate, new Set(), isCredit);
+    return {idx:i,date:parsedDate,desc,amount,isCredit,match,selected:!!match};
   }).filter(r=>r && r.amount>0);
 
   // Conflict resolution: if same policy matched to multiple rows, keep best amount match,
@@ -6517,7 +6614,7 @@ function processCSVMapping() {
       indices.forEach(i => {
         if(i === bestIdx) return;
         const usedIds = new Set(csvMapped.filter(r => r.match).map(r => r.match.id));
-        const nextMatch = matchPolicy(csvMapped[i].desc, csvMapped[i].amount, csvMapped[i].date, usedIds);
+        const nextMatch = matchPolicy(csvMapped[i].desc, csvMapped[i].amount, csvMapped[i].date, usedIds, csvMapped[i].isCredit);
         if(nextMatch) { csvMapped[i].match = nextMatch; csvMapped[i].selected = true; }
       });
     });
@@ -6541,7 +6638,7 @@ function processCSVMapping() {
 
   renderCSVPreview();
 }
-function matchPolicy(desc, csvAmount, txDate, excludeIds = new Set()) {
+function matchPolicy(desc, csvAmount, txDate, excludeIds = new Set(), includeExpired = false) {
   if(!desc) return null;
   const dl = desc.toLowerCase();
   let best = null, bestScore = 0;
@@ -6579,10 +6676,18 @@ function matchPolicy(desc, csvAmount, txDate, excludeIds = new Set()) {
     aliases.some(a => a.length > 2 && dl.includes(a.toLowerCase()))
   )?.[0];
 
+  // באג #3: סוגי-פוליסה שנרמזים במפורש בתיאור (רכב/בריאות/חיים...). אם התיאור נוקב בסוג,
+  // פוליסה מסוג סותר נפסלת — כדי שקרבת-סכום לא תגרור "הפניקס רכב חובה" ל"הפניקס בריאות".
+  // תיאור משולב ("חיים/בריאות") מכיל כמה סוגים → כל אחד מהם מותר.
+  const descTypes = Object.entries(TYPE_KEYWORDS)
+    .filter(([, kws]) => kws.some(kw => dl.includes(kw.toLowerCase())))
+    .map(([t]) => t);
+
   const refDate = txDate ? new Date(txDate) : new Date();
   policies.filter(p => {
     if(excludeIds.has(p.id)) return false;
-    if(p.expiry && new Date(p.expiry) < refDate) return false;
+    if(!includeExpired && p.expiry && new Date(p.expiry) < refDate) return false; // זיכוי: לאפשר פוליסה שבוטלה
+    if(descTypes.length && !descTypes.includes(p.type)) return false; // type-conflict guard
     if(descCompany) {
       // רק פוליסות של אותה חברה — מניעת התאמה של פניקס למנורה
       const pAliases = COMPANY_ALIASES[p.company] || [p.company];
@@ -6835,6 +6940,9 @@ function importSelectedCSV() {
     const useDate = dateOverride || r.date;
     let mainAmount = r.split?.policyId && r.split?.amount > 0 ? r.amount - r.split.amount : r.amount;
 
+    // באג #2: זיכוי אינו ממלא forecast ואינו קונפליקט — אירוע נפרד שנשמר שלילי.
+    if (r.isCredit) { toImport.push({ i, r, pid, useDate, mainAmount }); return; }
+
     if (!pid) { toImport.push({ i, r, pid, useDate, mainAmount }); return; }
 
     // F1: a real charge auto-replaces a COMMITTED placeholder for this policy.
@@ -6928,8 +7036,11 @@ function executeConflictImport() {
 
 function _executeImport(toImport, conflicts, isStatePay) {
   let n = 0;
-  const push = (pid, useDate, amount, desc, unknown) => {
-    const obj = { id:uid(), policyId:pid||null, date:useDate, amount, actualAmount:amount, note:desc, source:'csv', status:'cleared', unknown:!!unknown, createdAt:new Date().toISOString() };
+  const push = (pid, useDate, amount, desc, unknown, isCredit) => {
+    // באג #2: זיכוי נשמר כסכום שלילי + kind='credit' כדי שיפחית מהמאזן ולא ינפח אותו.
+    const signed = isCredit ? -Math.abs(amount) : amount;
+    const obj = { id:uid(), policyId:pid||null, date:useDate, amount:signed, actualAmount:signed, note:desc, source:'csv', status:'cleared', unknown:!!unknown, createdAt:new Date().toISOString() };
+    if (isCredit) obj.kind = 'credit';
     if (isStatePay && pid) obj.paidBy = 'state';
     payments.push(obj); n++;
   };
@@ -6939,15 +7050,15 @@ function _executeImport(toImport, conflicts, isStatePay) {
     if (replacesId) payments = payments.filter(p => p.id !== replacesId);
     if (r.split?.policyId && r.split?.amount > 0) {
       const splitDup = payments.some(p => p.policyId===r.split.policyId && p.date===useDate && Math.abs(p.amount-r.split.amount)<0.5);
-      if (!splitDup) push(r.split.policyId, useDate, r.split.amount, r.desc+' (פיצול)', false);
+      if (!splitDup) push(r.split.policyId, useDate, r.split.amount, r.desc+' (פיצול)', false, false);
     }
-    push(pid, useDate, mainAmount, r.desc, !pid);
+    push(pid, useDate, mainAmount, r.desc, !pid, r.isCredit);
   });
 
   conflicts.forEach(({ r, pid, useDate, mainAmount, existingPay, decision }) => {
     if (decision === 'skip') return;
     if (decision === 'replace') payments = payments.filter(p => p.id !== existingPay.id);
-    push(pid, useDate, mainAmount, r.desc, !pid);
+    push(pid, useDate, mainAmount, r.desc, !pid, r.isCredit);
   });
 
   if (n === 0) { toast('לא יובאו תשלומים', 'warning'); return; }
@@ -7182,6 +7293,34 @@ function clearCellPaymentByKey(cellKey) {
   renderMonthlySummary();
 }
 
+// Effective active-window end for the monthly table: a transferred fund (ניוד) closes at its
+// transfer date — the money moved to the successor — so it shows no estimates afterwards.
+function _msEffEnd(p) {
+  if(p.status === 'transferred' && p.transferDate) return new Date(p.transferDate + 'T12:00:00');
+  return p.expiry ? new Date(p.expiry + 'T12:00:00') : null;
+}
+
+// Cluster transfer chains so a fund sits directly above its successor (old→new), adjacent,
+// even if other policies of the same type would otherwise sort between them.
+function _msOrderChains(list) {
+  const byId = {}; list.forEach(p => byId[p.id] = p);
+  const inList = new Set(list.map(p => p.id));
+  const emitted = new Set();
+  const out = [];
+  for(const p of list) {
+    if(emitted.has(p.id)) continue;
+    let head = p, guard = 0;
+    while(head.transferredFrom && byId[head.transferredFrom] && guard++ < 50) head = byId[head.transferredFrom];
+    let cur = head; guard = 0;
+    while(cur && guard++ < 50) {
+      if(inList.has(cur.id) && !emitted.has(cur.id)) { out.push(cur); emitted.add(cur.id); }
+      cur = cur.transferredTo ? byId[cur.transferredTo] : null;
+    }
+    if(!emitted.has(p.id)) { out.push(p); emitted.add(p.id); }
+  }
+  return out;
+}
+
 function renderMonthlySummary() {
   const now = new Date();
   const ySel = document.getElementById('summary-year-sel');
@@ -7206,9 +7345,9 @@ function renderMonthlySummary() {
       .map(pay => pay.policyId)
   );
 
-  const activePols = policies.filter(p => {
+  const activePols = _msOrderChains(policies.filter(p => {
     const s = new Date(p.start  + 'T12:00:00');
-    const e = p.expiry ? new Date(p.expiry + 'T12:00:00') : null;
+    const e = _msEffEnd(p);
     const activeThisYear = s <= new Date(year, 11, 31) && (!e || e >= new Date(year, 0, 1));
     const hadPayment = yearPaymentPolicies.has(p.id);
     return (activeThisYear && p.amount > 0) || hadPayment;
@@ -7218,7 +7357,7 @@ function renderMonthlySummary() {
     const tc = (ra===-1?999:ra) - (rb===-1?999:rb);
     if(tc !== 0) return tc;
     return (a.company||'').localeCompare(b.company||'','he');
-  });
+  }));
 
   if(!activePols.length) {
     document.getElementById('monthly-summary-head').innerHTML = '';
@@ -7248,16 +7387,14 @@ function renderMonthlySummary() {
   const monthTotals = new Array(12).fill(0);
 
   const rows = activePols.map(pol => {
-    const s = new Date(pol.start  + 'T12:00:00');
-    const e = new Date(pol.expiry + 'T12:00:00');
-    const estimate = toMonthly(pol.amount, pol.frequency);
-    const col = typeColor(pol.type);
+    const s = new Date(pol.start + 'T12:00:00');
+    const e = _msEffEnd(pol); // may be null (open-ended); transferred → transfer date
+    const cat = dash3CategoryOf(pol);
+    const isSavingPol = SAVING_TYPES_MS.has(pol.type);
     let rowTotal = 0;
     let rowActual = 0; // סכום בפועל בלבד (ללא הערכות)
 
     const cells = monthNames.map((mName, mIdx) => {
-      const isFuture = year > now.getFullYear() ||
-                       (year === now.getFullYear() && mIdx > now.getMonth());
       const mStart = new Date(year, mIdx, 1);
       const mEnd   = new Date(year, mIdx + 1, 0);
 
@@ -7270,56 +7407,45 @@ function renderMonthlySummary() {
       const hasPayment = payRecs.length > 0;
       const actualSum = payRecs.reduce((s,p) => s + (p.actualAmount ?? p.amount), 0);
 
-      // Policy not active this month
-      const notActive = s > mEnd || e < mStart;
+      const notActive = s > mEnd || (e && e < mStart);
 
-      // Per-cell EXPECTED amount (B5): insurance shows dueAmount only on its due months — matching the
-      // dashboard — instead of dumping the full annual premium into the renew month. Savings have no
-      // fixed schedule → averaged monthly (Rule #5).
-      const isSavingPol = SAVING_TYPES_MS.has(pol.type);
+      // Per-cell EXPECTED (B5): insurance shows dueAmount only on its due months — matching the
+      // dashboard. Savings have no fixed schedule → averaged monthly (Rule #5).
       const dueThisMonth = isSavingPol || isDueInMonth(pol, year, mIdx);
       const cellExpected = !dueThisMonth ? 0 : (isSavingPol ? toMonthly(pol.amount, pol.frequency) : dueAmount(pol));
 
-      // Store cell
       const cellKey = `${pol.id}|${year}|${mIdx}`;
       _cellStore[cellKey] = { policyId: pol.id, year, month: mIdx, estimate: cellExpected };
 
-      let displayAmt;
-
+      // 🟢 paid (actual)
       if(hasPayment) {
-        displayAmt = actualSum;
-        rowTotal  += displayAmt;
-        rowActual += displayAmt;
-        return `<td class="actual clickable-cell" style="text-align:center;font-size:12px;" title="${pol.company} · ${mName} — לחץ לעדכון" onclick="openCellEditor(this,'${cellKey}')">✓ ${fmt$(displayAmt)}</td>`;
-      } else if(notActive) {
-        return `<td style="text-align:center;color:var(--text-dim);opacity:.2;">—</td>`;
-      } else if(!dueThisMonth) {
-        // Active but no installment due this month
-        return `<td style="text-align:center;color:var(--text-dim);opacity:.2;">·</td>`;
+        rowTotal += actualSum; rowActual += actualSum;
+        return `<td class="ms-cell ms-paid clickable-cell" title="${pol.company} · ${mName} — לחץ לעדכון" onclick="openCellEditor(this,'${cellKey}')">✓ ${fmt$(actualSum)}</td>`;
       }
-      displayAmt = cellExpected;
-      rowTotal += displayAmt;
-      if(isFuture) {
-        return `<td class="estimate future clickable-cell" style="text-align:center;font-size:12px;opacity:.55;" title="${pol.company} · ${mName}" onclick="openCellEditor(this,'${cellKey}')">${fmt$(displayAmt)}</td>`;
-      }
-      return `<td class="estimate clickable-cell" style="text-align:center;font-size:12px;" title="${pol.company} · ${mName} — לחץ לעדכון" onclick="openCellEditor(this,'${cellKey}')">~${fmt$(displayAmt)}</td>`;
+      if(notActive)     return `<td class="ms-cell ms-off">—</td>`;
+      if(!dueThisMonth) return `<td class="ms-cell ms-idle">·</td>`;
+      // not paid → gray estimate (scan a month: all green = fully paid; any gray = still outstanding)
+      rowTotal += cellExpected;
+      return `<td class="ms-cell ms-est clickable-cell" title="${pol.company} · ${mName} — הערכה, טרם שולם — לחץ לעדכון" onclick="openCellEditor(this,'${cellKey}')">~${fmt$(cellExpected)}</td>`;
     });
 
     grandTotal += rowTotal;
 
-    // עמודת סה"כ: בלבן — מה שולם בפועל; באפור — הערכה שנתית
+    // עמודת סה"כ: בפועל (לבן) או הערכה (אפור)
     const isPastOrCurrent = year <= now.getFullYear();
     const rowSummaryCell = rowActual > 0
-      ? `<td style="text-align:center;font-weight:700;font-size:12px;color:var(--text);">${fmt$(rowActual)}</td>`
-      : isPastOrCurrent
-        ? `<td style="text-align:center;font-weight:600;font-size:12px;color:var(--text-dim);">~${fmt$(rowTotal)}</td>`
-        : `<td style="text-align:center;font-weight:600;font-size:12px;color:var(--text-dim);opacity:.6;">~${fmt$(rowTotal)}</td>`;
+      ? `<td class="ms-total ms-total-real">${fmt$(rowActual)}</td>`
+      : `<td class="ms-total ms-total-est"${isPastOrCurrent ? '' : ' style="opacity:.6;"'}>~${fmt$(rowTotal)}</td>`;
 
-    return `<tr style="border-bottom:1px solid var(--border);">
-      <td style="padding:6px 10px;cursor:pointer;" onclick="viewPolicy('${pol.id}')" title="פתח פרטי פוליסה">
-        <div style="font-size:13px;font-weight:700;color:var(--text);">${typeIcon(pol.type)} ${pol.type}</div>
-        ${pol.tag ? `<div style="margin-top:2px;background:rgba(255,255,255,.08);color:var(--text-dim);border:1px solid var(--border);border-radius:20px;padding:0px 7px;font-size:9px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;">${pol.tag}</div>` : ''}
-        <div style="font-size:11px;color:var(--text-dim);margin-top:1px;">${pol.company}</div>
+    return `<tr class="ms-row">
+      <td class="ms-name-cell" onclick="viewPolicy('${pol.id}')" title="${[(pol.tag || pol.type), pol.company].filter(Boolean).join(' · ')} — פתח פרטי פוליסה">
+        <div class="ms-name-wrap">
+          <span class="ms-cat-icon" style="background:oklch(0.28 0.08 ${cat.hue} / .5);color:oklch(0.84 0.16 ${cat.hue});">${DASH3_ICONS[cat.icon] || DASH3_ICONS.shield}</span>
+          <div class="ms-name-text">
+            <div class="ms-name-type">${pol.tag || pol.type}</div>
+            <div class="ms-name-co">${pol.company || ''}</div>
+          </div>
+        </div>
       </td>
       ${cells.join('')}
       ${rowSummaryCell}
@@ -7378,12 +7504,12 @@ function renderMonthlySummary() {
   const estimateMonthTotals = new Array(12).fill(0);
   activePols.forEach(pol => {
     const s = new Date(pol.start  + 'T12:00:00');
-    const e = new Date(pol.expiry + 'T12:00:00');
+    const e = _msEffEnd(pol);
     const isSavingPol = SAVING_TYPES_MS.has(pol.type);
     for(let mIdx = 0; mIdx < 12; mIdx++) {
       const mStart = new Date(year, mIdx, 1);
       const mEnd   = new Date(year, mIdx + 1, 0);
-      if(s > mEnd || e < mStart) continue;
+      if(s > mEnd || (e && e < mStart)) continue;
       if(isSavingPol) estimateMonthTotals[mIdx] += toMonthly(pol.amount, pol.frequency);
       else if(isDueInMonth(pol, year, mIdx)) estimateMonthTotals[mIdx] += dueAmount(pol);
     }
@@ -7411,7 +7537,7 @@ function renderMonthlySummary() {
     : `<td style="font-weight:800;text-align:center;color:var(--text-dim);">~${fmt$(grandTotal)}</td>`;
 
   const foot = document.getElementById('monthly-summary-foot');
-  foot.innerHTML = `<tr class="annual-total-row">
+  foot.innerHTML = `<tr class="ms-foot-row">
     <td style="font-weight:800;padding:8px 10px;">סה"כ חודשי</td>
     ${footCells.join('')}
     ${footerRightCell}
@@ -7463,6 +7589,54 @@ function deduplicateKeepCSV() {
   toast(removed > 0 ? `🧹 הוסרו ${removed} תשלומים ידניים כפולים — נשארו CSV` : 'אין כפילויות ידני+CSV', removed > 0 ? 'success' : 'success');
 }
 
+// ── Duplicate POLICIES cleanup (safe: only removes empty duplicates) ──
+// Signature = same plan at the same company. Lineage members (ניוד) are excluded — they're
+// intentionally separate records.
+function _policySig(p) {
+  return [p.type, p.company || '', p.tag || '', p.policyNumber || '', Math.round(p.amount || 0), p.frequency || ''].join('|');
+}
+function _policyPayCount(id) {
+  return payments.filter(pay => pay.policyId === id).length;
+}
+// Returns the duplicate policies that are SAFE to delete (dup + zero payments).
+// Keeps, per signature group, the record with the most payments (tiebreak: earliest createdAt).
+function findDuplicatePolicies() {
+  const groups = {};
+  policies.forEach(p => {
+    if(p.transferredFrom || p.transferredTo) return; // never touch a ניוד chain
+    const sig = _policySig(p);
+    (groups[sig] = groups[sig] || []).push(p);
+  });
+  const removable = [];
+  Object.values(groups).forEach(grp => {
+    if(grp.length < 2) return;
+    const sorted = [...grp].sort((a, b) => {
+      const pc = _policyPayCount(b.id) - _policyPayCount(a.id);
+      if(pc !== 0) return pc;
+      return (a.createdAt || '').localeCompare(b.createdAt || '');
+    });
+    sorted.slice(1).forEach(p => { if(_policyPayCount(p.id) === 0) removable.push(p); });
+  });
+  return removable;
+}
+function deduplicatePolicies() {
+  const removable = findDuplicatePolicies();
+  if(!removable.length) { toast('אין פוליסות כפולות ריקות לניקוי', 'success'); return; }
+  const byLabel = {};
+  removable.forEach(p => {
+    const k = `${p.type} · ${p.company || ''}${p.tag ? ' · ' + p.tag : ''}`;
+    byLabel[k] = (byLabel[k] || 0) + 1;
+  });
+  const lines = Object.entries(byLabel).map(([k, n]) => `• ${k} ×${n}`).join('\n');
+  const ok = confirm(`יימחקו ${removable.length} פוליסות כפולות (ללא תשלומים):\n\n${lines}\n\nרשומה אחת מכל קבוצה תישאר. פעולה זו אינה הפיכה. להמשיך?`);
+  if(!ok) return;
+  const ids = new Set(removable.map(p => p.id));
+  policies = policies.filter(p => !ids.has(p.id));
+  pp();
+  renderSettings(); renderPolicies(); renderDashboard(); renderMonthlySummary();
+  toast(`🧹 הוסרו ${removable.length} פוליסות כפולות`, 'success');
+}
+
 function deduplicatePayments() {
   const seen = new Set();
   const before = payments.length;
@@ -7497,6 +7671,13 @@ function renderSettings() {
   if(dupEl) dupEl.textContent = dups > 0
     ? `נמצאו ${dups} כפילויות — לחץ לניקוי`
     : 'אין כפילויות';
+  const dupPolEl = document.getElementById('dup-policies-info');
+  if(dupPolEl) {
+    const dupPols = findDuplicatePolicies().length;
+    dupPolEl.textContent = dupPols > 0
+      ? `נמצאו ${dupPols} פוליסות כפולות ריקות — לחץ לניקוי`
+      : 'אין פוליסות כפולות';
+  }
   // Populate saved API key
   const keyInp = document.getElementById('setting-api-key');
   if(keyInp) keyInp.value = getApiKey();
@@ -7888,61 +8069,7 @@ function collectPdfFields(result) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-//  FLOW A: PDF upload inside quick-update modal (policy known)
-// ─────────────────────────────────────────────────────────────────
-async function handlePdfUpload(inp) {
-  const file = inp.files[0];
-  if(!file) return;
-  inp.value = '';
-
-  const policyId = document.getElementById('qu-id').value;
-  const p = policyById(policyId);
-
-  // Show loading
-  document.getElementById('pdf-ai-strip').style.display    = 'none';
-  document.getElementById('qu-manual-fields').style.display = 'none';
-  document.getElementById('pdf-ai-loading').style.display  = 'block';
-  document.getElementById('pdf-ai-result').style.display   = 'none';
-
-  try {
-    const hint = p ? `${p.company} — ${p.type}` : '';
-    const result = await callClaudeWithPdf(file, hint);
-    _pdfScanResult = result;
-
-    // Populate manual fields with parsed values
-    const vals = collectPdfFields(result);
-    if(vals.amount !== null) document.getElementById('qu-amount').value = vals.amount;
-    if(vals.balance !== null) document.getElementById('qu-balance').value = vals.balance;
-    if(vals.feeDeposit !== null) document.getElementById('qu-fee-deposit').value = vals.feeDeposit;
-    if(vals.feeAccumulation !== null) document.getElementById('qu-fee-accumulation').value = vals.feeAccumulation;
-    if(vals.expiry) document.getElementById('qu-note').value = `עדכון מ-PDF · תוקף: ${vals.expiry}`;
-
-    // Show result + render preview fields
-    document.getElementById('pdf-ai-loading').style.display = 'none';
-    document.getElementById('pdf-ai-result').style.display  = 'block';
-    document.getElementById('qu-manual-fields').style.display = 'block';
-    renderPdfFields(result, 'pdf-ai-fields');
-
-    toast('✅ Claude קרא את המסמך — בדוק ואשר', 'success');
-  } catch(err) {
-    document.getElementById('pdf-ai-loading').style.display  = 'none';
-    document.getElementById('pdf-ai-strip').style.display    = 'flex';
-    document.getElementById('qu-manual-fields').style.display = 'block';
-    document.getElementById('pdf-ai-sub').textContent = '⚠️ ' + (err.message || 'שגיאה בקריאת PDF');
-    toast(err.message || 'שגיאה בקריאת PDF', 'error');
-    console.error('PDF AI error:', err);
-  }
-}
-
-function clearPdfResult() {
-  _pdfScanResult = null;
-  document.getElementById('pdf-ai-result').style.display  = 'none';
-  document.getElementById('pdf-ai-strip').style.display   = 'flex';
-  document.getElementById('pdf-ai-sub').textContent = 'העלה מסמך PDF מחברת הביטוח — Claude יקרא ויעדכן';
-}
-
-// ─────────────────────────────────────────────────────────────────
-//  FLOW B: Standalone PDF scan modal (policy unknown)
+//  PDF scan modal (standalone — no policy context)
 // ─────────────────────────────────────────────────────────────────
 function openPdfScanModal() {
   closeSidebar();

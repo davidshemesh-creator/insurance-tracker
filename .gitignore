@@ -2,3 +2,13 @@ credentials.json
 token.json
 service-account.json
 node_modules/
+
+# local-only dev scaffolding — kept out of history (prod = GitHub Pages serving index.html).
+# These have lived untracked for months; ignoring them makes the working tree clean so the
+# SessionStart auto-pull stops skipping this repo. Files stay on disk — nothing is deleted.
+.claude/
+*.command
+server.js
+package.json
+package-lock.json
+mockup-*.html

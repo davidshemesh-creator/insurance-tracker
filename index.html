@@ -6829,6 +6829,10 @@ function matchPolicy(desc, csvAmount, txDate, excludeIds = new Set(), includeExp
     if(excludeIds.has(p.id)) return false;
     if(!includeExpired && p.expiry && new Date(p.expiry) < refDate) return false; // זיכוי: לאפשר פוליסה שבוטלה
     if(hardTypes.length && !hardTypes.includes(p.type)) return false; // type-conflict guard (hard types only)
+    // A description that names a life/health division ("הפניקס חיים ובריאות") is never a car/home/travel
+    // charge — keep those out even though the soft types don't exclude each other (15.09.2026: ₪114 of
+    // הפניקס חיים ובריאות landed on רכב חובה because 114 ≈ 1469/12).
+    if(descTypes.length && !hardTypes.length && HARD_TYPES.includes(p.type)) return false;
     if(descCompany) {
       // רק פוליסות של אותה חברה — מניעת התאמה של פניקס למנורה
       const pAliases = COMPANY_ALIASES[p.company] || [p.company];

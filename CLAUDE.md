@@ -482,7 +482,14 @@ scraper/cal-sync.js (Node 24, israeli-bank-scrapers + puppeteer, על ה-Mac)
 - `node scraper/test/dryrun-live.js` — מריץ את `matchPolicy` **החי מ-index.html** על `scraper/out/cal-*.json` מול `scraper/out/live-*.json` (מ-`fs-read-probe.js`, קריאה בלבד).
 - `node scraper/test/smoke-localhost.js` — טוען את localhost:8080 ב-headless ומדווח שגיאות.
 - קונפיג/מפתחות: `~/.config/insurance-tracker/{config.json, serviceAccountKey.json}` (600). `scraper/out/` מוחרג מ-git ומהגיבוי הלילי.
-- **שלב 2 (טרם נבנה):** auto-apply עם שערים (±15% מ-dueAmount, פער ≥8 מהסגן), מסך ״פתור החודש״, launchd שבועי, snapshot לפני apply, חתימות-למידה (`calSignature`).
+### שלב 2 — נבנה 15.09.2026 (אותו יום, לבקשת דויד)
+- **`applyAutoPayments()`** בטעינה: פוליסה עם `autoPay` (רגל אחת או רשימה: `{source:'bank'|'state', day, since, amount?}`) מקבלת תשלום `cleared` לכל חודש שעבר יומו, אידמפוטנטי לפי פוליסה+חודש(+paidBy). `source:'bank-auto'`; רגל `state` → `paidBy:'state'`. מוגדר: כלל פנסיה (23), הראל גמל ×2 (15), חסכון לכל ילד/בן — מדינה בלבד (15). מכבי **לא** (סכום משתנה, מהבנק ב-5).
+- **`calAutoApply()`** בטעינה: שורות inbox חדשות → `_buildMappedRows` → `_calAutoGate` (קטגוריית כאל ביטוח · סכום ±15% מ-`dueAmount` **או** חתימה ±10% · פער ≥8 מהסגן · אין תשלום אחר לאותו חודש אלא אם זהה בסכום → אימות) → `_executeImport`. snapshot יומי `snapshots/auto-YYYY-MM-DD` לפני הקליטה הראשונה. השאר נשאר `new` + toast ״ממתינים לך״.
+- **חתימות:** כל שורת כאל שנקלטה (ידנית או אוטומטית) כותבת `policy.calSignatures[desc] = amount` (pp). ה-gate מקבל חתימה ±10% גם בלי פער מהסגן.
+- **יומן:** `data/calActivity {items[]}` (60 אחרונים) — `_logActivity` · מוצג בדף ייבוא (`#cal-activity`) · toast בטעינה.
+- **launchd:** `~/Library/LaunchAgents/com.davidshemesh.cal-sync.plist` (עותק ב-`scraper/launchd/`) — יומי 08:45 + RunAtLoad; `cal-sync.js` מדלג אם כבר הצליח היום (`~/.config/insurance-tracker/last-success.txt`, `--force` עוקף). לוג: `~/.claude/cal-sync.launchd.log`. אומת בריצה אמיתית תחת launchd (29ש׳).
+- **סקריפטי תיקון חד-פעמיים** (`scraper/fix-*-2026-09-15.js`): רצים רק עם האפליקציה סגורה, snapshot ל-`users/{uid}/snapshots/{ts}` לפני כל אחד. הכלל ״הדפדפן הכותב היחיד״ נשבר רק כך, במודע, באישור דויד.
+- **טרם נבנה:** מסך ״פתור החודש״ (4 מספרים שמסתכמים + ״ציפינו ולא הגיע״) — היום זה ה-preview הקיים + ה-toast.
 
 ---
 

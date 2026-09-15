@@ -7093,7 +7093,14 @@ function importSelectedCSV() {
     // באג #2: זיכוי אינו ממלא forecast ואינו קונפליקט — אירוע נפרד שנשמר שלילי.
     if (r.isCredit) { toImport.push({ i, r, pid, useDate, mainAmount }); return; }
 
-    if (!pid) { toImport.push({ i, r, pid, useDate, mainAmount }); return; }
+    if (!pid) {
+      // Unknown Cal row vs an unknown payment already logged (CSV) with the same amount in the same
+      // month = the same charge → verify it, don't log it twice (15.09.2026: 273.59 sat twice in January).
+      const twin = r.calKey && payments.find(pay => !pay.policyId && !pay.calKey && (pay.status || 'cleared') !== 'committed' &&
+        pay.date?.slice(0,7) === useDate?.slice(0,7) && Math.abs(Math.abs(pay.actualAmount ?? pay.amount) - mainAmount) < 1);
+      if (twin) { toImport.push({ i, r, pid, useDate, mainAmount, verifiesId: twin.id }); return; }
+      toImport.push({ i, r, pid, useDate, mainAmount }); return;
+    }
 
     // F1: a real charge auto-replaces a COMMITTED placeholder for this policy.
     // Prefer the exact month; fall back to ±1 month for billing-day drift (committed for July,

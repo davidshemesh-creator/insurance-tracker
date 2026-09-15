@@ -447,6 +447,45 @@ CSS class: `.summary-bar`, `.summary-bar-item`, `.summary-bar-value.accent`
 
 ---
 
+## 🏦 Cal Sync — חיובי ביטוח מכאל אוטומטית (נוסף 2026-09-15)
+
+**ספק מלא:** `P-projects/_personal/insurance-tracker/docs/superpowers/specs/2026-09-15-cal-sync-design.md` (החלטת `/team`, מבחני קבלה, שני שלבים).
+
+### ארכיטקטורה
+```
+scraper/cal-sync.js (Node 24, israeli-bank-scrapers + puppeteer, על ה-Mac)
+  Keychain `insurance-tracker-cal` → כאל (קריאה בלבד) → כרטיס …8809, completed בלבד
+  → סינון: calCategory==='ביטוח ופיננסים' || מילת-חברה
+  → users/{uid}/cal_inbox/{key}   set(merge) — לא נוגע ב-state, לא מוחק לעולם
+  → users/{uid}/data/calSync      {lastRunAt, lastSuccessAt, newCount, scanned, error}
+דפדפן: _loadCalInbox() → renderCalInbox() (קופסה בדף ייבוא + חותמת בטופבר)
+  → loadCalInboxToPreview() → _buildMappedRows() → מסך ה-CSV preview הקיים → דויד מאשר
+  → _executeImport(): payments.push({source:'cal', calKey}) + inbox state → applied
+```
+- **מפתח:** `${card4}:${identifier}:${installmentNo}` — ה-`identifier` של כאל **משותף לכל התשלומים** (3/4 ו-4/4 זהים) ול-`pending` אין בכלל → pending לא נקלט.
+- **סימן:** `chargedAmount` של כאל שלילי = חיוב → ב-inbox `amount` חיובי = חיוב, שלילי = זיכוי.
+- **תאריכים:** כאל מחזירים UTC — מומר ל-Asia/Jerusalem (אחרת 19.08 בלילה במקום 20.08).
+- **מצבי inbox:** `new` → `applied` (paymentId) | `parked` (דלג בקונפליקט, הפיך) | `dismissed` (״לא ביטוח״, הפיך). מודל 🅿️ בצד מציג ומחזיר.
+- **⛔ Node לעולם לא כותב ל-`data/payments`** — מסמך יחיד עם מערך שהדפדפן דורס בשלמותו (`py()`).
+- **F1 מקדם במקום:** חיוב אמיתי הופך placeholder `committed` ל-`cleared` באותו רשומה (id/חודש/הערה נשמרים, `chargedDate` = תאריך החיוב האמיתי). אין `filter` על payments במסלול הזה.
+- **dedup:** `deduplicatePayments` ו-`renderSettings` מדלגים על שורות עם `calKey`.
+
+### matchPolicy — שינויים 15.09.2026
+- התאמת **מילה** (`_descHasWord`), לא substring: ״מגדל״ ≠ ״מגדלי״, ״רכב״ ≠ ״רכבת״. מקבל ה׳ הידיעה.
+- ״חיים/בריאות״ / ״חיים ובריאות״ = **שם חטיבה** → מכסה חיים+בריאות+סיעודי. שומר-הסוג פוסל רק ל-`רכב`/`דירה`/`נסיעות`.
+- קרבת סכום מול **גם** `toMonthly` **וגם** `dueAmount` (רכב 367 = 1469/4). עקומה חדה: 25% סטייה = 0 נקודות (היה 100%).
+- **התאמה דורשת ראיית-חברה** (alias או מספר פוליסה). מילת-סוג לבד (THAI RENT A CAR) = לא התאמה.
+- `matchPolicy.lastScore` / `.lastCompanyHit` נחשפים ל-harness.
+
+### הרצה ובדיקה
+- `node scraper/cal-sync.js --dry` (סריקה + תוכנית, בלי כתיבה) · `node scraper/cal-sync.js` (כותב) · `--show` דפדפן גלוי · `--days N`.
+- `node scraper/test/dryrun-live.js` — מריץ את `matchPolicy` **החי מ-index.html** על `scraper/out/cal-*.json` מול `scraper/out/live-*.json` (מ-`fs-read-probe.js`, קריאה בלבד).
+- `node scraper/test/smoke-localhost.js` — טוען את localhost:8080 ב-headless ומדווח שגיאות.
+- קונפיג/מפתחות: `~/.config/insurance-tracker/{config.json, serviceAccountKey.json}` (600). `scraper/out/` מוחרג מ-git ומהגיבוי הלילי.
+- **שלב 2 (טרם נבנה):** auto-apply עם שערים (±15% מ-dueAmount, פער ≥8 מהסגן), מסך ״פתור החודש״, launchd שבועי, snapshot לפני apply, חתימות-למידה (`calSignature`).
+
+---
+
 ## Firebase + GitHub Pages (נוסף 2026-04-04)
 
 ### ארכיטקטורה חדשה

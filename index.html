@@ -2945,6 +2945,7 @@ tr:hover td { background: var(--bg3); }
             <div class="dash3-status">
               <span class="dash3-pulse"></span>
               <span id="dash3-status-text">— מתוך — שולמו</span>
+              <span id="cal-sync-stamp" style="font-size:11px;opacity:.75;margin-inline-start:10px;white-space:nowrap;"></span>
             </div>
           </div>
         </header>
@@ -3042,6 +3043,7 @@ tr:hover td { background: var(--bg3); }
         <div style="font-size:13px;">העלה קובץ מהבנק או כרטיס האשראי שלך. המערכת תתאים אוטומטית עסקאות לפוליסות לפי שם החברה.<br><br>
         <strong>פורמטים נתמכים:</strong> Excel (xlsx, xls) ו-CSV · <strong>עמודות נדרשות:</strong> תאריך, תיאור, סכום (זיהוי אוטומטי)</div>
       </div>
+      <div id="cal-inbox-box" style="margin-bottom:16px;padding:14px 16px;background:rgba(155,89,182,.10);border:1px solid rgba(155,89,182,.35);border-radius:10px;"></div>
       <div class="upload-zone" id="upload-zone"
            ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)"
            onclick="document.getElementById('csv-file-input').click()">
@@ -3633,6 +3635,13 @@ tr:hover td { background: var(--bg3); }
 </div>
 
 <!-- ── CONFLICT RESOLUTION MODAL ────────────────────────────────── -->
+<div class="modal-overlay hidden" id="cal-parked-modal">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header"><h3>🅿️ שורות מכאל שהושמו בצד</h3><button class="modal-close" onclick="closeModal('cal-parked-modal')">✕</button></div>
+    <div class="modal-body" id="cal-parked-list" style="overflow-y:auto;max-height:60vh;padding:6px 16px;"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" style="flex:1;" onclick="closeModal('cal-parked-modal')">סגור</button></div>
+  </div>
+</div>
 <div class="modal-overlay hidden" id="conflict-modal">
   <div class="modal" style="max-height:85vh;">
     <div class="modal-handle"></div>
@@ -3700,6 +3709,76 @@ function _userDoc(sub) {
 }
 const pp = () => { if(currentUser) _userDoc('policies').set({ items: policies }).catch(e => { console.error('שגיאת שמירת פוליסות',e); toast('⚠️ שגיאת שמירה — פוליסות לא נשמרו','error'); }); };
 const py = () => { if(currentUser) _userDoc('payments').set({ items: payments }).catch(e => { console.error('שגיאת שמירת תשלומים',e); toast('⚠️ שגיאת שמירה — תשלומים לא נשמרו','error'); }); };
+
+// ══ Cal inbox (15.09.2026) ═══════════════════════════════════════════════════
+// scraper/cal-sync.js (Node, on the Mac) writes one doc per Cal insurance charge to
+// users/{uid}/cal_inbox/{key} with state:'new', plus a status doc data/calSync. The browser is the
+// ONLY writer to `payments`; here we only read the inbox and move docs between states
+// (new → applied | parked | dismissed). Inbox docs are never deleted.
+let calInbox = [], calSyncStatus = null, csvSource = 'file';
+function _calInboxRef() { return db.collection('users').doc(currentUser.uid).collection('cal_inbox'); }
+async function _loadCalInbox() {
+  if(!currentUser) return;
+  try {
+    const [inb, st] = await Promise.all([ _calInboxRef().where('state','==','new').get(), _userDoc('calSync').get() ]);
+    calInbox = inb.docs.map(d => ({ id:d.id, ...d.data() })).sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    calSyncStatus = st.exists ? st.data() : null;
+  } catch(e) { console.error('cal inbox load failed', e); }
+}
+async function _calInboxSetState(keys, state, extra = {}) {
+  if(!currentUser || !keys.length) return;
+  const batch = db.batch(), stamp = new Date().toISOString();
+  keys.forEach(k => batch.set(_calInboxRef().doc(k), { state, [state+'At']: stamp, ...extra }, { merge:true }));
+  await batch.commit();
+  calInbox = calInbox.filter(r => !keys.includes(r.id));
+  renderCalInbox();
+}
+async function _calInboxCount(state) {
+  try { const q = await _calInboxRef().where('state','==',state).get(); return q.size; } catch { return 0; }
+}
+function calSyncStampText() {
+  if(!calSyncStatus || !calSyncStatus.lastSuccessAt) return { text:'כאל: לא סונכרן עדיין', level:'warn' };
+  const days = Math.floor((Date.now() - new Date(calSyncStatus.lastSuccessAt)) / 86400000);
+  const when = days === 0 ? 'היום' : days === 1 ? 'אתמול' : `לפני ${days} ימים`;
+  const err  = calSyncStatus.error && calSyncStatus.lastRunAt > calSyncStatus.lastSuccessAt ? ' · הריצה האחרונה נכשלה' : '';
+  return { text:`סנכרון כאל: ${when}${err}`, level: (days > 20 || err) ? 'warn' : 'ok', days };
+}
+function renderCalInbox() {
+  const box = document.getElementById('cal-inbox-box');
+  const stamp = calSyncStampText();
+  if(box) {
+    const n = calInbox.length;
+    const sum = calInbox.reduce((a,r) => a + (r.amount||0), 0);
+    box.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="font-size:20px;">🏦</span>
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:14px;font-weight:700;">${n ? `${n} חיובי ביטוח חדשים מכאל · ${fmt$(sum)}` : 'אין חיובים חדשים מכאל'}</div>
+          <div style="font-size:11px;color:${stamp.level==='warn'?'#f5a623':'var(--text-dim)'};margin-top:2px;">${stamp.text}${calSyncStatus?.card4 ? ` · כרטיס …${calSyncStatus.card4}` : ''}${calSyncStatus?.scanned ? ` · נסרקו ${calSyncStatus.scanned} עסקאות` : ''}</div>
+        </div>
+        ${n ? `<button class="btn btn-accent" onclick="loadCalInboxToPreview()">← תצוגה מקדימה</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="showParkedCalRows()" title="שורות שהושמו בצד או סומנו כלא-ביטוח">🅿️ בצד</button>
+      </div>`;
+  }
+  const chip = document.getElementById('cal-sync-stamp');
+  if(chip) { chip.textContent = stamp.text; chip.style.color = stamp.level==='warn' ? '#f5a623' : ''; }
+}
+// Parked / dismissed rows: visible, and each can be returned to the inbox (never silently gone).
+async function showParkedCalRows() {
+  if(!currentUser) return;
+  const [parked, dismissed] = await Promise.all([ _calInboxRef().where('state','==','parked').get(), _calInboxRef().where('state','==','dismissed').get() ]);
+  const rows = [...parked.docs, ...dismissed.docs].map(d => ({ id:d.id, ...d.data() })).sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  const html = rows.length ? rows.map(r => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
+      <span style="white-space:nowrap;color:var(--text-dim);">${fmtDate(r.date)}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.description}</span>
+      <span style="font-weight:700;white-space:nowrap;">${fmt$(r.amount)}</span>
+      <span class="tag" style="font-size:10px;">${r.state==='dismissed' ? 'לא ביטוח' : 'בצד'}${r.reason ? ' · '+r.reason : ''}</span>
+      <button class="btn btn-ghost btn-sm" onclick="_calInboxSetState(['${r.id}'],'new').then(()=>{closeModal('cal-parked-modal');_loadCalInbox().then(renderCalInbox);})">↩ החזר</button>
+    </div>`).join('') : '<div style="color:var(--text-dim);font-size:13px;padding:10px 0;">אין שורות בצד.</div>';
+  document.getElementById('cal-parked-list').innerHTML = html;
+  openModal('cal-parked-modal');
+}
 
 async function _loadFromFirestore() {
   const [pd, yd] = await Promise.all([
@@ -4841,10 +4920,26 @@ function renderDashboard() {
       toggleHtml = `<button class="dash3-paid-tog ${togCls}" title="${togTitle}" onclick="event.stopPropagation();dash3TogglePaid('${p.id}')" aria-pressed="${paid}">${togIcon}</button>`;
     }
 
-    // Monthly column display: dash for savings without monthly, otherwise show amount
-    const monthlyHtml = (isSav && !hasMonthly)
-      ? `<span class="dash3-money dash3-money--md muted"><span class="num">—</span></span>`
-      : dash3MoneyHtml(monthly, 'md', '', inactive ? 'muted' : '');
+    // Monthly column display: dash for savings without monthly, otherwise show amount.
+    // Insurance rows show THIS MONTH'S reality (15.09.2026, David): what was actually charged if paid
+    // (Cal/CSV actual), else the installment due this month (dueAmount, e.g. 367 for a 4×1469 car
+    // policy), else ₪0 muted in a non-billing month. The 1469/12 average is gone from the row — it
+    // lives only in the annual summary.
+    let monthlyHtml;
+    if(isSav && !hasMonthly) {
+      monthlyHtml = `<span class="dash3-money dash3-money--md muted"><span class="num">—</span></span>`;
+    } else if(isSav || inactive) {
+      monthlyHtml = dash3MoneyHtml(monthly, 'md', '', inactive ? 'muted' : '');
+    } else {
+      const payNow = payments.find(pay => {
+        if(pay.policyId !== p.id || pay.status === 'committed') return false;
+        const d = new Date(pay.date + 'T12:00:00');
+        return d.getFullYear() === dash3Year && d.getMonth() === dash3Month;
+      });
+      const dueNow = dash3IsDueInMonth(p, dash3Year, dash3Month);
+      const shown  = payNow ? Math.abs(payNow.actualAmount ?? payNow.amount) : (dueNow ? dueAmount(p) : 0);
+      monthlyHtml  = dash3MoneyHtml(shown, 'md', '', (!payNow && !dueNow) ? 'muted' : '');
+    }
 
     return `<div class="dash3-row${inactive ? ' dash3-row-off' : ''}" onclick="viewPolicy('${p.id}')">
       <div class="dash3-row-id">
@@ -5911,7 +6006,7 @@ function viewPolicy(id) {
           const isCommitted = pay.status === 'committed';
           const source = isCommitted ? '⏳ מחויב (טרם נגבה)'
                        : pay.paidBy === 'state' ? '🏛️ הפקדת מדינה'
-                       : (pay.source === 'csv' ? '📄 ייבוא CSV' : '📝 ידני');
+                       : (pay.source === 'csv' ? '📄 ייבוא CSV' : pay.source === 'cal' ? '🏦 כאל' : '📝 ידני');
           const sourceLine = source + (pay.note && !isCommitted ? ' · ' + pay.note : '');
           return `<div class="pay-row-v2" data-year="${pay.date.slice(0,4)}"${isCommitted ? ' style="opacity:.7;"' : ''}>
             <div class="pay-row-v2-date">${fmtDate(pay.date)}</div>
@@ -6353,7 +6448,7 @@ function renderHistory() {
       const isDup = pay.policyId && pidCount[pay.policyId] > 1;
       const col = isUnknown ? '#f5a623' : pol ? typeColor(pol.type) : '#666';
       const infoLine = pol ? [pol.company, pol.agent, pol.policyNumber].filter(Boolean).join(' · ') : '';
-      const sourceTag = `<span class="tag ${pay.source==='csv'?'tag-csv':'tag-manual'}" style="padding:1px 6px;font-size:10px;">${pay.source==='csv'?'CSV':'ידני'}</span>`;
+      const sourceTag = `<span class="tag ${pay.source==='csv'||pay.source==='cal'?'tag-csv':'tag-manual'}" style="padding:1px 6px;font-size:10px;">${pay.source==='csv'?'CSV':pay.source==='cal'?'כאל':'ידני'}</span>`;
       const dupTag = isDup ? `<span style="background:rgba(245,166,35,.2);color:#f5a623;border:1px solid rgba(245,166,35,.4);border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;">⚠️ כפול</span>` : '';
       const metaLine = [fmtDate(pay.date), sourceTag, dupTag, pay.paidBy==='state'?'🏛️ מדינה':'', pay.note&&!isUnknown?pay.note:''].filter(Boolean).join(' · ');
 
@@ -6562,7 +6657,7 @@ function processCSVMapping() {
   const descC=parseInt(document.getElementById('csv-col-desc').value);
   const amtC =parseInt(document.getElementById('csv-col-amt').value);
   if(descC===-1||amtC===-1){ toast('נא לבחור עמודת תיאור וסכום','error'); return; }
-  csvMapped=csvRows.map((row,i)=>{
+  const rawRows=csvRows.map((row,i)=>{
     const desc=(descC>=0?row[descC]:'')||'';
     const rawVal=(amtC>=0?row[amtC]:'0')||'0';
     // Handle Israeli number format: 1,234.56 or 1.234,56 → strip currency symbols, spaces
@@ -6580,10 +6675,36 @@ function processCSVMapping() {
     // If date column is set but parsing failed → skip row (catches "סה"כ" totals etc.)
     if(!parsedDate && dateC>=0) return null;
     if(!parsedDate) parsedDate=new Date().toISOString().split('T')[0];
-    // זיכוי מותר להתאים גם לפוליסה שבוטלה — ההחזר מגיע חודשים אחרי הביטול
-    const match=matchPolicy(desc, amount, parsedDate, new Set(), isCredit);
-    return {idx:i,date:parsedDate,desc,amount,isCredit,match,selected:!!match};
+    return {idx:i,date:parsedDate,desc,amount,isCredit};
   }).filter(r=>r && r.amount>0);
+  csvSource = 'file';
+  _buildMappedRows(rawRows);
+  renderCSVPreview();
+}
+// Cal inbox → the same preview the CSV import uses. Phase 1 (15.09.2026): David confirms with a click,
+// nothing is applied automatically. Rows carry calKey so the import can move the inbox doc to `applied`.
+function loadCalInboxToPreview() {
+  if(!calInbox.length) { toast('אין חיובים חדשים מכאל', 'warning'); return; }
+  resetCSVImport();
+  csvSource = 'cal';
+  // Idempotency: a charge whose calKey is already in payments was applied (even if the inbox state
+  // write failed) — mark it applied now and keep it out of the preview.
+  const already = calInbox.filter(r => payments.some(p => p.calKey === r.id));
+  if(already.length) _calInboxSetState(already.map(r => r.id), 'applied', { reason:'calKey כבר בתשלומים' });
+  const fresh = calInbox.filter(r => !payments.some(p => p.calKey === r.id));
+  if(!fresh.length) { toast('כל החיובים מכאל כבר נקלטו', 'success'); return; }
+  const rawRows = fresh.map((r,i) => ({ idx:i, date:r.date, desc:r.description, amount:Math.abs(r.amount), isCredit:r.amount < 0, calKey:r.id, calCategory:r.calCategory||'', calMemo:r.memo||'', calInst: r.installmentNo ? `${r.installmentNo}/${r.installmentTotal}` : '' }));
+  _buildMappedRows(rawRows);
+  renderCSVPreview();
+  showPage('import');
+}
+// Shared: match every raw row to a policy, resolve one-policy-many-rows conflicts, categorise.
+function _buildMappedRows(rawRows) {
+  csvMapped = rawRows.map(r => {
+    // זיכוי מותר להתאים גם לפוליסה שבוטלה — ההחזר מגיע חודשים אחרי הביטול
+    const match = matchPolicy(r.desc, r.amount, r.date, new Set(), r.isCredit);
+    return { ...r, match, selected:!!match };
+  });
 
   // Conflict resolution: if same policy matched to multiple rows, keep best amount match,
   // then re-try the losers one by one (usedIds rebuilt fresh each time).
@@ -6591,8 +6712,12 @@ function processCSVMapping() {
     const byPolicy = {};
     csvMapped.forEach((r,i) => {
       if(!r.match) return;
-      if(!byPolicy[r.match.id]) byPolicy[r.match.id] = [];
-      byPolicy[r.match.id].push(i);
+      // Group by policy AND month: a 60-day Cal window holds July's and August's charge of the same
+      // policy — those are two legitimate payments, not a conflict (15.09.2026: without the month,
+      // August's מנורה 301.83 lost בריאות to July's 300.97 and was re-matched to חיים).
+      const k = r.match.id + '|' + (r.date || '').slice(0,7);
+      if(!byPolicy[k]) byPolicy[k] = [];
+      byPolicy[k].push(i);
     });
     Object.values(byPolicy).forEach(indices => {
       if(indices.length <= 1) return;
@@ -6631,17 +6756,27 @@ function processCSVMapping() {
     const dl = r.desc.toLowerCase();
     r.isInsuranceRelated = INSURANCE_KEYWORDS.some(kw => dl.includes(kw));
     // קטגוריה: matched / unknown-insurance / unrelated
+    // Cal rows: Cal's own category is the entry gate — a company word in a non-insurance category
+    // ("מגדל ספיר", category רפואה) is not an unknown insurance charge, it's unrelated.
+    if(r.calKey && r.calCategory && r.calCategory !== 'ביטוח ופיננסים' && !r.match) r.isInsuranceRelated = false;
     if(r.match)               r.category = 'matched';
     else if(r.isInsuranceRelated) r.category = 'unknown';
     else                      r.category = 'unrelated';
   });
-
-  renderCSVPreview();
+}
+// Word-level alias match: "מגדל" must not hit "מגדלי", "רכב" must not hit "רכבת" (15.09.2026, Cal sync).
+// JS \b is ASCII-only, so tokenise on non-letters ourselves. Accepts a leading ה (הפניקס ↔ פניקס).
+function _descHasWord(dl, alias) {
+  const a = alias.toLowerCase();
+  if(a.includes(' ')) return dl.includes(a);                  // multi-word alias: substring is fine
+  const toks = dl.split(/[^\p{L}\p{N}]+/u);
+  return toks.some(t => t === a || t === 'ה' + a);
 }
 function matchPolicy(desc, csvAmount, txDate, excludeIds = new Set(), includeExpired = false) {
+  matchPolicy.lastScore = 0; matchPolicy.lastCompanyHit = false;
   if(!desc) return null;
   const dl = desc.toLowerCase();
-  let best = null, bestScore = 0;
+  let best = null, bestScore = 0, bestCompanyHit = false;
 
   // Insurance company name aliases for matching
   const COMPANY_ALIASES = {
@@ -6666,66 +6801,75 @@ function matchPolicy(desc, csvAmount, txDate, excludeIds = new Set(), includeExp
     'רכב':    ['רכב','אוטו','car','auto'],
     'דירה':   ['דירה','בית','home','house'],
     'סיעודי': ['סיעוד','סיעודי','nursing','ltc'],
+    'נסיעות': ['נסיעות','חו"ל','travel'],
     'קרן השתלמות': ['קרן השתלמות','השתלמות'],
     'קופת גמל':    ['קופת גמל','גמל'],
     'חסכון':       ['חסכון','חיסכון'],
   };
+  // "חיים/בריאות" / "חיים ובריאות" is a DIVISION name at מגדל/מנורה/הפניקס, not a policy type —
+  // סיעודי is billed under it too. Treat the division as covering all three.
+  const DIVISION_TYPES = /חיים\s*(\/|ו)\s*בריאות/.test(dl) ? ['חיים','בריאות','סיעודי'] : null;
+  // Only these types are specific enough to EXCLUDE other policies when named in the description.
+  const HARD_TYPES = ['רכב','דירה','נסיעות'];
 
   // אם בתיאור יש שם חברה ברור — חפש רק בפוליסות של אותה חברה
   const descCompany = Object.entries(COMPANY_ALIASES).find(([, aliases]) =>
-    aliases.some(a => a.length > 2 && dl.includes(a.toLowerCase()))
+    aliases.some(a => a.length > 2 && _descHasWord(dl, a))
   )?.[0];
 
-  // באג #3: סוגי-פוליסה שנרמזים במפורש בתיאור (רכב/בריאות/חיים...). אם התיאור נוקב בסוג,
-  // פוליסה מסוג סותר נפסלת — כדי שקרבת-סכום לא תגרור "הפניקס רכב חובה" ל"הפניקס בריאות".
-  // תיאור משולב ("חיים/בריאות") מכיל כמה סוגים → כל אחד מהם מותר.
-  const descTypes = Object.entries(TYPE_KEYWORDS)
-    .filter(([, kws]) => kws.some(kw => dl.includes(kw.toLowerCase())))
+  // באג #3: סוגי-פוליסה שנרמזים במפורש בתיאור. Since 15.09.2026 only HARD_TYPES exclude —
+  // "בריאות" in a description must not block the סיעודי policy billed by the same division.
+  const descTypes = DIVISION_TYPES || Object.entries(TYPE_KEYWORDS)
+    .filter(([, kws]) => kws.some(kw => _descHasWord(dl, kw)))
     .map(([t]) => t);
+  const hardTypes = descTypes.filter(t => HARD_TYPES.includes(t));
 
   const refDate = txDate ? new Date(txDate) : new Date();
   policies.filter(p => {
     if(excludeIds.has(p.id)) return false;
     if(!includeExpired && p.expiry && new Date(p.expiry) < refDate) return false; // זיכוי: לאפשר פוליסה שבוטלה
-    if(descTypes.length && !descTypes.includes(p.type)) return false; // type-conflict guard
+    if(hardTypes.length && !hardTypes.includes(p.type)) return false; // type-conflict guard (hard types only)
     if(descCompany) {
       // רק פוליסות של אותה חברה — מניעת התאמה של פניקס למנורה
       const pAliases = COMPANY_ALIASES[p.company] || [p.company];
-      return pAliases.some(a => a.length > 2 && dl.includes(a.toLowerCase()));
+      return pAliases.some(a => a.length > 2 && _descHasWord(dl, a));
     }
     return true;
   }).forEach(p => {
-    let score = 0;
+    let score = 0, companyHit = false;
 
     // Match company name / aliases
     const aliases = COMPANY_ALIASES[p.company] || [p.company];
     aliases.forEach(alias => {
       alias.toLowerCase().split(/\s+/).forEach(w => {
-        if(w.length > 2 && dl.includes(w)) score += w.length * 2;
+        if(w.length > 2 && _descHasWord(dl, w)) { score += w.length * 2; companyHit = true; }
       });
     });
 
-    // Match insurance type keywords
+    // Match insurance type keywords (a division name counts for every type it covers)
     const typeKws = TYPE_KEYWORDS[p.type] || [];
-    typeKws.forEach(kw => { if(dl.includes(kw.toLowerCase())) score += 4; });
+    if(typeKws.some(kw => _descHasWord(dl, kw)) || (DIVISION_TYPES && DIVISION_TYPES.includes(p.type))) score += 4;
 
     // Match policy number if present
-    if(p.policyNumber && p.policyNumber.length > 3 && dl.includes(p.policyNumber.toLowerCase())) score += 20;
+    if(p.policyNumber && p.policyNumber.length > 3 && dl.includes(p.policyNumber.toLowerCase())) { score += 20; companyHit = true; }
 
     // Amount proximity — continuous scale so closest amount always wins.
     // Amounts drift with CPI (מדד) so we reward closeness, not just threshold.
-    // ratio=1 (exact) → +20 pts, ratio=0.5 or 2× → +0 pts, linear in between.
+    // ratio=1 (exact) → +20 pts, 25% off → +0 pts, linear in between (was 2× → 0 until 15.09.2026;
+    // that gave 17 pts to a 17%-off candidate and let a wrong policy tie the right one).
+    // Compared against BOTH the monthly average and the real installment (dueAmount): a 4-installment
+    // car policy charges 367, not 1469/12 (15.09.2026).
     if(csvAmount > 0 && p.amount > 0 && score > 0) {
-      const pMonthly = toMonthly(p.amount, p.frequency);
-      const ratio    = csvAmount / pMonthly;          // how many times off
-      const invRatio = pMonthly / csvAmount;
-      const deviation = Math.max(ratio, invRatio) - 1; // 0 = exact, 1 = 2× off
-      score += Math.round(Math.max(0, 20 * (1 - deviation)));
+      const closeness = ref => { const dev = Math.max(csvAmount / ref, ref / csvAmount) - 1; return Math.max(0, 20 * (1 - dev / 0.25)); };
+      score += Math.round(Math.max(closeness(toMonthly(p.amount, p.frequency)), closeness(dueAmount(p))));
     }
 
-    if(score > bestScore){ bestScore = score; best = p; }
+    if(score > bestScore){ bestScore = score; best = p; bestCompanyHit = companyHit; }
   });
-  return bestScore >= 3 ? best : null;
+  matchPolicy.lastScore = bestScore; matchPolicy.lastCompanyHit = bestCompanyHit;
+  // A match needs evidence of WHO is charging (company alias or policy number). A type word alone
+  // ("THAI RENT A CAR" → רכב, "רכבת ישראל" → רכב) is not a match (15.09.2026).
+  return bestScore >= 3 && bestCompanyHit ? best : null;
 }
 function renderCSVPreview() {
   document.getElementById('csv-mapping-section').style.display='none';
@@ -6734,12 +6878,13 @@ function renderCSVPreview() {
   const matchedCount  = csvMapped.filter(r=>r.category==='matched').length;
   const unknownCount  = csvMapped.filter(r=>r.category==='unknown').length;
   const total         = csvMapped.length;
-  let countText = `${matchedCount}/${total} עסקאות מזוהות`;
+  let countText = `${csvSource==='cal' ? '🏦 כאל · ' : ''}${matchedCount}/${total} עסקאות מזוהות`;
   if(unknownCount > 0) countText += ` · ⚠️ ${unknownCount} חיובי ביטוח לא מוכרים`;
   document.getElementById('csv-match-count').textContent = countText;
 
   const policyOptions = `<option value="">— בחר פוליסה —</option>`
     + `<option value="__unknown__">⚠️ תשלום לא מזוהה</option>`
+    + (csvSource==='cal' ? `<option value="__ignore__">🚫 לא ביטוח — התעלם</option>` : '')
     + policies.map(p=>`<option value="${p.id}">${typeIcon(p.type)} ${p.company} · ${p.type}${p.policyNumber?' #'+p.policyNumber:''}${p.tag?' | '+p.tag:''}</option>`).join('');
 
   // Populate "default policy" dropdown
@@ -6817,7 +6962,7 @@ function renderCSVPreview() {
     return `<tr class="${cat==='matched'?'':'csv-unmatched'}" style="${rowStyle}">
       <td><input type="checkbox" id="csv-check-${i}" class="${cbClass}" onchange="csvCheckChange(${i},this)"></td>
       <td style="white-space:nowrap;font-size:12px;">${fmtDate(r.date)}</td>
-      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;" title="${r.desc}">${r.desc}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;" title="${r.desc}${r.calMemo?' · '+r.calMemo:''}">${r.desc}${r.calInst?` <span style="color:var(--text-dim);font-size:10px;">[${r.calInst}]</span>`:''}</td>
       <td style="font-weight:700;">${fmt$(r.amount)}</td>
       <td>${policyCell}</td>
       <td style="text-align:center;">${statusCell}</td>
@@ -6928,7 +7073,7 @@ function importSelectedCSV() {
   const dateOverride = (overrideCb?.checked && overrideVal?.value) ? overrideVal.value + '-15' : null;
   const isStatePay  = document.getElementById('csv-state-payment')?.checked || false;
 
-  const toImport = [], conflicts = [];
+  const toImport = [], conflicts = [], ignored = [];
 
   csvMapped.forEach((r, i) => {
     const cb  = document.getElementById('csv-check-' + i);
@@ -6936,6 +7081,7 @@ function importSelectedCSV() {
     const sel    = document.getElementById('csv-policy-' + i);
     const rawPid = r.match?.id || r._selValue || sel?.value || '';
     if (!rawPid) return;
+    if (rawPid === '__ignore__') { if (r.calKey) ignored.push(r.calKey); return; }
     const pid     = rawPid === '__unknown__' ? null : rawPid;
     const useDate = dateOverride || r.date;
     let mainAmount = r.split?.policyId && r.split?.amount > 0 ? r.amount - r.split.amount : r.amount;
@@ -6966,7 +7112,9 @@ function importSelectedCSV() {
     else          toImport.push({ i, r, pid, useDate, mainAmount });
   });
 
+  if (ignored.length) _calInboxSetState(ignored, 'dismissed', { reason:'לא ביטוח' });
   if (!toImport.length && !conflicts.length) {
+    if (ignored.length) { toast(`${ignored.length} שורות סומנו כלא-ביטוח`, 'success'); resetCSVImport(); return; }
     toast('לא נבחרו שורות לייבוא — סמן שורות ולחץ שוב', 'warning'); return;
   }
   if (!conflicts.length) { _executeImport(toImport, [], isStatePay); return; }
@@ -6982,7 +7130,7 @@ function _showConflictModal(conflicts) {
   conflicts.forEach((c, ci) => {
     const pol = policyById(c.pid);
     const polName = pol ? `${typeIcon(pol.type)} ${pol.type} — ${pol.company}` : 'פוליסה לא ידועה';
-    const existSrc = c.existingPay.source === 'csv' ? 'CSV' : 'ידני';
+    const existSrc = c.existingPay.source === 'csv' ? 'CSV' : c.existingPay.source === 'cal' ? 'כאל' : 'ידני';
     html += `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${polName}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;font-size:12px;">
@@ -6992,7 +7140,7 @@ function _showConflictModal(conflicts) {
           <div style="color:var(--text-dim);">${fmtDate(c.existingPay.date)}</div>
         </div>
         <div style="background:var(--bg3);border-radius:8px;padding:8px 10px;">
-          <div style="color:var(--text-dim);margin-bottom:3px;">CSV חדש</div>
+          <div style="color:var(--text-dim);margin-bottom:3px;">${csvSource==='cal' ? 'כאל' : 'CSV'} חדש</div>
           <div style="font-weight:700;">${fmt$(c.mainAmount)}</div>
           <div style="color:var(--text-dim);">${fmtDate(c.useDate)}</div>
         </div>
@@ -7036,36 +7184,61 @@ function executeConflictImport() {
 
 function _executeImport(toImport, conflicts, isStatePay) {
   let n = 0;
-  const push = (pid, useDate, amount, desc, unknown, isCredit) => {
+  const touchedDates = [], applied = [], parked = [];
+  const src = csvSource === 'cal' ? 'cal' : 'csv';
+  const push = (pid, useDate, amount, desc, unknown, isCredit, calKey) => {
     // באג #2: זיכוי נשמר כסכום שלילי + kind='credit' כדי שיפחית מהמאזן ולא ינפח אותו.
     const signed = isCredit ? -Math.abs(amount) : amount;
-    const obj = { id:uid(), policyId:pid||null, date:useDate, amount:signed, actualAmount:signed, note:desc, source:'csv', status:'cleared', unknown:!!unknown, createdAt:new Date().toISOString() };
+    const obj = { id:uid(), policyId:pid||null, date:useDate, amount:signed, actualAmount:signed, note:desc, source:src, status:'cleared', unknown:!!unknown, createdAt:new Date().toISOString() };
     if (isCredit) obj.kind = 'credit';
     if (isStatePay && pid) obj.paidBy = 'state';
-    payments.push(obj); n++;
+    if (calKey) {
+      if (payments.some(p => p.calKey === calKey)) return; // already applied — never a second payment for one Cal charge
+      obj.calKey = calKey; applied.push({ key:calKey, paymentId:obj.id });
+    }
+    payments.push(obj); n++; touchedDates.push(useDate);
   };
 
   toImport.forEach(({ r, pid, useDate, mainAmount, replacesId }) => {
-    // F1: drop the committed placeholder this real charge fulfills (no double-count).
-    if (replacesId) payments = payments.filter(p => p.id !== replacesId);
     if (r.split?.policyId && r.split?.amount > 0) {
       const splitDup = payments.some(p => p.policyId===r.split.policyId && p.date===useDate && Math.abs(p.amount-r.split.amount)<0.5);
-      if (!splitDup) push(r.split.policyId, useDate, r.split.amount, r.desc+' (פיצול)', false, false);
+      if (!splitDup) push(r.split.policyId, useDate, r.split.amount, r.desc+' (פיצול)', false, false, null);
     }
-    push(pid, useDate, mainAmount, r.desc, !pid, r.isCredit);
+    // F1: the real charge PROMOTES the committed placeholder in place (status → cleared, real amount +
+    // real charge date). Nothing is filtered out of `payments` — the id, the planned month and the
+    // note survive, and the trail dot flips from ring to solid (15.09.2026, was filter+push).
+    const ph = replacesId ? payments.find(p => p.id === replacesId) : null;
+    if (ph) {
+      const signed = r.isCredit ? -Math.abs(mainAmount) : mainAmount;
+      ph.status = 'cleared'; ph.amount = signed; ph.actualAmount = signed; ph.chargedDate = useDate;
+      ph.source = src; ph.note = r.desc; ph.clearedAt = new Date().toISOString();
+      if (r.calKey) { ph.calKey = r.calKey; applied.push({ key:r.calKey, paymentId:ph.id }); }
+      n++; touchedDates.push(ph.date);
+      return;
+    }
+    push(pid, useDate, mainAmount, r.desc, !pid, r.isCredit, r.calKey);
   });
 
   conflicts.forEach(({ r, pid, useDate, mainAmount, existingPay, decision }) => {
-    if (decision === 'skip') return;
-    if (decision === 'replace') payments = payments.filter(p => p.id !== existingPay.id);
-    push(pid, useDate, mainAmount, r.desc, !pid, r.isCredit);
+    // "דלג" on a Cal row parks it (visible under 🅿️ בצד, reversible) so it doesn't return as new next month.
+    if (decision === 'skip') { if (r.calKey) parked.push(r.calKey); return; }
+    if (decision === 'replace') payments = payments.filter(p => p.id !== existingPay.id); // explicit user choice
+    push(pid, useDate, mainAmount, r.desc, !pid, r.isCredit, r.calKey);
   });
 
+  if (parked.length) _calInboxSetState(parked, 'parked', { reason:'דילוג בקונפליקט' });
   if (n === 0) { toast('לא יובאו תשלומים', 'warning'); return; }
   py();
+  if (applied.length) {
+    const batch = db.batch(), stamp = new Date().toISOString();
+    applied.forEach(a => batch.set(_calInboxRef().doc(a.key), { state:'applied', appliedAt:stamp, paymentId:a.paymentId }, { merge:true }));
+    batch.commit().catch(e => { console.error('cal inbox state update failed', e); toast('⚠️ התשלומים נשמרו, אך סימון ה-inbox של כאל נכשל','error'); });
+    calInbox = calInbox.filter(r => !applied.some(a => a.key === r.id));
+    renderCalInbox();
+  }
   const MN = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
-  const months = [...new Set(payments.slice(-n).map(p => { const d=new Date(p.date+'T12:00:00'); return `${MN[d.getMonth()]} ${d.getFullYear()}`; }))].join(', ');
-  toast(`✅ יובאו ${n} תשלומים — ${months}`, 'success');
+  const months = [...new Set(touchedDates.map(ds => { const d=new Date(ds+'T12:00:00'); return `${MN[d.getMonth()]} ${d.getFullYear()}`; }))].join(', ');
+  toast(`✅ ${src==='cal' ? 'נקלטו מכאל' : 'יובאו'} ${n} תשלומים — ${months}`, 'success');
   resetCSVImport(); renderHistory(); renderDashboard(); renderMonthlySummary();
 }
 function toggleDateOverride(cb) {
@@ -7569,8 +7742,8 @@ function deduplicateKeepCSV() {
   const toRemove = new Set();
   Object.values(groups).forEach(group => {
     if (group.length <= 1) return;
-    const csvPays    = group.filter(p => p.source === 'csv');
-    const manualPays = group.filter(p => p.source !== 'csv');
+    const csvPays    = group.filter(p => p.source === 'csv' || p.source === 'cal');
+    const manualPays = group.filter(p => p.source !== 'csv' && p.source !== 'cal');
     // If mix of CSV + manual → remove all manual
     if (csvPays.length > 0 && manualPays.length > 0)
       manualPays.forEach(p => toRemove.add(p.id));
@@ -7642,6 +7815,7 @@ function deduplicatePayments() {
   const before = payments.length;
   payments = payments.filter(pay => {
     if(pay.status === 'committed') return true; // forecasts are not duplicates — never dedup them away
+    if(pay.calKey) return true; // Cal rows are unique by Cal's own key — two same-amount charges are two charges
     const key = `${pay.policyId}|${pay.date}|${Math.round(pay.amount)}`;
     if(seen.has(key)) return false;
     seen.add(key);
@@ -7661,6 +7835,7 @@ function renderSettings() {
   const seen = new Set();
   let dups = 0;
   payments.forEach(pay => {
+    if(pay.calKey || pay.status === 'committed') return;
     const key = `${pay.policyId}|${pay.date}|${Math.round(pay.amount)}`;
     if(seen.has(key)) dups++;
     else seen.add(key);
@@ -8225,8 +8400,10 @@ auth.onAuthStateChanged(async user => {
     if(infoEl)  infoEl.style.display = 'block';
     // Load data then render
     await _loadFromFirestore();
+    await _loadCalInbox();
     renderDashboard();
     renderSettings();
+    renderCalInbox();
   } else {
     currentUser = null;
     policies = [];

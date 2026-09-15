@@ -454,7 +454,7 @@ CSS class: `.summary-bar`, `.summary-bar-item`, `.summary-bar-value.accent`
 ### ארכיטקטורה
 ```
 scraper/cal-sync.js (Node 24, israeli-bank-scrapers + puppeteer, על ה-Mac)
-  Keychain `insurance-tracker-cal` → כאל (קריאה בלבד) → כרטיס …8809, completed בלבד
+  Keychain `insurance-tracker-cal` → כאל (קריאה בלבד) → כרטיסים לפי `config.cards` (…8809 · …5797 · …5805 של אדר — 15.09.2026), completed בלבד
   → סינון: calCategory==='ביטוח ופיננסים' || מילת-חברה
   → users/{uid}/cal_inbox/{key}   set(merge) — לא נוגע ב-state, לא מוחק לעולם
   → users/{uid}/data/calSync      {lastRunAt, lastSuccessAt, newCount, scanned, error}

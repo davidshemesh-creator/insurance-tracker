@@ -7108,6 +7108,12 @@ function importSelectedCSV() {
       pay.date?.slice(0,7) === useDate?.slice(0,7)
     );
 
+    // Cal row vs an existing cleared payment of the SAME amount in the same month = the same charge,
+    // recorded earlier by hand or CSV. Verify it (attach calKey + real date) instead of asking —
+    // a backfill of 2026 would otherwise raise a conflict for every month already logged (15.09.2026).
+    if (existing && r.calKey && !existing.calKey && Math.abs(Math.abs(existing.actualAmount ?? existing.amount) - mainAmount) < 1) {
+      toImport.push({ i, r, pid, useDate, mainAmount, verifiesId: existing.id }); return;
+    }
     if (existing) conflicts.push({ i, r, pid, useDate, mainAmount, existingPay: existing, decision: 'skip' });
     else          toImport.push({ i, r, pid, useDate, mainAmount });
   });
@@ -7199,7 +7205,15 @@ function _executeImport(toImport, conflicts, isStatePay) {
     payments.push(obj); n++; touchedDates.push(useDate);
   };
 
-  toImport.forEach(({ r, pid, useDate, mainAmount, replacesId }) => {
+  toImport.forEach(({ r, pid, useDate, mainAmount, replacesId, verifiesId }) => {
+    // Same charge already logged (manual ✓ or CSV) — stamp it as verified against Cal, no second payment.
+    const ver = verifiesId ? payments.find(p => p.id === verifiesId) : null;
+    if (ver) {
+      ver.calKey = r.calKey; ver.chargedDate = useDate; ver.verifiedAt = new Date().toISOString();
+      if (ver.actualAmount == null) ver.actualAmount = ver.amount;
+      applied.push({ key:r.calKey, paymentId:ver.id }); n++; touchedDates.push(ver.date);
+      return;
+    }
     if (r.split?.policyId && r.split?.amount > 0) {
       const splitDup = payments.some(p => p.policyId===r.split.policyId && p.date===useDate && Math.abs(p.amount-r.split.amount)<0.5);
       if (!splitDup) push(r.split.policyId, useDate, r.split.amount, r.desc+' (פיצול)', false, false, null);

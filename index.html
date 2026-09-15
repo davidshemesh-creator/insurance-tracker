@@ -3044,6 +3044,7 @@ tr:hover td { background: var(--bg3); }
         <strong>פורמטים נתמכים:</strong> Excel (xlsx, xls) ו-CSV · <strong>עמודות נדרשות:</strong> תאריך, תיאור, סכום (זיהוי אוטומטי)</div>
       </div>
       <div id="cal-inbox-box" style="margin-bottom:16px;padding:14px 16px;background:rgba(155,89,182,.10);border:1px solid rgba(155,89,182,.35);border-radius:10px;"></div>
+      <div id="cal-activity" style="margin-bottom:16px;"></div>
       <div class="upload-zone" id="upload-zone"
            ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)"
            onclick="document.getElementById('csv-file-input').click()">
@@ -3778,6 +3779,117 @@ async function showParkedCalRows() {
     </div>`).join('') : '<div style="color:var(--text-dim);font-size:13px;padding:10px 0;">אין שורות בצד.</div>';
   document.getElementById('cal-parked-list').innerHTML = html;
   openModal('cal-parked-modal');
+}
+
+// ══ Phase 2 (15.09.2026): things that happen by themselves ══════════════════════════════════════
+// 1. Bank standing orders: a policy with autoPay {source:'bank', day, since} gets its month's cleared
+//    payment recorded automatically once the day has passed (idempotent per policy+month).
+// 2. Cal auto-apply: a new inbox row is applied WITHOUT asking only when the evidence is unambiguous —
+//    company evidence + amount within 15% of the due installment (or within 10% of a signature David
+//    taught) + a clear lead over the runner-up + no other cleared payment for that policy+month.
+//    Everything else stays 'new' and waits for David in the preview.
+// 3. Activity log (data/calActivity): every automatic change is listed, newest first, and toasted.
+let calActivity = [];
+async function _loadCalActivity() {
+  try { const d = await _userDoc('calActivity').get(); calActivity = d.exists ? (d.data().items || []) : []; } catch { calActivity = []; }
+}
+function _logActivity(kind, text, meta = {}) {
+  calActivity.unshift({ id:uid(), at:new Date().toISOString(), kind, text, ...meta });
+  calActivity = calActivity.slice(0, 60);
+  if(currentUser) _userDoc('calActivity').set({ items: calActivity }).catch(()=>{});
+}
+function _monthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+function applyAutoPayments() {
+  // autoPay = one leg {source, day, since, amount?} or a list of legs — e.g. חסכון לכל ילד: David's ₪58
+  // from the bank on the 15th AND the state's deposit (paidBy:'state', not David's money) on the 20th.
+  const today = new Date(); let n = 0; const lines = [];
+  policies.filter(p => p.autoPay && isActive(p)).forEach(p => {
+    const legs = Array.isArray(p.autoPay) ? p.autoPay : [p.autoPay];
+    legs.filter(leg => leg && leg.day).forEach(leg => {
+      const amt = leg.amount > 0 ? leg.amount : dueAmount(p);
+      if(!(amt > 0)) return;
+      const isState = leg.source === 'state';
+      const since = leg.since ? new Date(leg.since + 'T12:00:00') : new Date(p.start + 'T12:00:00');
+      for(let d = new Date(since.getFullYear(), since.getMonth(), 1); d <= today; d.setMonth(d.getMonth() + 1)) {
+        const mk = _monthKey(d);
+        if(new Date(d.getFullYear(), d.getMonth(), leg.day, 12) > today) continue;   // this month's date hasn't come yet
+        const dup = payments.some(pay => pay.policyId === p.id && (pay.date || '').slice(0,7) === mk && pay.status !== 'committed' && ((pay.paidBy === 'state') === isState));
+        if(dup) continue;
+        const date = `${mk}-${String(leg.day).padStart(2,'0')}`;
+        const obj = { id:uid(), policyId:p.id, date, amount:amt, actualAmount:amt, note:isState ? 'הפקדת מדינה — נרשם אוטומטית' : `הוראת קבע ${leg.source === 'bank' ? 'בנק' : leg.source} — נרשם אוטומטית`, source:'bank-auto', status:'cleared', unknown:false, createdAt:new Date().toISOString() };
+        if(isState) obj.paidBy = 'state';
+        payments.push(obj); n++;
+        lines.push(`${p.company} · ${p.type}${isState ? ' (מדינה)' : ''} · ${DASH3_MONTHS[d.getMonth()]} ${fmt$(amt)}`);
+      }
+    });
+  });
+  if(n) {
+    py();
+    lines.forEach(l => _logActivity('bank', `נרשם אוטומטית: ${l}`));
+    toast(`🏛️ נרשמו ${n} הפקדות קבועות: ${lines.slice(0,3).join(' · ')}${n > 3 ? ' …' : ''}`, 'success');
+  }
+  return n;
+}
+
+// Evidence gate for one mapped row. Returns {ok, why}.
+function _calAutoGate(r) {
+  if(!r.match || !r.calKey) return { ok:false, why:'לא זוהה' };
+  if(r.calCategory && r.calCategory !== 'ביטוח ופיננסים') return { ok:false, why:'קטגוריית כאל לא ביטוח' };
+  const p = r.match, amt = r.amount;
+  const sig = (p.calSignatures || {})[r.desc];
+  const near = (ref, tol) => ref > 0 && Math.abs(amt - ref) / ref <= tol;
+  const amountOk = (sig && near(sig, 0.10)) || near(dueAmount(p), 0.15) || (r.isCredit);
+  if(!amountOk) return { ok:false, why:`סכום ${fmt$(amt)} רחוק מהצפוי ${fmt$(dueAmount(p))}` };
+  const s1 = matchPolicy.lastScore;
+  matchPolicy(r.desc, amt, r.date, new Set([p.id]), r.isCredit);
+  const s2 = matchPolicy.lastScore;
+  matchPolicy(r.desc, amt, r.date, new Set(), r.isCredit); // restore lastScore semantics (not relied on below)
+  if(!sig && s1 - s2 < 8) return { ok:false, why:'שני מועמדים קרובים' };
+  return { ok:true, why: sig ? 'חתימה' : 'סכום+חברה' };
+}
+
+async function calAutoApply() {
+  if(!currentUser || !calInbox.length) return 0;
+  csvSource = 'cal';
+  const fresh = calInbox.filter(r => !payments.some(p => p.calKey === r.id));
+  const rawRows = fresh.map((r,i) => ({ idx:i, date:r.date, desc:r.description, amount:Math.abs(r.amount), isCredit:r.amount < 0, calKey:r.id, calCategory:r.calCategory||'', calMemo:r.memo||'' }));
+  _buildMappedRows(rawRows);
+  const toImport = []; const held = [];
+  csvMapped.forEach(r => {
+    const g = _calAutoGate(r);
+    if(!g.ok) { held.push({ r, why:g.why }); return; }
+    const pid = r.match.id, useDate = r.date, mainAmount = r.amount;
+    const committedMatch = payments.find(pay => pay.policyId === pid && pay.status === 'committed' && pay.date?.slice(0,7) === useDate.slice(0,7))
+      || payments.find(pay => pay.policyId === pid && pay.status === 'committed' && _monthsApart(pay.date, useDate) === 1);
+    if(committedMatch) { toImport.push({ r, pid, useDate, mainAmount, replacesId: committedMatch.id, _why:g.why }); return; }
+    const existing = payments.find(pay => pay.policyId === pid && (pay.status || 'cleared') !== 'committed' && pay.date?.slice(0,7) === useDate.slice(0,7));
+    if(existing && !existing.calKey && Math.abs(Math.abs(existing.actualAmount ?? existing.amount) - mainAmount) < 1) { toImport.push({ r, pid, useDate, mainAmount, verifiesId: existing.id, _why:'אימות רשומה קיימת' }); return; }
+    if(existing) { held.push({ r, why:'כבר יש תשלום לחודש זה בסכום אחר' }); return; }
+    toImport.push({ r, pid, useDate, mainAmount, _why:g.why });
+  });
+  if(toImport.length) {
+    // Insurance against a bad apply: one snapshot per day, before the first automatic change.
+    const snapKey = new Date().toISOString().slice(0,10);
+    try { await db.collection('users').doc(currentUser.uid).collection('snapshots').doc('auto-' + snapKey).set({ createdAt:new Date().toISOString(), reason:'before Cal auto-apply', payments }, { merge:false }); } catch(e) { console.error('snapshot failed', e); }
+    const rowsForLog = toImport.map(t => `${t.r.match.company} · ${t.r.match.type} · ${fmtDate(t.useDate)} ${fmt$(t.mainAmount)}${t.verifiesId ? ' (אומת)' : ''}`);
+    _executeImport(toImport, [], false);
+    rowsForLog.forEach(l => _logActivity('cal-auto', `נקלט אוטומטית מכאל: ${l}`));
+  }
+  held.forEach(h => { if(!h.r._loggedHold) h.r._loggedHold = true; });
+  csvMapped = []; csvSource = 'file';
+  if(held.length) toast(`🏦 ${held.length} חיובים מכאל ממתינים לך — ${held.slice(0,2).map(h => h.r.desc + ' (' + h.why + ')').join(' · ')}${held.length > 2 ? ' …' : ''}`, 'warning');
+  renderCalInbox();
+  return toImport.length;
+}
+function renderCalActivity() {
+  const el = document.getElementById('cal-activity');
+  if(!el) return;
+  el.innerHTML = calActivity.length ? `<div class="section-label" style="margin:14px 0 6px;">מה עודכן אוטומטית</div>` + calActivity.slice(0, 15).map(a => `
+    <div style="display:flex;gap:10px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);">
+      <span style="color:var(--text-dim);white-space:nowrap;">${fmtDate(a.at.slice(0,10))}</span>
+      <span>${a.kind === 'bank' ? '🏛️' : a.kind === 'cal-auto' ? '🏦' : '•'} ${a.text}</span>
+    </div>`).join('') : '';
 }
 
 async function _loadFromFirestore() {
@@ -6006,7 +6118,7 @@ function viewPolicy(id) {
           const isCommitted = pay.status === 'committed';
           const source = isCommitted ? '⏳ מחויב (טרם נגבה)'
                        : pay.paidBy === 'state' ? '🏛️ הפקדת מדינה'
-                       : (pay.source === 'csv' ? '📄 ייבוא CSV' : pay.source === 'cal' ? '🏦 כאל' : '📝 ידני');
+                       : (pay.source === 'csv' ? '📄 ייבוא CSV' : pay.source === 'cal' ? '🏦 כאל' : pay.source === 'bank-auto' ? '🏛️ הו"ק בנק (אוטומטי)' : pay.source === 'bank' ? '🏛️ בנק' : '📝 ידני');
           const sourceLine = source + (pay.note && !isCommitted ? ' · ' + pay.note : '');
           return `<div class="pay-row-v2" data-year="${pay.date.slice(0,4)}"${isCommitted ? ' style="opacity:.7;"' : ''}>
             <div class="pay-row-v2-date">${fmtDate(pay.date)}</div>
@@ -6448,7 +6560,7 @@ function renderHistory() {
       const isDup = pay.policyId && pidCount[pay.policyId] > 1;
       const col = isUnknown ? '#f5a623' : pol ? typeColor(pol.type) : '#666';
       const infoLine = pol ? [pol.company, pol.agent, pol.policyNumber].filter(Boolean).join(' · ') : '';
-      const sourceTag = `<span class="tag ${pay.source==='csv'||pay.source==='cal'?'tag-csv':'tag-manual'}" style="padding:1px 6px;font-size:10px;">${pay.source==='csv'?'CSV':pay.source==='cal'?'כאל':'ידני'}</span>`;
+      const sourceTag = `<span class="tag ${pay.source==='csv'||pay.source==='cal'?'tag-csv':'tag-manual'}" style="padding:1px 6px;font-size:10px;">${pay.source==='csv'?'CSV':pay.source==='cal'?'כאל':pay.source==='bank-auto'?'בנק·אוטו':pay.source==='bank'?'בנק':'ידני'}</span>`;
       const dupTag = isDup ? `<span style="background:rgba(245,166,35,.2);color:#f5a623;border:1px solid rgba(245,166,35,.4);border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;">⚠️ כפול</span>` : '';
       const metaLine = [fmtDate(pay.date), sourceTag, dupTag, pay.paidBy==='state'?'🏛️ מדינה':'', pay.note&&!isUnknown?pay.note:''].filter(Boolean).join(' · ');
 
@@ -7243,6 +7355,16 @@ function _executeImport(toImport, conflicts, isStatePay) {
     }
     push(pid, useDate, mainAmount, r.desc, !pid, r.isCredit, r.calKey);
   });
+  // Signature learning: every Cal row David (or the gate) attached to a policy teaches that policy what
+  // this charge looks like — description → last amount. Next month the same description auto-applies.
+  let sigChanged = false;
+  toImport.forEach(({ r, pid, mainAmount }) => {
+    if(!r.calKey || !pid) return;
+    const p = policyById(pid); if(!p) return;
+    p.calSignatures = p.calSignatures || {};
+    if(p.calSignatures[r.desc] !== mainAmount) { p.calSignatures[r.desc] = mainAmount; sigChanged = true; }
+  });
+  if(sigChanged) pp();
 
   conflicts.forEach(({ r, pid, useDate, mainAmount, existingPay, decision }) => {
     // "דלג" on a Cal row parks it (visible under 🅿️ בצד, reversible) so it doesn't return as new next month.
@@ -7252,7 +7374,7 @@ function _executeImport(toImport, conflicts, isStatePay) {
   });
 
   if (parked.length) _calInboxSetState(parked, 'parked', { reason:'דילוג בקונפליקט' });
-  if (n === 0) { toast('לא יובאו תשלומים', 'warning'); return; }
+  if (n === 0) { if (csvSource !== 'cal' || conflicts.length) toast('לא יובאו תשלומים', 'warning'); return; }
   py();
   if (applied.length) {
     const batch = db.batch(), stamp = new Date().toISOString();
@@ -8425,10 +8547,13 @@ auth.onAuthStateChanged(async user => {
     if(infoEl)  infoEl.style.display = 'block';
     // Load data then render
     await _loadFromFirestore();
-    await _loadCalInbox();
+    await Promise.all([_loadCalInbox(), _loadCalActivity()]);
+    applyAutoPayments();
+    await calAutoApply();
     renderDashboard();
     renderSettings();
     renderCalInbox();
+    renderCalActivity();
   } else {
     currentUser = null;
     policies = [];

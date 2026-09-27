@@ -4572,6 +4572,18 @@ function dash3CycleLabel(p) {
   return p.frequency || '';
 }
 
+// Day of month the policy is really charged = day of its latest actual charge.
+// (Was `paymentMonths[0] || 15` — a MONTH number shown as a day: car 7-10 → "יום 7".)
+function dash3ChargeDay(p) {
+  let last = '';
+  for(const y of payments) {
+    if(String(y.policyId) !== String(p.id) || !(y.amount > 0)) continue;
+    const d = y.chargedDate || y.date || '';
+    if(/^\d{4}-\d{2}-\d{2}/.test(d) && d > last) last = d;
+  }
+  return last ? parseInt(last.slice(8, 10), 10) : null;
+}
+
 function dash3NextDueLabel(p, viewYear, viewMonth) {
   if(!p.amount || p.amount <= 0) return null;
   const SAVING = ['פנסיה','קרן השתלמות','קופת גמל','קופת גמל להשקעה','חסכון'];
@@ -4581,7 +4593,7 @@ function dash3NextDueLabel(p, viewYear, viewMonth) {
     let y = viewYear, m = viewMonth + i;
     while(m > 11) { m -= 12; y++; }
     if(dash3IsDueInMonth(p, y, m)) {
-      if(i === 0) return `יום ${p.paymentMonths?.[0] || 15}`;
+      if(i === 0) { const d = dash3ChargeDay(p); return d ? `יום ${d}` : 'החודש'; }
       return `${DASH3_MONTHS[m].slice(0,3)}׳ ${y === viewYear ? '' : y}`.trim();
     }
   }
